@@ -1,0 +1,651 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client-browser'
+import Link from 'next/link'
+
+export default function AdminActivitiesPage() {
+  const [activities, setActivities] = useState<any[]>([])
+  const [selectedActivity, setSelectedActivity] = useState<any>(null)
+  const [categories, setCategories] = useState<any[]>([])
+  const [locations, setLocations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category_id: '',
+    location_id: '',
+    duration_minutes: 60,
+    is_daily_activity: true,
+    is_night_show: false
+  })
+
+  const supabase = createClient()
+
+  // Jours de la semaine
+  const daysOfWeek = [
+    { value: 0, label: 'Dimanche' },
+    { value: 1, label: 'Lundi' },
+    { value: 2, label: 'Mardi' },
+    { value: 3, label: 'Mercredi' },
+    { value: 4, label: 'Jeudi' },
+    { value: 5, label: 'Vendredi' },
+    { value: 6, label: 'Samedi' }
+  ]
+
+  // ============================================
+  // CHARGEMENT DES DONNÉES
+  // ============================================
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  async function loadData() {
+    setLoading(true)
+    try {
+      // Charger les activités
+      const { data: activitiesData } = await supabase
+        .from('entertainments')
+        .select(`
+          *,
+          category:categories!category_id(
+            id,
+            name,
+            icon,
+            color,
+            text_color,
+            bg_color
+          ),
+          location:locations(name),
+          schedules:daily_schedules(
+            id,
+            day_of_week,
+            start_time,
+            duration_minutes
+          )
+        `)
+        .eq('hotel_id', 1)
+        .eq('is_daily_activity', true)
+        .eq('is_night_show', false)
+        .order('created_at', { ascending: false })
+
+      setActivities(activitiesData || [])
+
+      // Charger les catégories d'activités
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('hotel_id', 1)
+        .eq('category_type', 'activity')
+        .eq('is_active', true)
+        .order('sort_order')
+
+      setCategories(categoriesData || [])
+
+      // Charger les emplacements
+      const { data: locationsData } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('hotel_id', 1)
+        .eq('location_type', 'activity')
+        .order('name')
+
+      setLocations(locationsData || [])
+      
+      if (activitiesData?.length && !selectedActivity) {
+        setSelectedActivity(activitiesData[0])
+        setFormData({
+          title: activitiesData[0].title || '',
+          description: activitiesData[0].description || '',
+          category_id: activitiesData[0].category_id?.toString() || '',
+          location_id: activitiesData[0].location_id?.toString() || '',
+          duration_minutes: 60,
+          is_daily_activity: true,
+          is_night_show: false
+        })
+      }
+    } catch (error) {
+      console.error('Erreur chargement:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ============================================
+  // CRUD ACTIVITÉS
+  // ============================================
+  async function createActivity() {
+    try {
+      if (!formData.title) {
+        alert('Veuillez saisir un titre')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('entertainments')
+        .insert({
+          hotel_id: 1,
+          title: formData.title,
+          description: formData.description,
+          category_id: formData.category_id ? parseInt(formData.category_id) : null,
+          location_id: formData.location_id ? parseInt(formData.location_id) : null,
+          is_daily_activity: true,
+          is_night_show: false
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      alert('✅ Activité créée avec succès !')
+      setEditing(false)
+      await loadData()
+      setSelectedActivity(data)
+    } catch (error) {
+      console.error('Erreur création:', error)
+      alert('❌ Erreur lors de la création')
+    }
+  }
+
+  async function updateActivity() {
+    if (!selectedActivity) return
+
+    try {
+      const { error } = await supabase
+        .from('entertainments')
+        .update({
+          title: formData.title,
+          description: formData.description,
+          category_id: formData.category_id ? parseInt(formData.category_id) : null,
+          location_id: formData.location_id ? parseInt(formData.location_id) : null
+        })
+        .eq('id', selectedActivity.id)
+
+      if (error) throw error
+
+      alert('✅ Activité mise à jour')
+      setEditing(false)
+      await loadData()
+    } catch (error) {
+      console.error('Erreur mise à jour:', error)
+      alert('❌ Erreur lors de la mise à jour')
+    }
+  }
+
+  async function deleteActivity(id: number) {
+    if (!confirm('Supprimer définitivement cette activité ?')) return
+
+    try {
+      const { error } = await supabase
+        .from('entertainments')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      alert('✅ Activité supprimée')
+      await loadData()
+      if (selectedActivity?.id === id) {
+        setSelectedActivity(null)
+        resetForm()
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error)
+      alert('❌ Erreur lors de la suppression')
+    }
+  }
+
+  // ============================================
+  // GESTION DES HORAIRES
+  // ============================================
+  async function addSchedule(activityId: number, dayOfWeek: number, startTime: string) {
+    try {
+      const { error } = await supabase
+        .from('daily_schedules')
+        .insert({
+          entertainment_id: activityId,
+          day_of_week: dayOfWeek,
+          start_time: startTime,
+          duration_minutes: 60
+        })
+
+      if (error) throw error
+
+      alert('✅ Horaire ajouté')
+      await loadData()
+    } catch (error) {
+      console.error('Erreur ajout horaire:', error)
+      alert('❌ Erreur lors de l\'ajout')
+    }
+  }
+
+  async function deleteSchedule(scheduleId: number) {
+    try {
+      const { error } = await supabase
+        .from('daily_schedules')
+        .delete()
+        .eq('id', scheduleId)
+
+      if (error) throw error
+
+      alert('✅ Horaire supprimé')
+      await loadData()
+    } catch (error) {
+      console.error('Erreur suppression horaire:', error)
+      alert('❌ Erreur lors de la suppression')
+    }
+  }
+
+  // ============================================
+  // UTILS
+  // ============================================
+  function resetForm() {
+    setFormData({
+      title: '',
+      description: '',
+      category_id: '',
+      location_id: '',
+      duration_minutes: 60,
+      is_daily_activity: true,
+      is_night_show: false
+    })
+  }
+
+  function startEdit(activity?: any) {
+    if (activity) {
+      setFormData({
+        title: activity.title || '',
+        description: activity.description || '',
+        category_id: activity.category_id?.toString() || '',
+        location_id: activity.location_id?.toString() || '',
+        duration_minutes: 60,
+        is_daily_activity: true,
+        is_night_show: false
+      })
+      setSelectedActivity(activity)
+    }
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    setEditing(false)
+    if (selectedActivity) {
+      setFormData({
+        title: selectedActivity.title || '',
+        description: selectedActivity.description || '',
+        category_id: selectedActivity.category_id?.toString() || '',
+        location_id: selectedActivity.location_id?.toString() || '',
+        duration_minutes: 60,
+        is_daily_activity: true,
+        is_night_show: false
+      })
+    } else {
+      resetForm()
+    }
+  }
+
+  if (loading && !activities.length) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-spin">🎭</div>
+          <p className="text-gray-600">Chargement des activités...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* En-tête */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <span>🎭</span> Gestion des activités
+            </h1>
+            <p className="text-gray-600">
+              Gérez les activités journalières et animations
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              resetForm()
+              setSelectedActivity(null)
+              setEditing(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
+          >
+            <span>➕</span>
+            Nouvelle activité
+          </button>
+        </div>
+
+        <div className="grid grid-cols-12 gap-6">
+          
+          {/* ===== COLONNE 1 : LISTE DES ACTIVITÉS ===== */}
+          <div className="col-span-3 bg-white rounded-xl shadow-sm p-4">
+            <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <span>📋</span>
+              Activités
+              <span className="ml-auto bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                {activities.length}
+              </span>
+            </h2>
+            
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {activities.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  Aucune activité
+                </p>
+              ) : (
+                activities.map((activity) => (
+                  <button
+                    key={activity.id}
+                    onClick={() => {
+                      setSelectedActivity(activity)
+                      setFormData({
+                        title: activity.title || '',
+                        description: activity.description || '',
+                        category_id: activity.category_id?.toString() || '',
+                        location_id: activity.location_id?.toString() || '',
+                        duration_minutes: 60,
+                        is_daily_activity: true,
+                        is_night_show: false
+                      })
+                      setEditing(false)
+                    }}
+                    className={`
+                      w-full text-left p-3 rounded-lg transition
+                      ${selectedActivity?.id === activity.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`
+                        w-6 h-6 rounded-full flex items-center justify-center text-xs
+                        ${selectedActivity?.id === activity.id
+                          ? 'bg-white/20 text-white'
+                          : activity.category?.bg_color || 'bg-gray-200'
+                        }
+                      `}>
+                        {activity.category?.icon || '🎯'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">
+                          {activity.title}
+                        </div>
+                        <div className={`text-xs ${
+                          selectedActivity?.id === activity.id
+                            ? 'text-white/80'
+                            : 'text-gray-500'
+                        }`}>
+                          {activity.schedules?.length || 0} horaire(s)
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* ===== COLONNE 2 : DÉTAILS / ÉDITION ===== */}
+          <div className="col-span-9 space-y-6">
+            {editing ? (
+              // ===== FORMULAIRE D'ÉDITION =====
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">
+                  {selectedActivity ? '✏️ Modifier' : '➕ Nouvelle activité'}
+                </h2>
+
+                <div className="space-y-4">
+                  {/* Titre */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Titre de l'activité <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="w-full rounded-lg border-gray-300 shadow-sm"
+                      placeholder="Ex: Aquagym matinale"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full rounded-lg border-gray-300 shadow-sm"
+                      placeholder="Décrivez l'activité..."
+                    />
+                  </div>
+
+                  {/* Catégorie */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Catégorie
+                    </label>
+                    <select
+                      value={formData.category_id}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                      className="w-full rounded-lg border-gray-300 shadow-sm"
+                    >
+                      <option value="">Sélectionner une catégorie...</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.icon} {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Emplacement */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Emplacement
+                    </label>
+                    <select
+                      value={formData.location_id}
+                      onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
+                      className="w-full rounded-lg border-gray-300 shadow-sm"
+                    >
+                      <option value="">Sélectionner un emplacement...</option>
+                      {locations.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          📍 {loc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Boutons */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={selectedActivity ? updateActivity : createActivity}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                    >
+                      <span>💾</span>
+                      {selectedActivity ? 'Mettre à jour' : 'Créer'}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                    >
+                      <span>✕</span>
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // ===== AFFICHAGE DES DÉTAILS =====
+              selectedActivity ? (
+                <>
+                  {/* Détails de l'activité */}
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className={`
+                          w-12 h-12 rounded-xl flex items-center justify-center text-2xl
+                          ${selectedActivity.category?.bg_color || 'bg-gray-100'}
+                          ${selectedActivity.category?.text_color || 'text-gray-700'}
+                        `}>
+                          {selectedActivity.category?.icon || '🎯'}
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            {selectedActivity.title}
+                          </h2>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">
+                              {selectedActivity.category?.name || 'Non catégorisé'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEdit(selectedActivity)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                        >
+                          <span>✏️</span>
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => deleteActivity(selectedActivity.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                        >
+                          <span>🗑️</span>
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 mt-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Description</p>
+                        <p className="text-gray-800">
+                          {selectedActivity.description || 'Aucune description'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Emplacement</p>
+                        <p className="text-gray-800">
+                          {selectedActivity.location?.name || 'Non défini'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Gestion des horaires */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>🕐</span>
+                        Horaires hebdomadaires
+                      </h3>
+
+                      {/* Liste des horaires existants */}
+                      <div className="space-y-2 mb-4">
+                        {selectedActivity.schedules?.map((schedule: any) => (
+                          <div key={schedule.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium text-gray-700 w-24">
+                                {daysOfWeek[schedule.day_of_week]?.label}
+                              </span>
+                              <span className="text-gray-900">
+                                {schedule.start_time.slice(0,5)}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                (durée: {schedule.duration_minutes} min)
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => deleteSchedule(schedule.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        ))}
+                        {(!selectedActivity.schedules || selectedActivity.schedules.length === 0) && (
+                          <p className="text-gray-500 text-sm py-2">
+                            Aucun horaire défini
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Ajout d'un horaire */}
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-800 mb-3">
+                          Ajouter un horaire
+                        </h4>
+                        <div className="flex gap-3">
+                          <select
+                            id="day_select"
+                            className="flex-1 rounded-lg border-gray-300 shadow-sm text-sm"
+                            defaultValue=""
+                          >
+                            <option value="">Choisir un jour...</option>
+                            {daysOfWeek.map((day) => (
+                              <option key={day.value} value={day.value}>
+                                {day.label}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="time"
+                            id="start_time"
+                            className="rounded-lg border-gray-300 shadow-sm"
+                            defaultValue="09:00"
+                          />
+                          <button
+                            onClick={() => {
+                              const select = document.getElementById('day_select') as HTMLSelectElement
+                              const timeInput = document.getElementById('start_time') as HTMLInputElement
+                              if (select.value && timeInput.value) {
+                                addSchedule(
+                                  selectedActivity.id,
+                                  parseInt(select.value),
+                                  timeInput.value
+                                )
+                              } else {
+                                alert('Veuillez sélectionner un jour et une heure')
+                              }
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                  <div className="text-7xl mb-4">🎭</div>
+                  <h3 className="text-xl font-medium text-gray-800 mb-2">
+                    Aucune activité sélectionnée
+                  </h3>
+                  <p className="text-gray-600">
+                    Sélectionnez une activité dans la liste ou créez-en une nouvelle.
+                  </p>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
