@@ -38,7 +38,7 @@ export default async function ShowsPage() {
     ?.filter(show => show.schedules && show.schedules.length > 0)
     .map(show => ({
       ...show,
-      schedules: show.schedules.sort((a, b) => 
+      schedules: show.schedules.sort((a: any, b: any) => 
         new Date(a.show_date).getTime() - new Date(b.show_date).getTime()
       )
     }))

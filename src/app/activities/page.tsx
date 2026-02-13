@@ -55,7 +55,7 @@ export default async function ActivitiesPage() {
 
   // 5. Organiser les activités par jour
   const activitiesByDay = activities?.reduce((acc, activity) => {
-    activity.schedules?.forEach(schedule => {
+    activity.schedules?.forEach((schedule : any) => {
       const day = schedule.day_of_week
       if (!acc[day]) acc[day] = []
       acc[day].push({
@@ -122,8 +122,8 @@ export default async function ActivitiesPage() {
                 {/* Liste des activités */}
                 <div className="divide-y divide-gray-100">
                   {dayActivities
-                    .sort((a, b) => a.schedule.start_time.localeCompare(b.schedule.start_time))
-                    .map((item, index) => (
+                    .sort((a: any, b: any) => a.schedule.start_time.localeCompare(b.schedule.start_time))
+                    .map((item: any, index: number) => (
                       <div key={`${item.id}-${index}`} className="p-6 hover:bg-gray-50 transition">
                         <div className="flex flex-col md:flex-row gap-4">
                           {/* Heure */}

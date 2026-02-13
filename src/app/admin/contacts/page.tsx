@@ -1,12 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
+// ============================================
+// TYPES
+// ============================================
+type ContactType = {
+  id: number
+  hotel_id: number
+  name: string
+  phone_number: string
+  department: string
+  created_at: string
+}
+
+type ContactsByDepartment = Record<string, ContactType[]>
+
 export default function AdminContactsPage() {
-  const [contacts, setContacts] = useState<any[]>([])
-  const [selectedContact, setSelectedContact] = useState<any>(null)
+  const [contacts, setContacts] = useState<ContactType[]>([])
+  const [selectedContact, setSelectedContact] = useState<ContactType | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -156,7 +170,7 @@ export default function AdminContactsPage() {
     })
   }
 
-  function startEdit(contact?: any) {
+  function startEdit(contact?: ContactType) {
     if (contact) {
       setFormData({
         name: contact.name || '',
@@ -181,13 +195,13 @@ export default function AdminContactsPage() {
     }
   }
 
-  // Grouper les contacts par département
-  const contactsByDepartment = contacts.reduce((acc, contact) => {
+  // Grouper les contacts par département - AVEC TYPAGE CORRIGÉ
+  const contactsByDepartment = contacts.reduce((acc: ContactsByDepartment, contact: ContactType) => {
     const dept = contact.department || 'Autres'
     if (!acc[dept]) acc[dept] = []
     acc[dept].push(contact)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {} as ContactsByDepartment)
 
   if (loading) {
     return (
@@ -244,47 +258,52 @@ export default function AdminContactsPage() {
                   Aucun contact
                 </p>
               ) : (
-                Object.entries(contactsByDepartment).map(([department, deptContacts]) => (
-                  <div key={department}>
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                      {department}
-                    </h3>
-                    <div className="space-y-1">
-                      {deptContacts.map((contact) => (
-                        <button
-                          key={contact.id}
-                          onClick={() => {
-                            setSelectedContact(contact)
-                            setFormData({
-                              name: contact.name || '',
-                              phone_number: contact.phone_number || '',
-                              department: contact.department || ''
-                            })
-                            setEditing(false)
-                          }}
-                          className={`
-                            w-full text-left p-3 rounded-lg transition
-                            ${selectedContact?.id === contact.id
-                              ? 'bg-green-600 text-white'
-                              : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                            }
-                          `}
-                        >
-                          <div className="font-medium text-sm truncate">
-                            {contact.name}
-                          </div>
-                          <div className={`text-xs ${
-                            selectedContact?.id === contact.id
-                              ? 'text-white/80'
-                              : 'text-gray-500'
-                          }`}>
-                            {contact.phone_number}
-                          </div>
-                        </button>
-                      ))}
+                Object.entries(contactsByDepartment).map(([department, deptContacts]) => {
+                  // Vérifier que deptContacts est bien un tableau
+                  const typedDeptContacts = deptContacts as ContactType[]
+                  
+                  return (
+                    <div key={department}>
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        {department}
+                      </h3>
+                      <div className="space-y-1">
+                        {typedDeptContacts.map((contact: ContactType) => (
+                          <button
+                            key={contact.id}
+                            onClick={() => {
+                              setSelectedContact(contact)
+                              setFormData({
+                                name: contact.name || '',
+                                phone_number: contact.phone_number || '',
+                                department: contact.department || ''
+                              })
+                              setEditing(false)
+                            }}
+                            className={`
+                              w-full text-left p-3 rounded-lg transition
+                              ${selectedContact?.id === contact.id
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                              }
+                            `}
+                          >
+                            <div className="font-medium text-sm truncate">
+                              {contact.name}
+                            </div>
+                            <div className={`text-xs ${
+                              selectedContact?.id === contact.id
+                                ? 'text-white/80'
+                                : 'text-gray-500'
+                            }`}>
+                              {contact.phone_number}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

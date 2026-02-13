@@ -2,6 +2,20 @@
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
+// ============================================
+// TYPES
+// ============================================
+type ContactType = {
+  id: number
+  hotel_id: number
+  name: string
+  phone_number: string
+  department: string
+  created_at: string
+}
+
+type ContactsByDepartment = Record<string, ContactType[]>
+
 // Départements avec leurs icônes et couleurs
 const DEPARTMENTS = {
   'Réception': { icon: '🛎️', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', text: 'text-blue-700', gradient: 'from-blue-400 to-blue-600' },
@@ -28,19 +42,19 @@ export default async function ContactsPage() {
   // 2. Récupérer les informations de l'hôtel pour l'en-tête
   const { data: hotel } = await supabase
     .from('hotels')
-    .select('name, phone, email, address')
+    .select('name, phone, email, address, check_in_time, check_out_time')
     .eq('id', 1)
     .single()
 
-  // 3. Grouper les contacts par département
-  const contactsByDepartment = contacts?.reduce((acc, contact) => {
+  // 3. Grouper les contacts par département - AVEC TYPAGE CORRIGÉ
+  const contactsByDepartment = contacts?.reduce((acc: ContactsByDepartment, contact: ContactType) => {
     const dept = contact.department || 'Autres services'
     if (!acc[dept]) acc[dept] = []
     acc[dept].push(contact)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {} as ContactsByDepartment) || {}
 
-  // 4. Contacts d'urgence (en dur pour la démo - à mettre dans la base plus tard)
+  // 4. Contacts d'urgence (en dur pour la démo)
   const emergencyContacts = [
     { name: 'Police', phone: '17', icon: '🚓', bg: 'bg-blue-100', text: 'text-blue-800' },
     { name: 'SAMU', phone: '15', icon: '🚑', bg: 'bg-red-100', text: 'text-red-800' },
@@ -129,9 +143,11 @@ export default async function ContactsPage() {
             </h2>
           </div>
 
-          {contactsByDepartment && Object.entries(contactsByDepartment).length > 0 ? (
+          {contacts && Object.keys(contactsByDepartment).length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.entries(contactsByDepartment).map(([department, deptContacts]) => {
+                // CORRECTION : Typer explicitement deptContacts
+                const typedDeptContacts = deptContacts as ContactType[]
                 const style = DEPARTMENTS[department as keyof typeof DEPARTMENTS] || DEPARTMENTS.default
                 
                 return (
@@ -147,9 +163,9 @@ export default async function ContactsPage() {
                       </div>
                     </div>
 
-                    {/* Liste des contacts */}
+                    {/* Liste des contacts - AVEC TYPAGE CORRIGÉ */}
                     <div className="p-4">
-                      {deptContacts.map((contact) => (
+                      {typedDeptContacts.map((contact: ContactType) => (
                         <a
                           key={contact.id}
                           href={`tel:${contact.phone_number}`}
@@ -163,11 +179,9 @@ export default async function ContactsPage() {
                               <div className="font-medium text-gray-800">
                                 {contact.name}
                               </div>
-                              {contact.phone_number && (
-                                <div className="text-sm text-gray-500">
-                                  {contact.phone_number}
-                                </div>
-                              )}
+                              <div className="text-sm text-gray-500">
+                                {contact.phone_number}
+                              </div>
                             </div>
                           </div>
                           <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition">

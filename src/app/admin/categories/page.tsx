@@ -1,12 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
+// ============================================
+// TYPES
+// ============================================
+type CategoryType = {
+  id: number
+  name: string
+  category_type: string
+  icon: string
+  color: string
+  bg_color: string
+  text_color: string
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+type CategoriesByType = Record<string, CategoryType[]>
+
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<any[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<any>(null)
+  const [categories, setCategories] = useState<CategoryType[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [filterType, setFilterType] = useState('all')
@@ -215,7 +233,7 @@ export default function AdminCategoriesPage() {
     })
   }
 
-  function startEdit(category?: any) {
+  function startEdit(category?: CategoryType) {
     if (category) {
       setFormData({
         name: category.name || '',
@@ -251,17 +269,17 @@ export default function AdminCategoriesPage() {
   }
 
   // Filtrer les catégories par type
-  const filteredCategories = categories.filter(cat => 
+  const filteredCategories = categories.filter((cat: CategoryType) => 
     filterType === 'all' || cat.category_type === filterType
   )
 
   // Grouper par type
-  const categoriesByType = filteredCategories.reduce((acc, cat) => {
+  const categoriesByType = filteredCategories.reduce((acc: CategoriesByType, cat: CategoryType) => {
     const type = cat.category_type
     if (!acc[type]) acc[type] = []
     acc[type].push(cat)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {} as CategoriesByType)
 
   if (loading && !categories.length) {
     return (
@@ -361,7 +379,7 @@ export default function AdminCategoriesPage() {
                         {typeInfo.label}
                       </h3>
                       <div className="space-y-1">
-                        {typeCategories.map((category) => (
+                        {typeCategories.map((category: CategoryType) => (
                           <button
                             key={category.id}
                             onClick={() => {

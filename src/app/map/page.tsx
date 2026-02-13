@@ -189,7 +189,7 @@ export default async function MapPage() {
                         <div className="absolute inset-0 bg-black/5 pointer-events-none" />
 
                         {/* Points d'intérêt */}
-                        {planPoints.map((point) => {
+                        {planPoints.map((point: any) => {
                           const poiType = point.poi_type || {
                             icon: '📍',
                             color: 'bg-gray-500',
@@ -243,7 +243,7 @@ export default async function MapPage() {
                         Points d'intérêt à cet étage :
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {planPoints.map((point) => {
+                        {planPoints.map((point: any) => {
                           const poiType = point.poi_type || {
                             icon: '📍',
                             color: 'bg-gray-500',

@@ -125,36 +125,37 @@ export default async function SuggestionsPage() {
               </div>
             </div>
 
-            {/* Affichage par catégorie - DYNAMIQUE */}
-            {Object.entries(internalByCategory).map(([categoryName, items]) => {
-              const style = getCategoryStyle(categoryName)
-              
-              return (
-                <div key={categoryName} className="mb-10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">{style.icon}</span>
-                    <h3 className="text-lg font-semibold text-gray-700">
-                      {categoryName}
-                    </h3>
-                    <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">
-                      {items.length}
-                    </span>
-                  </div>
+{/* Affichage par catégorie - DYNAMIQUE */}
+{Object.entries(internalByCategory).map(([categoryName, items]) => {
+  const typedItems = items as any[]
+  const style = getCategoryStyle(categoryName)
+  
+  return (
+    <div key={categoryName} className="mb-10">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-2xl">{style.icon}</span>
+        <h3 className="text-lg font-semibold text-gray-700">
+          {categoryName}
+        </h3>
+        <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+          {typedItems.length}
+        </span>
+      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((suggestion) => (
-                      <div
-                        key={suggestion.id}
-                        className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-                      >
-                        {/* Image placeholder avec catégorie dynamique */}
-                        <div className={`h-40 bg-gradient-to-br ${style.color} relative flex items-center justify-center`}>
-                          <span className="text-6xl transform group-hover:scale-110 transition-transform duration-300">
-                            {style.icon}
-                          </span>
-                          <div className="absolute top-3 right-3">
-                            <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                              ⭐ Sur place
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {typedItems.map((suggestion: any) => (
+          <div
+            key={suggestion.id}
+            className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+          >
+            {/* Image placeholder avec catégorie dynamique */}
+            <div className={`h-40 bg-gradient-to-br ${style.color} relative flex items-center justify-center`}>
+              <span className="text-6xl transform group-hover:scale-110 transition-transform duration-300">
+                {style.icon}
+              </span>
+              <div className="absolute top-3 right-3">
+                <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                  ⭐ Sur place
                             </span>
                           </div>
                         </div>
@@ -231,6 +232,7 @@ export default async function SuggestionsPage() {
 
             {/* Affichage par catégorie - DYNAMIQUE */}
             {Object.entries(externalByCategory).map(([categoryName, items]) => {
+              const typedItems = items as any[]
               const style = getCategoryStyle(categoryName)
               
               return (
@@ -241,12 +243,12 @@ export default async function SuggestionsPage() {
                       {categoryName}
                     </h3>
                     <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">
-                      {items.length}
+                      {typedItems.length}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((suggestion) => (
+                    {typedItems.map((suggestion: any) => (
                       <div
                         key={suggestion.id}
                         className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
