@@ -1,15 +1,16 @@
-// src/app/suggestions/page.tsx
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
 export default async function SuggestionsPage() {
+  const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
   // 1. Récupérer les catégories de l'hôtel
   const { data: categories } = await supabase
     .from('categories')
     .select('*')
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('category_type', 'suggestion')
     .eq('is_active', true)
     .order('sort_order')
@@ -23,7 +24,7 @@ export default async function SuggestionsPage() {
         id, name, icon, color, bg_color, text_color
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .order('location_type', { ascending: false })
     .order('created_at', { ascending: false })
 

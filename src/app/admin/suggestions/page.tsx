@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 import ImageUploader from '@/components/admin/ImageUploader'
 import SuggestionImages from '@/components/suggestions/SuggestionImages'
 
 export default function AdminSuggestionsPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null)
   const [categories, setCategories] = useState<any[]>([])
@@ -28,10 +30,17 @@ export default function AdminSuggestionsPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadData()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadData(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadData() {
+  async function loadData(hotelId: number) {
     setLoading(true)
     try {
       // Charger les suggestions
@@ -48,7 +57,7 @@ export default function AdminSuggestionsPage() {
             bg_color
           )
         `)
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .order('created_at', { ascending: false })
 
       setSuggestions(suggestionsData || [])
@@ -57,7 +66,7 @@ export default function AdminSuggestionsPage() {
       const { data: categoriesData } = await supabase
         .from('categories')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .eq('category_type', 'suggestion')
         .eq('is_active', true)
         .order('sort_order')
@@ -84,11 +93,15 @@ export default function AdminSuggestionsPage() {
         alert('Veuillez remplir le titre et la catégorie')
         return
       }
+      if (!hotel) {
+        alert('Hôtel non identifié')
+        return
+      }
 
       const { data, error } = await supabase
         .from('suggestions')
         .insert({
-          hotel_id: 1,
+          hotel_id: hotel.id,
           title: formData.title,
           description: formData.description,
           category_id: parseInt(formData.category_id),
@@ -105,7 +118,7 @@ export default function AdminSuggestionsPage() {
       alert('✅ Suggestion créée avec succès !')
       setEditing(false)
       resetForm()
-      await loadData()
+      await loadData(hotel.id)
       setSelectedSuggestion(data)
     } catch (error) {
       console.error('Erreur création:', error)
@@ -114,9 +127,21 @@ export default function AdminSuggestionsPage() {
   }
 
   async function updateSuggestion() {
-    if (!selectedSuggestion) return
+    if (!selectedSuggestion || !hotel) return
 
     try {
+      // Vérifier que la suggestion appartient à cet hôtel
+      const { data: checkSuggestion } = await supabase
+        .from('suggestions')
+        .select('hotel_id')
+        .eq('id', selectedSuggestion.id)
+        .single()
+
+      if (checkSuggestion?.hotel_id !== hotel.id) {
+        alert('Action non autorisée')
+        return
+      }
+
       const { error } = await supabase
         .from('suggestions')
         .update({
@@ -134,7 +159,7 @@ export default function AdminSuggestionsPage() {
 
       alert('✅ Suggestion mise à jour')
       setEditing(false)
-      await loadData()
+      await loadData(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
@@ -143,17 +168,20 @@ export default function AdminSuggestionsPage() {
 
   async function deleteSuggestion(id: number) {
     if (!confirm('Supprimer définitivement cette suggestion ?')) return
+    if (!hotel) return
 
     try {
+      // Vérifier que la suggestion appartient à cet hôtel
       const { error } = await supabase
         .from('suggestions')
         .delete()
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Suggestion supprimée')
-      await loadData()
+      await loadData(hotel.id)
       if (selectedSuggestion?.id === id) {
         setSelectedSuggestion(null)
         resetForm()
@@ -234,6 +262,11 @@ export default function AdminSuggestionsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>✨</span> Gestion des découvertes
+              {hotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {hotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Gérez les activités, services et lieux à découvrir
@@ -589,7 +622,7 @@ export default function AdminSuggestionsPage() {
                         Ajouter une photo
                       </h4>
                       <ImageUploader
-                        hotelId={1}
+                        hotelId={hotel?.id || 1}
                         suggestionId={selectedSuggestion.id}
                         onImageUploaded={() => {
                           window.dispatchEvent(new CustomEvent('suggestionImageUpdate'))

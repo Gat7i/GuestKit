@@ -9,45 +9,54 @@ export async function proxy(request: NextRequest) {
   // Extraire le sous-domaine (ex: hotel-paradis.guestskit.app → hotel-paradis)
   const subdomain = hostname.split('.')[0]
   
-  // Si c'est l'admin ou localhost, on laisse passer
-  if (subdomain === 'admin' || hostname.includes('localhost')) {
+  // Ignorer les domaines principaux et localhost
+  const mainDomains = ['guestskit', 'www', 'localhost']
+  if (mainDomains.includes(subdomain) || hostname.includes('localhost')) {
     return NextResponse.next()
   }
   
-  // Récupérer l'hôtel correspondant au sous-domaine
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+  // Pour les sous-domaines d'hôtels
+  try {
+    // Vérifier si ce sous-domaine correspond à un hôtel
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set() {},
+          remove() {},
         },
-        set() {},
-        remove() {},
-      },
+      }
+    )
+
+    const { data: hotel } = await supabase
+      .from('hotels')
+      .select('id, name')
+      .eq('slug', subdomain)
+      .single()
+
+    if (hotel) {
+      // CORRECTION : Utiliser Headers standard
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set('x-hotel-id', hotel.id.toString())
+      requestHeaders.set('x-hotel-slug', subdomain)
+      requestHeaders.set('x-hotel-name', hotel.name)
+      
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      })
     }
-  )
-
-  const { data: hotel } = await supabase
-    .from('hotels')
-    .select('id')
-    .eq('slug', subdomain)
-    .single()
-
-  // Stocker l'ID de l'hôtel dans les headers
-  if (hotel) {
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-hotel-id', hotel.id.toString())
-    
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+  } catch (error) {
+    console.error('Erreur lors de la vérification du sous-domaine:', error)
   }
-
-  return NextResponse.next()
+  
+  // Si le sous-domaine n'existe pas, rediriger vers le site vitrine
+  return NextResponse.redirect(new URL('https://guestskit.app', request.url))
 }
 
 export const config = {

@@ -1,11 +1,12 @@
-// src/app/restaurants/page.tsx
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
 export default async function RestaurantsPage() {
+  const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
-  // 1. Récupération des restaurants de l'Hôtel Paradis (hotel_id = 1)
+  // 1. Récupération des restaurants de l'Hôtel
   const { data: restaurants, error } = await supabase
     .from('food_spots')
     .select(`
@@ -21,7 +22,7 @@ export default async function RestaurantsPage() {
         )
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('spot_type', 'restaurant')
     .order('name')
 

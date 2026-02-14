@@ -1,4 +1,4 @@
-// src/app/contacts/page.tsx
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
@@ -29,22 +29,16 @@ const DEPARTMENTS = {
 }
 
 export default async function ContactsPage() {
+  const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
   // 1. Récupérer tous les contacts de l'Hôtel Paradis (hotel_id = 1)
   const { data: contacts, error } = await supabase
     .from('contacts')
     .select('*')
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .order('department')
     .order('name')
-
-  // 2. Récupérer les informations de l'hôtel pour l'en-tête
-  const { data: hotel } = await supabase
-    .from('hotels')
-    .select('name, phone, email, address, check_in_time, check_out_time')
-    .eq('id', 1)
-    .single()
 
   // 3. Grouper les contacts par département - AVEC TYPAGE CORRIGÉ
   const contactsByDepartment = contacts?.reduce((acc: ContactsByDepartment, contact: ContactType) => {

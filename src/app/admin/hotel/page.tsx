@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default function AdminHotelPage() {
+  const [currentHotel, setCurrentHotel] = useState<any>(null)
   const [hotel, setHotel] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -34,16 +36,23 @@ export default function AdminHotelPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadHotelData()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setCurrentHotel(hotelData)
+      if (hotelData) {
+        await loadHotelData(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadHotelData() {
+  async function loadHotelData(hotelId: number) {
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('hotels')
         .select('*')
-        .eq('id', 1)
+        .eq('id', hotelId)
         .single()
 
       if (error) throw error
@@ -109,6 +118,8 @@ export default function AdminHotelPage() {
   // MISE À JOUR DE L'HÔTEL
   // ============================================
   async function updateHotel() {
+    if (!currentHotel) return
+    
     setSaving(true)
     try {
       if (!formData.name || !formData.slug) {
@@ -133,13 +144,13 @@ export default function AdminHotelPage() {
           logo_url: formData.logo_url,
           cover_image_url: formData.cover_image_url
         })
-        .eq('id', 1)
+        .eq('id', currentHotel.id)
 
       if (error) throw error
 
       alert('✅ Informations mises à jour avec succès !')
       setEditing(false)
-      await loadHotelData()
+      await loadHotelData(currentHotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
@@ -182,6 +193,11 @@ export default function AdminHotelPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>🏨</span> Configuration de l'hôtel
+              {currentHotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {currentHotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Gérez les informations générales et l'apparence de votre établissement
@@ -209,7 +225,9 @@ export default function AdminHotelPage() {
                 <button
                   onClick={() => {
                     setEditing(false)
-                    loadHotelData()
+                    if (currentHotel) {
+                      loadHotelData(currentHotel.id)
+                    }
                   }}
                   className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
                 >
@@ -696,7 +714,7 @@ export default function AdminHotelPage() {
             <div>
               <h3 className="font-medium mb-1">Informations système</h3>
               <p className="text-blue-700">
-                ID de l'hôtel : <code className="bg-blue-100 px-2 py-0.5 rounded">1</code> • 
+                ID de l'hôtel : <code className="bg-blue-100 px-2 py-0.5 rounded">{currentHotel?.id || '?'}</code> • 
                 Créé le : {hotel?.created_at ? new Date(hotel.created_at).toLocaleDateString('fr-FR') : '-'} • 
                 Dernière mise à jour : {hotel?.updated_at ? new Date(hotel.updated_at).toLocaleDateString('fr-FR') : '-'}
               </p>

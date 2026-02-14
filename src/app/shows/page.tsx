@@ -1,4 +1,4 @@
-// src/app/shows/page.tsx
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
@@ -12,9 +12,10 @@ const MONTHS_FR = [
 const DAYS_SHORT_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 export default async function ShowsPage() {
+  const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
-  // 1. Récupérer tous les spectacles de l'Hôtel Paradis (hotel_id = 1)
+  // 1. Récupérer tous les spectacles de l'Hôtel
   const { data: shows, error } = await supabase
     .from('entertainments')
     .select(`
@@ -28,7 +29,7 @@ export default async function ShowsPage() {
         target_audience
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('is_night_show', true)        // Uniquement les spectacles nocturnes
     .eq('is_daily_activity', false)   // Pas les activités journalières
     .order('title')

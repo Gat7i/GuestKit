@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 
 export default function AdminPoiTypesPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [poiTypes, setPoiTypes] = useState<any[]>([])
   const [selectedType, setSelectedType] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -49,16 +51,23 @@ export default function AdminPoiTypesPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadPoiTypes()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadPoiTypes(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadPoiTypes() {
+  async function loadPoiTypes(hotelId: number) {
     setLoading(true)
     try {
       const { data } = await supabase
         .from('poi_types')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .order('sort_order')
         .order('name')
 
@@ -93,12 +102,16 @@ export default function AdminPoiTypesPage() {
         alert('Veuillez remplir la clé et le nom du type')
         return
       }
+      if (!hotel) {
+        alert('Hôtel non identifié')
+        return
+      }
 
-      // Vérifier si la clé existe déjà
+      // Vérifier si la clé existe déjà pour cet hôtel
       const { data: existing } = await supabase
         .from('poi_types')
         .select('id')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotel.id)
         .eq('type_key', formData.type_key)
         .maybeSingle()
 
@@ -110,7 +123,7 @@ export default function AdminPoiTypesPage() {
       const { data, error } = await supabase
         .from('poi_types')
         .insert({
-          hotel_id: 1,
+          hotel_id: hotel.id,
           type_key: formData.type_key.toLowerCase().replace(/\s+/g, '_'),
           name: formData.name,
           icon: formData.icon,
@@ -128,7 +141,7 @@ export default function AdminPoiTypesPage() {
       alert('✅ Type de point créé avec succès !')
       setEditing(false)
       resetForm()
-      await loadPoiTypes()
+      await loadPoiTypes(hotel.id)
       setSelectedType(data)
     } catch (error) {
       console.error('Erreur création:', error)
@@ -137,7 +150,7 @@ export default function AdminPoiTypesPage() {
   }
 
   async function updatePoiType() {
-    if (!selectedType) return
+    if (!selectedType || !hotel) return
 
     try {
       const { error } = await supabase
@@ -152,12 +165,13 @@ export default function AdminPoiTypesPage() {
           is_active: formData.is_active
         })
         .eq('id', selectedType.id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Type de point mis à jour')
       setEditing(false)
-      await loadPoiTypes()
+      await loadPoiTypes(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
@@ -166,17 +180,19 @@ export default function AdminPoiTypesPage() {
 
   async function deletePoiType(id: number) {
     if (!confirm('Supprimer définitivement ce type de point ?\nLes points d\'intérêt utilisant ce type seront orphelins.')) return
+    if (!hotel) return
 
     try {
       const { error } = await supabase
         .from('poi_types')
         .delete()
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Type de point supprimé')
-      await loadPoiTypes()
+      await loadPoiTypes(hotel.id)
       if (selectedType?.id === id) {
         setSelectedType(null)
         resetForm()
@@ -188,15 +204,18 @@ export default function AdminPoiTypesPage() {
   }
 
   async function toggleActive(id: number, currentStatus: boolean) {
+    if (!hotel) return
+    
     try {
       const { error } = await supabase
         .from('poi_types')
         .update({ is_active: !currentStatus })
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
-      await loadPoiTypes()
+      await loadPoiTypes(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
     }
@@ -256,9 +275,9 @@ export default function AdminPoiTypesPage() {
   function generateKeyFromName(name: string) {
     const key = name
       .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Enlève les accents
-      .replace(/[^a-z0-9]+/g, '_') // Remplace espaces et caractères spéciaux par _
-      .replace(/^_|_$/g, '') // Enlève les _ au début et fin
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
     setFormData({ ...formData, type_key: key })
   }
 
@@ -281,6 +300,11 @@ export default function AdminPoiTypesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>📍</span> Types de points d'intérêt
+              {hotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {hotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Définissez les types de lieux affichés sur le plan de l'hôtel
@@ -415,7 +439,7 @@ export default function AdminPoiTypesPage() {
                           </button>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          Identifiant unique utilisé dans le code (ex: reception, restaurant, pool)
+                          Identifiant unique utilisé dans le code
                         </p>
                       </div>
                     )}

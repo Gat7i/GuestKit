@@ -44,7 +44,22 @@ export default function AdminLoginPage() {
           throw new Error('Accès non autorisé')
         }
 
-        // 4. Rediriger
+        // 4. Récupérer l'hôtel associé au profil (si existe)
+        if (profile.hotel_id) {
+          const { data: hotel } = await supabase
+            .from('hotels')
+            .select('slug, name')
+            .eq('id', profile.hotel_id)
+            .single()
+          
+          // Stocker les infos de l'hôtel dans un cookie ou localStorage si nécessaire
+          if (hotel) {
+            // Optionnel : stocker pour usage ultérieur
+            localStorage.setItem('currentHotel', JSON.stringify(hotel))
+          }
+        }
+
+        // 5. Rediriger
         router.push('/admin')
         router.refresh()
       }
@@ -62,8 +77,8 @@ export default function AdminLoginPage() {
           <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-4">
             🏨
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">GuestsKit Admin</h1>
-          <p className="text-gray-600 text-sm mt-1">Connectez-vous pour gérer l'hôtel</p>
+          <h1 className="text-2xl font-bold text-gray-800">GuestSkit Admin</h1>
+          <p className="text-gray-600 text-sm mt-1">Connectez-vous pour gérer votre hôtel</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -100,6 +115,13 @@ export default function AdminLoginPage() {
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
+
+        {/* Note d'information pour la démo */}
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <p className="text-xs text-gray-500">
+            Démo : admin@guestskit.com / admin123
+          </p>
+        </div>
       </div>
     </div>
   )

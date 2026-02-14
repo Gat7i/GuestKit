@@ -13,29 +13,29 @@ export default async function HomePage() {
     .eq('id', 1)
     .single()
 
-  // 2. Récupérer les images de l'hôtel pour le carrousel
-  const { data: hotelImages } = await supabase
-    .from('hotel_images')
-    .select(`
-      image_id,
-      title,
-      sort_order,
-      image:image_id(
-        url,
-        alt_text
-      )
-    `)
-    .eq('hotel_id', 1)
-    .eq('is_active', true)
-    .order('sort_order')
+// 2. Récupérer les images de l'hôtel pour le carrousel
+const { data: hotelImages } = await supabase
+  .from('hotel_images')
+  .select(`
+    image_id,
+    title,
+    sort_order,
+    image:image_id(
+      url,
+      alt_text
+    )
+  `)
+  .eq('hotel_id', 1)
+  .eq('is_active', true)
+  .order('sort_order')
 
-  // Formater les images pour le carrousel
-  const carouselImages = hotelImages?.map(item => ({
-    id: item.image_id,
-    url: item.image.url,
-    title: item.title,
-    alt_text: item.image.alt_text
-  })) || []
+// Formater les images pour le carrousel - AVEC CORRECTION
+const carouselImages = hotelImages?.map((item: any) => ({
+  id: item.image_id,
+  url: item.image?.url || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200',
+  title: item.title || 'Hôtel Paradis',
+  alt_text: item.image?.alt_text || 'Image de l\'hôtel'
+})) || []
 
   // 3. Récupérer les restaurants avec leurs images
   const { data: restaurants } = await supabase

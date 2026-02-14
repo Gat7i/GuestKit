@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 
 // ============================================
@@ -23,6 +24,7 @@ type CategoryType = {
 type CategoriesByType = Record<string, CategoryType[]>
 
 export default function AdminCategoriesPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [categories, setCategories] = useState<CategoryType[]>([])
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
   const [loading, setLoading] = useState(true)
@@ -74,21 +76,27 @@ export default function AdminCategoriesPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadCategories()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadCategories(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadCategories() {
+  async function loadCategories(hotelId: number) {
     setLoading(true)
     try {
-      let query = supabase
+      const { data } = await supabase
         .from('categories')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .order('category_type')
         .order('sort_order')
         .order('name')
 
-      const { data } = await query
       setCategories(data || [])
       
       if (data?.length && !selectedCategory) {
@@ -120,11 +128,15 @@ export default function AdminCategoriesPage() {
         alert('Veuillez remplir le nom et le type de catégorie')
         return
       }
+      if (!hotel) {
+        alert('Hôtel non identifié')
+        return
+      }
 
       const { data, error } = await supabase
         .from('categories')
         .insert({
-          hotel_id: 1,
+          hotel_id: hotel.id,
           name: formData.name,
           category_type: formData.category_type,
           icon: formData.icon,
@@ -142,7 +154,7 @@ export default function AdminCategoriesPage() {
       alert('✅ Catégorie créée avec succès !')
       setEditing(false)
       resetForm()
-      await loadCategories()
+      await loadCategories(hotel.id)
       setSelectedCategory(data)
     } catch (error) {
       console.error('Erreur création:', error)
@@ -151,7 +163,7 @@ export default function AdminCategoriesPage() {
   }
 
   async function updateCategory() {
-    if (!selectedCategory) return
+    if (!selectedCategory || !hotel) return
 
     try {
       const { error } = await supabase
@@ -167,12 +179,13 @@ export default function AdminCategoriesPage() {
           is_active: formData.is_active
         })
         .eq('id', selectedCategory.id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Catégorie mise à jour')
       setEditing(false)
-      await loadCategories()
+      await loadCategories(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
@@ -181,17 +194,19 @@ export default function AdminCategoriesPage() {
 
   async function deleteCategory(id: number) {
     if (!confirm('Supprimer définitivement cette catégorie ?\nLes éléments liés ne seront plus catégorisés.')) return
+    if (!hotel) return
 
     try {
       const { error } = await supabase
         .from('categories')
         .delete()
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Catégorie supprimée')
-      await loadCategories()
+      await loadCategories(hotel.id)
       if (selectedCategory?.id === id) {
         setSelectedCategory(null)
         resetForm()
@@ -203,15 +218,18 @@ export default function AdminCategoriesPage() {
   }
 
   async function toggleActive(id: number, currentStatus: boolean) {
+    if (!hotel) return
+    
     try {
       const { error } = await supabase
         .from('categories')
         .update({ is_active: !currentStatus })
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
-      await loadCategories()
+      await loadCategories(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
     }
@@ -300,6 +318,11 @@ export default function AdminCategoriesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>🏷️</span> Gestion des catégories
+              {hotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {hotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Créez et personnalisez les catégories pour vos activités et découvertes

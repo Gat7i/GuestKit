@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 
 export default function MapEditorPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [plans, setPlans] = useState<any[]>([])
   const [selectedPlan, setSelectedPlan] = useState<any>(null)
   const [points, setPoints] = useState<any[]>([])
@@ -18,17 +20,24 @@ export default function MapEditorPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadData()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadData(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadData() {
+  async function loadData(hotelId: number) {
     setLoading(true)
     try {
       // Charger les plans/étages
       const { data: plansData } = await supabase
         .from('plans')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .eq('is_active', true)
         .order('floor_level')
       
@@ -42,7 +51,7 @@ export default function MapEditorPage() {
       const { data: typesData } = await supabase
         .from('poi_types')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .eq('is_active', true)
         .order('sort_order')
       
@@ -87,98 +96,154 @@ export default function MapEditorPage() {
   // ============================================
   // CRUD POINTS D'INTÉRÊT
   // ============================================
-  async function savePosition() {
-    if (!selectedPoint) {
-      alert('Sélectionnez d\'abord un point à déplacer')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from('map_points')
-        .update({ 
-          coordinates_x: position.x,
-          coordinates_y: position.y
-        })
-        .eq('id', selectedPoint.id)
-
-      if (error) throw error
-      
-      alert('✅ Position mise à jour')
-      if (selectedPlan) await loadPoints(selectedPlan.id)
-    } catch (error) {
-      console.error('Erreur sauvegarde:', error)
-      alert('❌ Erreur lors de la mise à jour')
-    } finally {
-      setLoading(false)
-    }
+async function savePosition() {
+  if (!selectedPoint) {
+    alert('Sélectionnez d\'abord un point à déplacer')
+    return
+  }
+  if (!hotel) {
+    alert('Hôtel non identifié')
+    return
   }
 
-  async function addPoint() {
-    if (!selectedPlan) {
-      alert('Sélectionnez d\'abord un étage')
-      return
-    }
+  setLoading(true)
+  try {
+    // Vérifier que le point appartient bien à l'hôtel
+    const { data: pointCheck } = await supabase
+      .from('map_points')
+      .select('plan_id')
+      .eq('id', selectedPoint.id)
+      .single()
 
-    const selectedType = poiTypes.find(t => t.id === selectedPoint?.poi_type_id)
-    if (!selectedType) {
-      alert('Sélectionnez d\'abord un type de point')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('map_points')
-        .insert({
-          hotel_id: 1,
-          plan_id: selectedPlan.id,
-          poi_type_id: selectedType.id,
-          name: `Nouveau ${selectedType.name}`,
-          coordinates_x: position.x,
-          coordinates_y: position.y,
-          sort_order: points.length + 1,
-          is_active: true
-        })
-        .select()
+    if (pointCheck) {
+      const { data: planCheck } = await supabase
+        .from('plans')
+        .select('hotel_id')
+        .eq('id', pointCheck.plan_id)
         .single()
 
-      if (error) throw error
-      
-      alert('✅ Point ajouté')
-      await loadPoints(selectedPlan.id)
-      setSelectedPoint(data)
-    } catch (error) {
-      console.error('Erreur ajout:', error)
-      alert('❌ Erreur lors de l\'ajout')
-    } finally {
-      setLoading(false)
+      if (planCheck?.hotel_id !== hotel.id) {
+        alert('Action non autorisée')
+        return
+      }
     }
+
+    const { error } = await supabase
+      .from('map_points')
+      .update({ 
+        coordinates_x: position.x,
+        coordinates_y: position.y
+      })
+      .eq('id', selectedPoint.id)
+
+    if (error) throw error
+    
+    alert('✅ Position mise à jour')
+    if (selectedPlan) await loadPoints(selectedPlan.id)
+  } catch (error) {
+    console.error('Erreur sauvegarde:', error)
+    alert('❌ Erreur lors de la mise à jour')
+  } finally {
+    setLoading(false)
+  }
+}
+
+async function addPoint() {
+  if (!selectedPlan) {
+    alert('Sélectionnez d\'abord un étage')
+    return
+  }
+  if (!hotel) {
+    alert('Hôtel non identifié')
+    return
   }
 
-  async function deletePoint(id: number) {
-    if (!confirm('Supprimer ce point d\'intérêt ?')) return
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from('map_points')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
-      
-      alert('✅ Point supprimé')
-      if (selectedPlan) await loadPoints(selectedPlan.id)
-      if (selectedPoint?.id === id) setSelectedPoint(null)
-    } catch (error) {
-      console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
-    } finally {
-      setLoading(false)
-    }
+  const selectedType = poiTypes.find(t => t.id === selectedPoint?.poi_type_id)
+  if (!selectedType) {
+    alert('Sélectionnez d\'abord un type de point')
+    return
   }
+
+  setLoading(true)
+  try {
+    // Vérifier que le plan appartient à l'hôtel
+    const { data: planCheck } = await supabase
+      .from('plans')
+      .select('hotel_id')
+      .eq('id', selectedPlan.id)
+      .single()
+
+    if (planCheck?.hotel_id !== hotel.id) {
+      alert('Action non autorisée')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('map_points')
+      .insert({
+        hotel_id: hotel.id,
+        plan_id: selectedPlan.id,
+        poi_type_id: selectedType.id,
+        name: `Nouveau ${selectedType.name}`,
+        coordinates_x: position.x,
+        coordinates_y: position.y,
+        sort_order: points.length + 1,
+        is_active: true
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    
+    alert('✅ Point ajouté')
+    await loadPoints(selectedPlan.id)
+    setSelectedPoint(data)
+  } catch (error) {
+    console.error('Erreur ajout:', error)
+    alert('❌ Erreur lors de l\'ajout')
+  } finally {
+    setLoading(false)
+  }
+}
+
+async function deletePoint(id: number) {
+  if (!confirm('Supprimer ce point d\'intérêt ?')) return
+  if (!hotel) return
+
+  setLoading(true)
+  try {
+    // 1. Récupérer d'abord les IDs des plans de l'hôtel
+    const { data: hotelPlans } = await supabase
+      .from('plans')
+      .select('id')
+      .eq('hotel_id', hotel.id)
+
+    if (!hotelPlans || hotelPlans.length === 0) {
+      alert('Aucun plan trouvé pour cet hôtel')
+      return
+    }
+
+    const planIds = hotelPlans.map(p => p.id)
+
+    // 2. Supprimer le point si son plan_id est dans la liste
+    const { error } = await supabase
+      .from('map_points')
+      .delete()
+      .eq('id', id)
+      .in('plan_id', planIds)
+
+    if (error) throw error
+    
+    alert('✅ Point supprimé')
+    if (selectedPlan) await loadPoints(selectedPlan.id)
+    if (selectedPoint?.id === id) setSelectedPoint(null)
+  } catch (error) {
+    console.error('Erreur suppression:', error)
+    alert('❌ Erreur lors de la suppression')
+  } finally {
+    setLoading(false)
+  }
+}
 
   // ============================================
   // RENDU
@@ -199,8 +264,13 @@ export default function MapEditorPage() {
       <div className="max-w-7xl mx-auto">
         {/* ===== EN-TÊTE ===== */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🗺️ Éditeur de plan
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <span>🗺️</span> Éditeur de plan
+            {hotel && (
+              <span className="text-lg font-normal text-gray-500 ml-2">
+                - {hotel.name}
+              </span>
+            )}
           </h1>
           <p className="text-gray-600">
             Positionnez vos points d'intérêt sur chaque étage

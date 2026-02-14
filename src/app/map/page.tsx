@@ -1,14 +1,16 @@
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 
 export default async function MapPage() {
+  const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
   // 1. Récupérer tous les types de points d'intérêt
   const { data: poiTypes } = await supabase
     .from('poi_types')
     .select('*')
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('is_active', true)
     .order('sort_order')
 

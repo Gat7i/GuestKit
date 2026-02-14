@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 
 export default function AdminShowsPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [shows, setShows] = useState<any[]>([])
   const [selectedShow, setSelectedShow] = useState<any>(null)
   const [locations, setLocations] = useState<any[]>([])
@@ -24,10 +26,17 @@ export default function AdminShowsPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadData()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadData(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadData() {
+  async function loadData(hotelId: number) {
     setLoading(true)
     try {
       // Charger les spectacles
@@ -44,7 +53,7 @@ export default function AdminShowsPage() {
             target_audience
           )
         `)
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .eq('is_night_show', true)
         .order('created_at', { ascending: false })
 
@@ -54,7 +63,7 @@ export default function AdminShowsPage() {
       const { data: locationsData } = await supabase
         .from('locations')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .eq('location_type', 'activity')
         .order('name')
 
@@ -79,11 +88,15 @@ export default function AdminShowsPage() {
         alert('Veuillez saisir un titre')
         return
       }
+      if (!hotel) {
+        alert('Hôtel non identifié')
+        return
+      }
 
       const { data, error } = await supabase
         .from('entertainments')
         .insert({
-          hotel_id: 1,
+          hotel_id: hotel.id,
           title: formData.title,
           description: formData.description,
           location_id: formData.location_id ? parseInt(formData.location_id) : null,
@@ -97,7 +110,7 @@ export default function AdminShowsPage() {
 
       alert('✅ Spectacle créé avec succès !')
       setEditing(false)
-      await loadData()
+      await loadData(hotel.id)
       setSelectedShow(data)
     } catch (error) {
       console.error('Erreur création:', error)
@@ -106,9 +119,21 @@ export default function AdminShowsPage() {
   }
 
   async function updateShow() {
-    if (!selectedShow) return
+    if (!selectedShow || !hotel) return
 
     try {
+      // Vérifier que le spectacle appartient à cet hôtel
+      const { data: checkShow } = await supabase
+        .from('entertainments')
+        .select('hotel_id')
+        .eq('id', selectedShow.id)
+        .single()
+
+      if (checkShow?.hotel_id !== hotel.id) {
+        alert('Action non autorisée')
+        return
+      }
+
       const { error } = await supabase
         .from('entertainments')
         .update({
@@ -122,77 +147,112 @@ export default function AdminShowsPage() {
 
       alert('✅ Spectacle mis à jour')
       setEditing(false)
-      await loadData()
+      await loadData(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
     }
   }
 
-  async function deleteShow(id: number) {
-    if (!confirm('Supprimer définitivement ce spectacle ?')) return
+async function deleteShow(id: number) {
+  if (!confirm('Supprimer définitivement ce spectacle ?')) return
+  if (!hotel) return
 
-    try {
-      const { error } = await supabase
-        .from('entertainments')
-        .delete()
-        .eq('id', id)
+  try {
+    // Vérifier que le spectacle appartient à cet hôtel
+    const { error } = await supabase
+      .from('entertainments')
+      .delete()
+      .eq('id', id)
+      .eq('hotel_id', hotel.id)
 
-      if (error) throw error
+    if (error) throw error
 
-      alert('✅ Spectacle supprimé')
-      await loadData()
-      if (selectedShow?.id === id) {
-        setSelectedShow(null)
-        resetForm()
-      }
-    } catch (error) {
-      console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+    alert('✅ Spectacle supprimé')
+    await loadData(hotel.id)
+    if (selectedShow?.id === id) {
+      setSelectedShow(null)
+      resetForm()
     }
+  } catch (error) {
+    console.error('Erreur suppression:', error)
+    alert('❌ Erreur lors de la suppression')
   }
+}
 
   // ============================================
   // GESTION DES DATES
   // ============================================
-  async function addSchedule(showId: number, date: string, time: string, audience: string) {
-    try {
-      const { error } = await supabase
-        .from('night_schedules')
-        .insert({
-          entertainment_id: showId,
-          show_date: date,
-          start_time: time,
-          duration_minutes: 90,
-          target_audience: audience
-        })
+async function addSchedule(showId: number, date: string, time: string, audience: string) {
+  if (!hotel) return
 
-      if (error) throw error
+  try {
+    // Vérifier que le spectacle appartient à cet hôtel
+    const { data: checkShow } = await supabase
+      .from('entertainments')
+      .select('hotel_id')
+      .eq('id', showId)
+      .single()
 
-      alert('✅ Date ajoutée')
-      await loadData()
-    } catch (error) {
-      console.error('Erreur ajout date:', error)
-      alert('❌ Erreur lors de l\'ajout')
+    if (checkShow?.hotel_id !== hotel.id) {
+      alert('Action non autorisée')
+      return
     }
+
+    const { error } = await supabase
+      .from('night_schedules')
+      .insert({
+        entertainment_id: showId,
+        show_date: date,
+        start_time: time,
+        duration_minutes: 90,
+        target_audience: audience
+      })
+
+    if (error) throw error
+
+    alert('✅ Date ajoutée')
+    await loadData(hotel.id)
+  } catch (error) {
+    console.error('Erreur ajout date:', error)
+    alert('❌ Erreur lors de l\'ajout')
   }
+}
 
-  async function deleteSchedule(scheduleId: number) {
-    try {
-      const { error } = await supabase
-        .from('night_schedules')
-        .delete()
-        .eq('id', scheduleId)
+async function deleteSchedule(scheduleId: number) {
+  if (!hotel) return
 
-      if (error) throw error
+  try {
+    // 1. Récupérer d'abord les IDs des spectacles de l'hôtel
+    const { data: hotelShows } = await supabase
+      .from('entertainments')
+      .select('id')
+      .eq('hotel_id', hotel.id)
+      .eq('is_night_show', true)
 
-      alert('✅ Date supprimée')
-      await loadData()
-    } catch (error) {
-      console.error('Erreur suppression date:', error)
-      alert('❌ Erreur lors de la suppression')
+    if (!hotelShows || hotelShows.length === 0) {
+      alert('Aucun spectacle trouvé pour cet hôtel')
+      return
     }
+
+    const showIds = hotelShows.map(s => s.id)
+
+    // 2. Supprimer le schedule si son entertainment_id est dans la liste
+    const { error } = await supabase
+      .from('night_schedules')
+      .delete()
+      .eq('id', scheduleId)
+      .in('entertainment_id', showIds)
+
+    if (error) throw error
+
+    alert('✅ Date supprimée')
+    await loadData(hotel.id)
+  } catch (error) {
+    console.error('Erreur suppression date:', error)
+    alert('❌ Erreur lors de la suppression')
   }
+}
 
   // ============================================
   // UTILS
@@ -264,6 +324,11 @@ export default function AdminShowsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>🌟</span> Gestion des spectacles
+              {hotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {hotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Gérez les spectacles nocturnes et soirées

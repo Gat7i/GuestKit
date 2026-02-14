@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import Link from 'next/link'
 
 // ============================================
@@ -19,6 +20,7 @@ type ContactType = {
 type ContactsByDepartment = Record<string, ContactType[]>
 
 export default function AdminContactsPage() {
+  const [hotel, setHotel] = useState<any>(null)
   const [contacts, setContacts] = useState<ContactType[]>([])
   const [selectedContact, setSelectedContact] = useState<ContactType | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,16 +50,23 @@ export default function AdminContactsPage() {
   // CHARGEMENT DES DONNÉES
   // ============================================
   useEffect(() => {
-    loadData()
+    const init = async () => {
+      const hotelData = await getCurrentHotelClient()
+      setHotel(hotelData)
+      if (hotelData) {
+        await loadData(hotelData.id)
+      }
+    }
+    init()
   }, [])
 
-  async function loadData() {
+  async function loadData(hotelId: number) {
     setLoading(true)
     try {
       const { data } = await supabase
         .from('contacts')
         .select('*')
-        .eq('hotel_id', 1)
+        .eq('hotel_id', hotelId)
         .order('department')
         .order('name')
 
@@ -87,11 +96,15 @@ export default function AdminContactsPage() {
         alert('Veuillez remplir tous les champs')
         return
       }
+      if (!hotel) {
+        alert('Hôtel non identifié')
+        return
+      }
 
       const { data, error } = await supabase
         .from('contacts')
         .insert({
-          hotel_id: 1,
+          hotel_id: hotel.id,
           name: formData.name,
           phone_number: formData.phone_number,
           department: formData.department
@@ -104,7 +117,7 @@ export default function AdminContactsPage() {
       alert('✅ Contact créé avec succès !')
       setEditing(false)
       resetForm()
-      await loadData()
+      await loadData(hotel.id)
       setSelectedContact(data)
     } catch (error) {
       console.error('Erreur création:', error)
@@ -113,7 +126,7 @@ export default function AdminContactsPage() {
   }
 
   async function updateContact() {
-    if (!selectedContact) return
+    if (!selectedContact || !hotel) return
 
     try {
       const { error } = await supabase
@@ -124,12 +137,13 @@ export default function AdminContactsPage() {
           department: formData.department
         })
         .eq('id', selectedContact.id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Contact mis à jour')
       setEditing(false)
-      await loadData()
+      await loadData(hotel.id)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('❌ Erreur lors de la mise à jour')
@@ -138,17 +152,19 @@ export default function AdminContactsPage() {
 
   async function deleteContact(id: number) {
     if (!confirm('Supprimer définitivement ce contact ?')) return
+    if (!hotel) return
 
     try {
       const { error } = await supabase
         .from('contacts')
         .delete()
         .eq('id', id)
+        .eq('hotel_id', hotel.id)
 
       if (error) throw error
 
       alert('✅ Contact supprimé')
-      await loadData()
+      await loadData(hotel.id)
       if (selectedContact?.id === id) {
         setSelectedContact(null)
         resetForm()
@@ -195,7 +211,7 @@ export default function AdminContactsPage() {
     }
   }
 
-  // Grouper les contacts par département - AVEC TYPAGE CORRIGÉ
+  // Grouper les contacts par département
   const contactsByDepartment = contacts.reduce((acc: ContactsByDepartment, contact: ContactType) => {
     const dept = contact.department || 'Autres'
     if (!acc[dept]) acc[dept] = []
@@ -222,6 +238,11 @@ export default function AdminContactsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>📞</span> Gestion des contacts
+              {hotel && (
+                <span className="text-lg font-normal text-gray-500 ml-2">
+                  - {hotel.name}
+                </span>
+              )}
             </h1>
             <p className="text-gray-600">
               Gérez les numéros utiles et services de l'hôtel
@@ -259,7 +280,6 @@ export default function AdminContactsPage() {
                 </p>
               ) : (
                 Object.entries(contactsByDepartment).map(([department, deptContacts]) => {
-                  // Vérifier que deptContacts est bien un tableau
                   const typedDeptContacts = deptContacts as ContactType[]
                   
                   return (
