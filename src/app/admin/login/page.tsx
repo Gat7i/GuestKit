@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('admin@guestkit.com')
+  const [email, setEmail] = useState('admin@guestskit.com')
   const [password, setPassword] = useState('admin123')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
           <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-4">
             🏨
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">GuestKit Admin</h1>
+          <h1 className="text-2xl font-bold text-gray-800">GuestsKit Admin</h1>
           <p className="text-gray-600 text-sm mt-1">Connectez-vous pour gérer l'hôtel</p>
         </div>
 

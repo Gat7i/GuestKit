@@ -8,7 +8,7 @@ import Footer from '@/components/layout/Footer'  // ← CLIENT
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'GuestKit - Hôtel Paradis',
+  title: 'GuestsKit - Hôtel Paradis',
   description: 'Votre application de séjour',
 }
 

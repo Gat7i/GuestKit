@@ -182,7 +182,7 @@ export default async function AdminDashboardPage() {
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Administration GuestKit
+                Administration GuestsKit
               </h1>
               <p className="text-xl text-blue-100">
                 Hôtel Paradis • Gérez tout le contenu de votre application

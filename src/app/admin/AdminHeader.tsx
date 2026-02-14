@@ -34,7 +34,7 @@ export default function AdminHeader() {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center text-white">
               🏨
             </div>
-            <span className="font-bold text-gray-800">GuestKit Admin</span>
+            <span className="font-bold text-gray-800">GuestsKit Admin</span>
             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full ml-2">
               Hôtel Paradis
             </span>

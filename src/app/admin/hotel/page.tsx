@@ -250,7 +250,7 @@ export default function AdminHotelPage() {
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                  {hotel.slug}.guestkit.app
+                  {hotel.slug}.guestskit.app
                 </span>
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function AdminHotelPage() {
                   )}
                   {editing && (
                     <p className="text-xs text-gray-500 mt-1">
-                      URL: https://{formData.slug || 'hotel-paradis'}.guestkit.app
+                      URL: https://{formData.slug || 'hotel-paradis'}.guestskit.app
                     </p>
                   )}
                 </div>

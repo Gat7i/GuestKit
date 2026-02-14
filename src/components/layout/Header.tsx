@@ -91,10 +91,10 @@ export default function Header() {
             </div>
             <div className="hidden sm:block">
               <span className="font-bold text-gray-800 text-lg">
-                {hotel?.name || 'GuestKit'}
+                {hotel?.name || 'GuestsKit'}
               </span>
               <span className="text-xs text-gray-500 block -mt-1">
-                {hotel?.slug ? `${hotel.slug}.guestkit.app` : 'hotel.guestkit.app'}
+                {hotel?.slug ? `${hotel.slug}.guestskit.app` : 'hotel.guestskit.app'}
               </span>
             </div>
           </Link>
@@ -183,7 +183,7 @@ export default function Header() {
                       {hotel?.name || 'Hôtel Paradis'}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {hotel?.slug ? `${hotel.slug}.guestkit.app` : 'Chambre 101'}
+                      {hotel?.slug ? `${hotel.slug}.guestskit.app` : 'Chambre 101'}
                     </div>
                   </div>
                 </div>

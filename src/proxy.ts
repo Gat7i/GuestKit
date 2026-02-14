@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const hostname = request.headers.get('host') || ''
   
-  // Extraire le sous-domaine (ex: hotel-paradis.guestkit.app → hotel-paradis)
+  // Extraire le sous-domaine (ex: hotel-paradis.guestskit.app → hotel-paradis)
   const subdomain = hostname.split('.')[0]
   
   // Si c'est l'admin ou localhost, on laisse passer

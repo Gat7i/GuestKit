@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'GuestKit - Hôtel Paradis',
-    short_name: 'GuestKit',
+    name: 'GuestsKit - Hôtel Paradis',
+    short_name: 'GuestsKit',
     description: 'Votre compagnon de séjour à l\'hôtel',
     start_url: '/',
     display: 'standalone',
