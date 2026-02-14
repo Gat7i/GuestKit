@@ -13,13 +13,22 @@ export default async function HomePage() {
     .eq('id', 1)
     .single()
 
-  // 2. Récupérer les restaurants pour les mettre en avant
-  const { data: restaurants } = await supabase
-    .from('food_spots')
-    .select('*')
-    .eq('hotel_id', 1)
-    .eq('spot_type', 'restaurant')
-    .limit(3)
+  // 2. Récupérer les restaurants avec leurs images principales
+const { data: restaurants } = await supabase
+  .from('food_spots')
+  .select(`
+    *,
+    images:food_spot_images(
+      is_principal,
+      image:image_id(
+        url,
+        alt_text
+      )
+    )
+  `)
+  .eq('hotel_id', 1)
+  .eq('spot_type', 'restaurant')
+  .limit(3)
 
   // 3. Récupérer les activités du jour pour les mettre en avant
   const today = new Date().getDay()
@@ -142,60 +151,78 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* === RESTAURANTS À LA UNE === */}
-      {restaurants && restaurants.length > 0 && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Nos restaurants
-                </h2>
-                <p className="text-gray-600 mt-2">
-                  Une expérience gastronomique unique
+{/* === RESTAURANTS À LA UNE === */}
+{restaurants && restaurants.length > 0 && (
+  <section className="py-16 bg-gray-50">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">
+            Nos restaurants
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Une expérience gastronomique unique
+          </p>
+        </div>
+        <Link 
+          href="/restaurants"
+          className="text-blue-600 hover:text-blue-800 font-medium hidden md:block"
+        >
+          Voir tout →
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {restaurants.map((restaurant: any) => {
+          // Trouver l'image principale
+          const mainImage = restaurant.images?.find((img: any) => img.is_principal) || 
+                            restaurant.images?.[0]
+          
+          return (
+            <div key={restaurant.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+              <div className="h-48 bg-gray-200 relative">
+                {/* Image du restaurant */}
+                {mainImage ? (
+                  <img
+                    src={mainImage.image.url}
+                    alt={restaurant.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200">
+                    <span className="text-5xl text-amber-400">🍽️</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm">
+                    {restaurant.spot_type === 'restaurant' ? '🍽️ Restaurant' : '🍸 Bar'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-bold text-gray-900">{restaurant.name}</h3>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                  {restaurant.description || 'Cuisine raffinée dans un cadre exceptionnel'}
                 </p>
               </div>
-              <Link 
-                href="/restaurants"
-                className="text-blue-600 hover:text-blue-800 font-medium hidden md:block"
-              >
-                Voir tout →
-              </Link>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {restaurants.map((restaurant) => (
-                <div key={restaurant.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
-                  <div className="h-48 bg-gray-200 relative">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    <div className="absolute bottom-4 left-4">
-                      <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm">
-                        {restaurant.spot_type === 'restaurant' ? '🍽️ Restaurant' : '🍸 Bar'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-gray-900">{restaurant.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                      {restaurant.description || 'Cuisine raffinée dans un cadre exceptionnel'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Bouton mobile */}
-            <div className="mt-6 text-center md:hidden">
-              <Link 
-                href="/restaurants"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium"
-              >
-                Voir tous nos restaurants
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+          )
+        })}
+      </div>
+      
+      {/* Bouton mobile */}
+      <div className="mt-6 text-center md:hidden">
+        <Link 
+          href="/restaurants"
+          className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium"
+        >
+          Voir tous nos restaurants
+        </Link>
+      </div>
+    </div>
+  </section>
+)}
 
       {/* === ACTIVITÉS DU JOUR === */}
       {activities && activities.length > 0 && (
