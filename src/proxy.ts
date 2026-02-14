@@ -4,6 +4,16 @@ import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl
+  const forcedHotel = url.searchParams.get('hotel')
+
+if (forcedHotel) {
+  // Forcer un hôtel via le paramètre ?hotel=paradis
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-hotel-slug', forcedHotel)
+  return NextResponse.next({
+    request: { headers: requestHeaders }
+  })
+}
   const hostname = request.headers.get('host') || ''
   
   // Extraire le sous-domaine (ex: hotel-paradis.guestskit.app → hotel-paradis)
