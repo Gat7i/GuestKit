@@ -2,16 +2,13 @@
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
 import ImageCarousel from '@/components/home/ImageCarousel'
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 
 export default async function HomePage() {
   const supabase = await createClient()
   
   // 1. Récupérer les informations de l'hôtel
-  const { data: hotel } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('id', 1)
-    .single()
+const hotel = await getCurrentHotelServer()
 
 // 2. Récupérer les images de l'hôtel pour le carrousel
 const { data: hotelImages } = await supabase
@@ -25,7 +22,7 @@ const { data: hotelImages } = await supabase
       alt_text
     )
   `)
-  .eq('hotel_id', 1)
+  .eq('hotel_id', hotel?.id || 1)
   .eq('is_active', true)
   .order('sort_order')
 
@@ -50,7 +47,7 @@ const carouselImages = hotelImages?.map((item: any) => ({
         )
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id || 1)
     .eq('spot_type', 'restaurant')
     .limit(3)
 
@@ -67,7 +64,7 @@ const carouselImages = hotelImages?.map((item: any) => ({
         duration_minutes
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id || 1)
     .eq('is_daily_activity', true)
     .eq('schedules.day_of_week', today)
     .limit(3)
