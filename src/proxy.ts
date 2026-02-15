@@ -5,21 +5,25 @@ import { createServerClient } from '@supabase/ssr'
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const forcedHotel = url.searchParams.get('hotel')
+  const pathname = url.pathname
 
-if (forcedHotel) {
-  // Forcer un hôtel via le paramètre ?hotel=paradis
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-hotel-slug', forcedHotel)
-  return NextResponse.next({
-    request: { headers: requestHeaders }
-  })
-}
-  const hostname = request.headers.get('host') || ''
+  // 🔴 NE PAS BLOQUER LES ROUTES ADMIN
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next()
+  }
+
+  if (forcedHotel) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-hotel-slug', forcedHotel)
+    return NextResponse.next({
+      request: { headers: requestHeaders }
+    })
+  }
   
-  // Extraire le sous-domaine (ex: hotel-paradis.guestskit.app → hotel-paradis)
+  const hostname = request.headers.get('host') || ''
   const subdomain = hostname.split('.')[0]
   
-  // Ignorer les domaines principaux et localhost
+  // Ignorer les domaines principaux
   const mainDomains = ['guestskit', 'www', 'localhost']
   if (mainDomains.includes(subdomain) || hostname.includes('localhost')) {
     return NextResponse.next()
@@ -27,7 +31,6 @@ if (forcedHotel) {
   
   // Pour les sous-domaines d'hôtels
   try {
-    // Vérifier si ce sous-domaine correspond à un hôtel
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -49,7 +52,6 @@ if (forcedHotel) {
       .single()
 
     if (hotel) {
-      // CORRECTION : Utiliser Headers standard
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-hotel-id', hotel.id.toString())
       requestHeaders.set('x-hotel-slug', subdomain)
@@ -65,12 +67,11 @@ if (forcedHotel) {
     console.error('Erreur lors de la vérification du sous-domaine:', error)
   }
   
-  // Si le sous-domaine n'existe pas, rediriger vers le site vitrine
-  return NextResponse.redirect(new URL('https://guestskit.app', request.url))
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|admin).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)', // ← INCLURE admin ici
   ],
 }

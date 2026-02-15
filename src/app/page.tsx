@@ -53,21 +53,49 @@ const carouselImages = hotelImages?.map((item: any) => ({
 
   // 4. Récupérer les activités du jour
   const today = new Date().getDay()
-  const { data: activities } = await supabase
-    .from('entertainments')
-    .select(`
-      *,
-      location:locations(name),
-      schedules:daily_schedules!inner(
-        day_of_week,
-        start_time,
-        duration_minutes
+const { data: activities } = await supabase
+  .from('entertainments')
+  .select(`
+    *,
+    location:locations(name),
+    schedules:daily_schedules!inner(
+      day_of_week,
+      start_time,
+      duration_minutes
+    ),
+    images:entertainment_images(
+      is_principal,
+      image:image_id(
+        url,
+        alt_text
       )
-    `)
-    .eq('hotel_id', hotel?.id || 1)
-    .eq('is_daily_activity', true)
-    .eq('schedules.day_of_week', today)
-    .limit(3)
+    )
+  `)
+  .eq('hotel_id', hotel?.id || 1)
+  .eq('is_daily_activity', true)
+  .eq('schedules.day_of_week', today)
+  .limit(3)
+
+  // Pour les suggestions - AJOUTER LES IMAGES
+const { data: suggestions } = await supabase
+  .from('suggestions')
+  .select(`
+    *,
+    category:categories!category_id(
+      id, name, icon, color, bg_color, text_color
+    ),
+    images:suggestion_images(
+      is_principal,
+      image:image_id(
+        url,
+        alt_text
+      )
+    )
+  `)
+  .eq('hotel_id', hotel?.id || 1)
+  .eq('is_active', true)
+  .order('created_at', { ascending: false })
+  .limit(3)
 
   return (
     <div className="min-h-screen">
@@ -209,52 +237,138 @@ const carouselImages = hotelImages?.map((item: any) => ({
         </section>
       )}
 
-      {/* === ACTIVITÉS DU JOUR (inchangé) === */}
-      {activities && activities.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">Aujourd'hui à l'hôtel</h2>
-                <p className="text-gray-600 mt-2">
-                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
-              </div>
-              <Link href="/activities" className="text-blue-600 hover:text-blue-800 font-medium hidden md:block">
-                Voir tout →
-              </Link>
-            </div>
+{/* === ACTIVITÉS DU JOUR AVEC IMAGES === */}
+{activities && activities.length > 0 && (
+  <section className="py-16 bg-white">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Aujourd'hui à l'hôtel</h2>
+          <p className="text-gray-600 mt-2">
+            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
+        <Link href="/activities" className="text-blue-600 hover:text-blue-800 font-medium hidden md:block">
+          Voir tout →
+        </Link>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {activities.map((activity: any) => (
-                <Link key={activity.id} href="/activities" 
-                      className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition group">
-                  <div className="flex items-start gap-4">
-                    <div className="text-3xl">🎯</div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition">
-                        {activity.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{activity.description}</p>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-blue-600 font-medium">
-                          {activity.schedules[0]?.start_time.slice(0,5)}
-                        </span>
-                        {activity.location && (
-                          <>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-gray-600">{activity.location.name}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {activities.map((activity: any) => {
+          // Récupérer l'image principale de l'activité
+          const mainImage = activity.images?.find((img: any) => img.is_principal)?.image || 
+                           activity.images?.[0]?.image
+          
+          return (
+            <Link key={activity.id} href="/activities" 
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition overflow-hidden">
+              {/* Image de l'activité */}
+              <div className="relative h-48 bg-gray-100 overflow-hidden">
+                {mainImage ? (
+                  <img 
+                    src={mainImage.url} 
+                    alt={activity.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <span className="text-5xl text-blue-300">🎯</span>
                   </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                    {activity.schedules[0]?.start_time.slice(0,5)}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Contenu */}
+              <div className="p-5">
+                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition line-clamp-1">
+                  {activity.title}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {activity.description}
+                </p>
+                {activity.location && (
+                  <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                    <span>📍</span>
+                    {activity.location.name}
+                  </p>
+                )}
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  </section>
+)}
+
+{/* === SUGGESTIONS À LA UNE === */}
+{suggestions && suggestions.length > 0 && (
+  <section className="py-16 bg-gray-50">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Découvrez aussi</h2>
+          <p className="text-gray-600 mt-2">Nos suggestions pour agrémenter votre séjour</p>
+        </div>
+        <Link href="/suggestions" className="text-purple-600 hover:text-purple-800 font-medium hidden md:block">
+          Voir tout →
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {suggestions.slice(0, 3).map((suggestion: any) => {
+          const mainImage = suggestion.images?.find((img: any) => img.is_principal)?.image || 
+                           suggestion.images?.[0]?.image
+          
+          return (
+            <Link key={suggestion.id} href={`/suggestions/${suggestion.id}`} 
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition overflow-hidden">
+              <div className="relative h-48 bg-gray-100 overflow-hidden">
+                {mainImage ? (
+                  <img 
+                    src={mainImage.url} 
+                    alt={suggestion.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+                    <span className="text-5xl text-purple-300">✨</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                    {suggestion.location_type === 'internal' ? '🏨 Hôtel' : '🗺️ Extérieur'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-5">
+                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition line-clamp-1">
+                  {suggestion.title}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {suggestion.description}
+                </p>
+                {suggestion.phone && (
+                  <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                    <span>📞</span>
+                    {suggestion.phone}
+                  </p>
+                )}
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  </section>
+)}
 
       {/* === APPEL À L'ACTION === */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-800 text-white">

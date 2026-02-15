@@ -12,63 +12,72 @@ export default function AdminLoginPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError('')
 
-    try {
-      // 1. Authentification
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+  try {
+    // 1. Authentification
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-      if (error) throw error
+    if (error) throw error
 
-      if (data.user) {
-        // 2. Vérifier le profil et le rôle
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*, roles(name)')
-          .eq('id', data.user.id)
-          .single()
+    if (data.user) {
+      // 2. Vérifier le profil (sans jointure)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single()
 
-        if (profileError || !profile) {
-          throw new Error('Profil non trouvé')
-        }
-
-        // 3. Vérifier si c'est un admin
-        const adminRoles = ['super_admin', 'hotel_admin', 'staff']
-        if (!adminRoles.includes(profile.roles?.name)) {
-          throw new Error('Accès non autorisé')
-        }
-
-        // 4. Récupérer l'hôtel associé au profil (si existe)
-        if (profile.hotel_id) {
-          const { data: hotel } = await supabase
-            .from('hotels')
-            .select('slug, name')
-            .eq('id', profile.hotel_id)
-            .single()
-          
-          // Stocker les infos de l'hôtel dans un cookie ou localStorage si nécessaire
-          if (hotel) {
-            // Optionnel : stocker pour usage ultérieur
-            localStorage.setItem('currentHotel', JSON.stringify(hotel))
-          }
-        }
-
-        // 5. Rediriger
-        router.push('/admin')
-        router.refresh()
+      if (profileError || !profile) {
+        throw new Error('Profil non trouvé')
       }
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
+
+      // 3. Récupérer le rôle séparément
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('name')
+        .eq('id', profile.role_id)
+        .single()
+
+      if (roleError || !roleData) {
+        throw new Error('Rôle non trouvé')
+      }
+
+      // 4. Vérifier si c'est un admin
+      const adminRoles = ['super_admin', 'hotel_admin', 'staff']
+      if (!adminRoles.includes(roleData.name)) {
+        throw new Error('Accès non autorisé')
+      }
+
+      // 5. Récupérer l'hôtel associé au profil (si existe)
+      if (profile.hotel_id) {
+        const { data: hotel } = await supabase
+          .from('hotels')
+          .select('slug, name')
+          .eq('id', profile.hotel_id)
+          .single()
+        
+        if (hotel) {
+          localStorage.setItem('currentHotel', JSON.stringify(hotel))
+        }
+      }
+
+      // 6. Rediriger
+      router.push('/admin')
+      router.refresh()
     }
+  } catch (error: any) {
+    setError(error.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-4">

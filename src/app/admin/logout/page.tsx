@@ -10,16 +10,21 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const logout = async () => {
-      // Nettoyer le localStorage (au cas où)
+      // Nettoyer le localStorage
       localStorage.removeItem('currentHotel')
       
       // Déconnexion de Supabase
-      await supabase.auth.signOut()
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Erreur déconnexion:', error)
+      }
       
       // Redirection vers la page de login
       router.push('/admin/login')
       router.refresh()
     }
+    
     logout()
   }, [router, supabase])
 

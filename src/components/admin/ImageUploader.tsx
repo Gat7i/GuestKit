@@ -7,6 +7,7 @@ interface ImageUploaderProps {
   hotelId: number
   foodSpotId?: number
   suggestionId?: number
+  activityId?: number
   onImageUploaded?: () => void
 }
 
@@ -14,6 +15,7 @@ export default function ImageUploader({
   hotelId, 
   foodSpotId, 
   suggestionId,
+  activityId,
   onImageUploaded 
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
@@ -60,7 +62,7 @@ export default function ImageUploader({
 
       if (imageError) throw imageError
 
-      // 3. Lier l'image au restaurant OU à la suggestion
+      // 3. Lier l'image à l'entité correspondante
       if (foodSpotId) {
         const { error: linkError } = await supabase
           .from('food_spot_images')
@@ -83,6 +85,17 @@ export default function ImageUploader({
         if (linkError) throw linkError
       }
 
+      if (activityId) {
+        const { error: linkError } = await supabase
+          .from('entertainment_images')
+          .insert({
+            entertainment_id: activityId,
+            image_id: imageData.id,
+            is_principal: false
+          })
+        if (linkError) throw linkError
+      }
+
       alert('✅ Image ajoutée avec succès!')
       if (onImageUploaded) onImageUploaded()
       
@@ -98,7 +111,7 @@ export default function ImageUploader({
 
   return (
     <div className="mt-4">
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-500 transition">
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition">
         {preview ? (
           <div className="space-y-2">
             <img src={preview} alt="Preview" className="max-h-32 mx-auto rounded" />
@@ -115,7 +128,7 @@ export default function ImageUploader({
             />
             <div className="space-y-2">
               <div className="text-3xl text-gray-400">📸</div>
-              <div className="text-sm font-medium text-purple-600">
+              <div className="text-sm font-medium text-blue-600">
                 {uploading ? 'Upload...' : 'Cliquez pour ajouter une image'}
               </div>
               <div className="text-xs text-gray-500">

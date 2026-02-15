@@ -18,34 +18,21 @@ export type Hotel = {
 // Version SERVEUR uniquement (utilise next/headers)
 export async function getCurrentHotelServer(): Promise<Hotel | null> {
   const headersList = await headers()
-  const hotelId = headersList.get('x-hotel-id')
   const hotelSlug = headersList.get('x-hotel-slug')
-  
   const supabase = await createClient()
   
-  // Récupérer l'utilisateur connecté
   const { data: { user } } = await supabase.auth.getUser()
   
   if (user) {
-    // Récupérer le profil avec le rôle
     const { data: profile } = await supabase
       .from('profiles')
-      .select(`
-        role_id,
-        hotel_id,
-        roles (
-          name
-        )
-      `)
+      .select('role_id, hotel_id')
       .eq('id', user.id)
       .single()
     
     if (profile) {
-      // Récupérer le nom du rôle - peu importe si c'est un tableau ou un objet
-      const roleName = (profile.roles as any)?.name
-      
-      // Si c'est un super_admin (hotel_id = NULL), on utilise le sous-domaine
-      if (roleName === 'super_admin') {
+      // super_admin (role_id = 1) utilise le sous-domaine
+      if (profile.role_id === 1) {
         if (hotelSlug) {
           const { data } = await supabase
             .from('hotels')
@@ -54,7 +41,7 @@ export async function getCurrentHotelServer(): Promise<Hotel | null> {
             .single()
           return data
         }
-        // Fallback : hôtel par défaut
+        // Fallback
         const { data } = await supabase
           .from('hotels')
           .select('*')
@@ -63,7 +50,7 @@ export async function getCurrentHotelServer(): Promise<Hotel | null> {
         return data
       }
       
-      // Pour les admins d'hôtel, on utilise leur hotel_id
+      // Admin d'hôtel
       if (profile.hotel_id) {
         const { data } = await supabase
           .from('hotels')
@@ -75,7 +62,7 @@ export async function getCurrentHotelServer(): Promise<Hotel | null> {
     }
   }
   
-  // Cas par défaut (développement) - utiliser l'hôtel du sous-domaine ou le 1
+  // Fallback pour le développement
   if (hotelSlug) {
     const { data } = await supabase
       .from('hotels')

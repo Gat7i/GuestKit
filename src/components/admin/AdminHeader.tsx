@@ -29,6 +29,16 @@ export default function AdminHeader() {
     getUser()
   }, [supabase])
 
+  // 🔴 NE PAS AFFICHER SUR LA PAGE DE LOGIN
+  if (pathname === '/admin/login') {
+    return null
+  }
+
+  // 🔴 NE PAS AFFICHER SI PAS CONNECTÉ
+  if (!user) {
+    return null
+  }
+
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: '📊' },
     { name: 'Restaurants', href: '/admin/restaurants', icon: '🍽️' },
@@ -62,10 +72,7 @@ export default function AdminHeader() {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center text-white group-hover:scale-105 transition">
               🏨
             </div>
-            <span className="font-bold text-gray-800 hidden sm:inline">GuestsKit Admin</span>
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full ml-2 hidden lg:inline">
-              {profile?.hotel_id ? 'Hôtel Paradis' : 'Super Admin'}
-            </span>
+            <span className="font-bold text-gray-800 hidden sm:inline">GuestSkit Admin</span>
           </Link>
 
           {/* Navigation Desktop */}
@@ -142,25 +149,10 @@ export default function AdminHeader() {
               ))}
             </nav>
             
-            <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
-                  {profile?.first_name?.[0] || 'A'}
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-800">
-                    {profile?.first_name || 'Admin'} {profile?.last_name || ''}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {profile?.roles?.name || 'Administrateur'}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Bouton de déconnexion mobile */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition flex items-center gap-2"
               >
                 <span>🚪</span>
                 Déconnexion

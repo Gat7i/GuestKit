@@ -18,47 +18,67 @@ export type Hotel = {
 export async function getCurrentHotelClient(): Promise<Hotel | null> {
   const supabase = createClient()
   
-  // Récupérer l'utilisateur connecté
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (user) {
-    // Récupérer le profil avec le rôle
-    const { data: profile } = await supabase
+  try {
+    // Récupérer l'utilisateur connecté
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      console.error('Erreur utilisateur:', userError)
+      return null
+    }
+    
+    // Récupérer le profil avec une approche en deux étapes
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select(`
-        role_id,
-        hotel_id,
-        roles (
-          name
-        )
-      `)
+      .select('role_id, hotel_id')
       .eq('id', user.id)
+      .maybeSingle()
+    
+    if (profileError) {
+      console.error('Erreur profil:', profileError)
+      return null
+    }
+    
+    if (!profile) {
+      console.log('Aucun profil trouvé pour cet utilisateur')
+      return null
+    }
+    
+    // Récupérer le nom du rôle séparément
+    const { data: roleData } = await supabase
+      .from('roles')
+      .select('name')
+      .eq('id', profile.role_id)
       .single()
     
-    if (profile) {
-      // Vérifier le rôle - GESTION DES DEUX CAS
-      const roleName = Array.isArray(profile.roles) 
-        ? profile.roles[0]?.name 
-        : (profile.roles as any)?.name
+    const roleName = roleData?.name
+    
+    // Pour les super_admin, on retourne null (ils gèrent tous les hôtels)
+    if (roleName === 'super_admin') {
+      return null
+    }
+    
+    // Pour les admins d'hôtel, on utilise leur hotel_id
+    if (profile.hotel_id) {
+      const { data: hotel, error: hotelError } = await supabase
+        .from('hotels')
+        .select('*')
+        .eq('id', profile.hotel_id)
+        .single()
       
-      // Pour les super_admin, on retourne null
-      if (roleName === 'super_admin') {
+      if (hotelError) {
+        console.error('Erreur chargement hôtel:', hotelError)
         return null
       }
       
-      // Pour les admins d'hôtel, on utilise leur hotel_id
-      if (profile.hotel_id) {
-        const { data } = await supabase
-          .from('hotels')
-          .select('*')
-          .eq('id', profile.hotel_id)
-          .single()
-        return data
-      }
+      return hotel
     }
+    
+    return null
+  } catch (error) {
+    console.error('Erreur inattendue:', error)
+    return null
   }
-  
-  return null
 }
 
 // Fonction pour récupérer un hôtel par son ID (côté client)
