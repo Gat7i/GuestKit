@@ -50,10 +50,10 @@ export default async function ContactsPage() {
 
   // 4. Contacts d'urgence (en dur pour la démo)
   const emergencyContacts = [
-    { name: 'Police', phone: '17', icon: '🚓', bg: 'bg-blue-100', text: 'text-blue-800' },
-    { name: 'SAMU', phone: '15', icon: '🚑', bg: 'bg-red-100', text: 'text-red-800' },
-    { name: 'Pompiers', phone: '18', icon: '🚒', bg: 'bg-orange-100', text: 'text-orange-800' },
-    { name: 'Médecin de garde', phone: '04 93 12 34 56', icon: '👨‍⚕️', bg: 'bg-gray-100', text: 'text-gray-800' }
+    { name: 'Police', phone: '197', icon: '🚓', bg: 'bg-blue-100', text: 'text-blue-800' },
+    { name: 'SAMU', phone: '198', icon: '🚑', bg: 'bg-red-100', text: 'text-red-800' },
+    { name: 'Pompiers', phone: '198', icon: '🚒', bg: 'bg-orange-100', text: 'text-orange-800' },
+    { name: 'Médecin de garde', phone: '+216 98 333 555', icon: '👨‍⚕️', bg: 'bg-gray-100', text: 'text-gray-800' }
   ]
 
   // 5. Gestion des erreurs

@@ -78,26 +78,19 @@ export default function Header() {
         <div className="flex items-center justify-between">
           
           {/* Logo et nom de l'hôtel - DYNAMIQUE */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl shadow-md group-hover:scale-105 transition"
-              style={{ backgroundColor: hotel?.primary_color || '#0ea5e9' }}
-            >
-              {hotel?.logo_url ? (
-                <img src={hotel.logo_url} alt={hotel?.name} className="w-6 h-6 object-contain" />
-              ) : (
-                '🏨'
-              )}
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-gray-800 text-lg">
-                {hotel?.name || 'GuestsKit'}
-              </span>
-              <span className="text-xs text-gray-500 block -mt-1">
-                {hotel?.slug ? `${hotel.slug}.guestskit.app` : 'hotel.guestskit.app'}
-              </span>
-            </div>
-          </Link>
+<Link href="/" className="flex items-center gap-3 group">
+  <div 
+    className="w-40 h-20 rounded-xl flex items-center justify-center text-white text-2xl shadow-md group-hover:scale-105 transition"
+    style={{ backgroundColor: 'transparent' }}
+  >
+    {hotel?.logo_url ? (
+      <img src={hotel.logo_url} alt={hotel?.name} className="w-40 h-20 object-contain" />
+    ) : (
+      <span className="text-3xl">🏨</span>
+    )}
+  </div>
+
+</Link>
 
           {/* Navigation Desktop */}
           <nav className="hidden lg:flex items-center gap-1">

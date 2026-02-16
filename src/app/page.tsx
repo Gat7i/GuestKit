@@ -30,7 +30,6 @@ const { data: hotelImages } = await supabase
 const carouselImages = hotelImages?.map((item: any) => ({
   id: item.image_id,
   url: item.image?.url || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200',
-  title: item.title || 'Hôtel Paradis',
   alt_text: item.image?.alt_text || 'Image de l\'hôtel'
 })) || []
 
@@ -106,25 +105,7 @@ const { data: suggestions } = await supabase
           <ImageCarousel images={carouselImages} autoPlayInterval={6000} />
         </div>
 
-        {/* Contenu Hero */}
-        <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
-            Bienvenue à l'
-            <span className="text-blue-400">{hotel?.name || 'Hôtel Paradis'}</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 drop-shadow-lg">
-            Votre séjour, simplifié. Tous les services de l'hôtel dans votre poche.
-          </p>
-          
-          {/* Bouton de découverte (remplace le QR code) */}
-          <Link
-            href="/suggestions"
-            className="inline-flex items-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl"
-          >
-            <span>✨</span>
-            Découvrir l'hôtel
-          </Link>
-        </div>
+
 
         {/* Flèche de scroll */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-20">
