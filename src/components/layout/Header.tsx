@@ -42,13 +42,17 @@ export default function Header() {
   const navItems = [
     { name: 'Accueil', href: '/', icon: '🏠' },
     { name: 'Restaurants', href: '/restaurants', icon: '🍽️' },
+    { name: 'Demandes', href: '/requests', icon: '📋' },
+    { name: 'Carte', href: '/map', icon: '🗺️' },
+    { name: 'Contacts', href: '/contacts', icon: '📞' }
+  ]
+
+  const animationItems = [
     { name: 'Activités', href: '/activities', icon: '🎭' },
     { name: 'Spectacles', href: '/shows', icon: '🌟' },
     { name: 'Découvertes', href: '/suggestions', icon: '✨' },
-    { name: 'Demandes', href: '/requests', icon: '📋' },
-    { name: 'Plan', href: '/map', icon: '🗺️' },
-    { name: 'Contacts', href: '/contacts', icon: '📞' }
   ]
+
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href
@@ -87,24 +91,23 @@ export default function Header() {
           
           {/* Logo et nom de l'hôtel - DYNAMIQUE */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div 
-                className="w-20 h-20 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition"
+            <div
+                className="h-16 w-40 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition overflow-hidden"
               >
                 {hotel?.logo_url ? (
-                  <img 
-                    src={hotel.logo_url} 
-                    alt={hotel?.name} 
-                    className="w-16 h-16 object-contain"
+                  <img
+                    src={hotel.logo_url}
+                    alt={hotel?.name}
+                    className="h-full w-full object-contain"
                   />
                 ) : (
                   <span className="text-5xl">🏨</span>
                 )}
               </div>
             <div className="hidden sm:block">
-              <span className="font-bold text-gray-800 text-xl">
+              <span className="font-semibold text-gray-700 text-sm">
                 {hotel?.name || 'GuestSkit'}
               </span>
-              
             </div>
           </Link>
 
@@ -130,6 +133,39 @@ export default function Header() {
                 )}
               </Link>
             ))}
+
+            {/* Dropdown Animation */}
+            <div className="relative group">
+              <button className={`
+                px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                flex items-center gap-2
+                ${animationItems.some(i => pathname?.startsWith(i.href))
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-100'
+                }
+              `}>
+                <span>🎭</span>
+                <span>Animation</span>
+                <span className="text-xs">▾</span>
+              </button>
+              <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-xl shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100">
+                {animationItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-2.5 text-sm transition
+                      ${isActive(item.href)
+                        ? 'bg-blue-50 text-blue-600 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </nav>
 
           {/* Zone utilisateur */}

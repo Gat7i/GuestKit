@@ -123,42 +123,36 @@ const { data: suggestions } = await supabase
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-            {/* Carte Restaurant */}
-            <Link href="/restaurants" 
+            <Link href="/restaurants"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-blue-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">🍽️</div>
               <h3 className="font-semibold text-gray-900">Restaurants</h3>
             </Link>
 
-            {/* Carte Activités */}
             <Link href="/activities"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-blue-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">🎭</div>
               <h3 className="font-semibold text-gray-900">Activités</h3>
             </Link>
 
-            {/* Carte Spectacles */}
             <Link href="/shows"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-purple-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">🌟</div>
               <h3 className="font-semibold text-gray-900">Spectacles</h3>
             </Link>
 
-            {/* Carte Découvertes */}
             <Link href="/suggestions"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-pink-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">✨</div>
               <h3 className="font-semibold text-gray-900">Découvertes</h3>
             </Link>
 
-            {/* Carte Plan */}
             <Link href="/map"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-emerald-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">🗺️</div>
-              <h3 className="font-semibold text-gray-900">Plan</h3>
+              <h3 className="font-semibold text-gray-900">Carte</h3>
             </Link>
 
-            {/* Carte Contacts */}
             <Link href="/contacts"
               className="group bg-gray-50 rounded-2xl p-6 text-center hover:bg-green-50 transition">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">📞</div>
