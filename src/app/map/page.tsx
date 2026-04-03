@@ -31,7 +31,7 @@ export default async function MapPage() {
   const { data: plans } = await supabase
     .from('plans')
     .select('*')
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('is_active', true)
     .order('sort_order')
     .order('floor_level')
@@ -45,7 +45,7 @@ export default async function MapPage() {
         type_key, name, icon, color, text_color, bg_color
       )
     `)
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotel?.id)
     .eq('is_active', true)
 
   // 5. Grouper les points par plan

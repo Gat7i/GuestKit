@@ -36,7 +36,7 @@ export default function AdminHeader() {
             </div>
             <span className="font-bold text-gray-800">GuestsKit Admin</span>
             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full ml-2">
-              Hôtel Paradis
+              Hôtel
             </span>
           </Link>
 

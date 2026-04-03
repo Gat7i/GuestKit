@@ -4,63 +4,64 @@ import { createClient } from '@/lib/supabase/server-client'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
-  
+  const hotelId = parseInt(process.env.NEXT_PUBLIC_HOTEL_ID || '0')
+
   // ============================================
   // STATISTIQUES POUR LE DASHBOARD
   // ============================================
-  
+
   // Restaurants
   const { count: restaurantsCount } = await supabase
     .from('food_spots')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('spot_type', 'restaurant')
 
   // Activités
   const { count: activitiesCount } = await supabase
     .from('entertainments')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('is_daily_activity', true)
 
   // Spectacles
   const { count: showsCount } = await supabase
     .from('entertainments')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('is_night_show', true)
 
   // Suggestions
   const { count: suggestionsCount } = await supabase
     .from('suggestions')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
 
   // Contacts
   const { count: contactsCount } = await supabase
     .from('contacts')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
 
   // Plans (étages)
   const { count: plansCount } = await supabase
     .from('plans')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('is_active', true)
 
   // Catégories
   const { count: categoriesCount } = await supabase
     .from('categories')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('is_active', true)
 
   // Types de POI
   const { count: poiTypesCount } = await supabase
     .from('poi_types')
     .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', 1)
+    .eq('hotel_id', hotelId)
     .eq('is_active', true)
 
   // ============================================
@@ -185,7 +186,7 @@ export default async function AdminDashboardPage() {
                 Administration GuestsKit
               </h1>
               <p className="text-xl text-blue-100">
-                Hôtel Paradis • Gérez tout le contenu de votre application
+                Gérez tout le contenu de votre application
               </p>
             </div>
           </div>

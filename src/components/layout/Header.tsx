@@ -3,39 +3,22 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client-browser'
+import { useHotelData } from '@/hooks/useHotelData'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [hotel, setHotel] = useState<any>(null)
   const pathname = usePathname()
   const supabase = createClient()
+  
+  // ✅ Utilisation du hook client
+  const { hotel, user, customer, currentStay, loading } = useHotelData()
   
   // 🔴 NE PAS AFFICHER SUR LES PAGES ADMIN
   if (pathname?.startsWith('/admin')) {
     return null
   }
-
-  // ============================================
-  // CHARGER LES INFORMATIONS DE L'HÔTEL - DYNAMIQUE
-  // ============================================
-  useEffect(() => {
-    const getHotel = async () => {
-      // Pour l'instant on prend l'hôtel par défaut (ID 1)
-      // Plus tard, on détectera le sous-domaine
-      const hotelId = 1
-      
-      const { data } = await supabase
-        .from('hotels')
-        .select('name, slug, logo_url, primary_color, secondary_color')
-        .eq('id', hotelId)
-        .single()
-      
-      setHotel(data)
-    }
-    getHotel()
-  }, [supabase])
 
   // Détecter le scroll
   useEffect(() => {
@@ -51,12 +34,18 @@ export default function Header() {
     setIsMenuOpen(false)
   }, [pathname])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
   const navItems = [
     { name: 'Accueil', href: '/', icon: '🏠' },
     { name: 'Restaurants', href: '/restaurants', icon: '🍽️' },
     { name: 'Activités', href: '/activities', icon: '🎭' },
     { name: 'Spectacles', href: '/shows', icon: '🌟' },
     { name: 'Découvertes', href: '/suggestions', icon: '✨' },
+    { name: 'Demandes', href: '/requests', icon: '📋' },
     { name: 'Plan', href: '/map', icon: '🗺️' },
     { name: 'Contacts', href: '/contacts', icon: '📞' }
   ]
@@ -66,31 +55,58 @@ export default function Header() {
     return pathname?.startsWith(href)
   }
 
+  if (loading) {
+    return (
+      <header className="bg-white shadow-sm py-4">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+              <div className="hidden sm:block">
+                <div className="w-32 h-5 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-24 h-3 bg-gray-200 rounded animate-pulse mt-1"></div>
+              </div>
+            </div>
+            <div className="w-24 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    )
+  }
+
   return (
     <header className={`
       sticky top-0 z-50 w-full transition-all duration-300
       ${isScrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' 
-        : 'bg-white shadow-sm py-4'
+        ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' 
+        : 'bg-white shadow-sm py-3'
       }
     `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           
           {/* Logo et nom de l'hôtel - DYNAMIQUE */}
-<Link href="/" className="flex items-center gap-3 group">
-  <div 
-    className="w-40 h-20 rounded-xl flex items-center justify-center text-white text-2xl shadow-md group-hover:scale-105 transition"
-    style={{ backgroundColor: 'transparent' }}
-  >
-    {hotel?.logo_url ? (
-      <img src={hotel.logo_url} alt={hotel?.name} className="w-40 h-20 object-contain" />
-    ) : (
-      <span className="text-3xl">🏨</span>
-    )}
-  </div>
-
-</Link>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div 
+                className="w-20 h-20 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition"
+              >
+                {hotel?.logo_url ? (
+                  <img 
+                    src={hotel.logo_url} 
+                    alt={hotel?.name} 
+                    className="w-16 h-16 object-contain"
+                  />
+                ) : (
+                  <span className="text-5xl">🏨</span>
+                )}
+              </div>
+            <div className="hidden sm:block">
+              <span className="font-bold text-gray-800 text-xl">
+                {hotel?.name || 'GuestSkit'}
+              </span>
+              
+            </div>
+          </Link>
 
           {/* Navigation Desktop */}
           <nav className="hidden lg:flex items-center gap-1">
@@ -116,31 +132,168 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Actions Desktop */}
-          <div className="hidden lg:flex items-center gap-3">
-            <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
-              📱
-            </button>
-            <button className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition text-sm font-medium">
-              <span>🇫🇷</span>
-              <span className="hidden xl:inline">FR</span>
-            </button>
-            <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">
-              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
-                👤
+          {/* Zone utilisateur */}
+          <div className="flex items-center gap-3">
+            {user ? (
+              // Utilisateur connecté (admin OU client)
+              <div className="flex items-center gap-3">
+                {/* Statut du séjour - UNIQUEMENT pour les clients avec séjour */}
+                {customer && currentStay && (
+                  <div className="hidden md:block">
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+                      <span className="text-green-600 text-sm font-medium">
+                        🏨 Chambre {currentStay.room?.room_number || 'assignée'}
+                      </span>
+                      <span className="text-xs text-green-500">
+                        {currentStay.room?.room_type || ''}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Statut "en attente" - UNIQUEMENT pour les clients sans séjour */}
+                {customer && !currentStay && (
+                  <div className="hidden md:block">
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                      <span className="text-amber-600 text-sm font-medium animate-pulse">
+                        ⏳ Séjour en attente
+                      </span>
+                      <span className="text-xs text-amber-500">
+                        Présentez-vous à la réception
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bouton de déconnexion - TOUJOURS visible pour tout utilisateur connecté */}
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2"
+                >
+                  <span>🚪</span>
+                  <span className="hidden md:inline">Déconnexion</span>
+                </button>
+
+                {/* Avatar et menu utilisateur */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">
+                    {customer?.avatar_url ? (
+                      <img 
+                        src={customer.avatar_url} 
+                        alt={customer.full_name || ''}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
+                        {(customer?.full_name || user?.email || 'U')[0].toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-700 hidden md:block">
+                      {customer?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Compte'}
+                    </span>
+                  </button>
+
+                  {/* Menu déroulant */}
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="px-4 py-2 border-b">
+                      <p className="text-sm font-medium text-gray-900">
+                        {customer?.full_name || 'Administrateur'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                    
+                    {/* Statut du séjour en mobile - uniquement pour clients */}
+                    {customer && (
+                      <div className="md:hidden px-4 py-2 border-b">
+                        {currentStay ? (
+                          <p className="text-sm text-green-600">
+                            🏨 Chambre {currentStay.room?.room_number}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-amber-600">
+                            ⏳ Séjour en attente
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Liens pour les clients */}
+                    {customer && (
+                      <>
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                        >
+                          Mon profil
+                        </Link>
+                        
+                        {currentStay && (
+                          <Link
+                            href={`/stays/${currentStay.id}`}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                          >
+                            Mon séjour
+                          </Link>
+                        )}
+                        
+                        <Link
+                          href="/requests"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                        >
+                          Mes demandes
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Lien vers admin pour les admins */}
+                    {!customer && (
+                      <Link
+                        href="/admin"
+                        className="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition"
+                      >
+                        🔧 Administration
+                      </Link>
+                    )}
+
+                    {/* Bouton déconnexion dans le menu mobile */}
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition md:hidden"
+                    >
+                      🚪 Déconnexion
+                    </button>
+                  </div>
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-700 hidden xl:block">Chambre 101</span>
+            ) : (
+              // Utilisateur non connecté
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"
+                >
+                  Créer un compte
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+            >
+              <span className="text-xl">{isMenuOpen ? '✕' : '☰'}</span>
+              <span className="text-sm font-medium text-gray-700">Menu</span>
             </button>
           </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
-          >
-            <span className="text-xl">{isMenuOpen ? '✕' : '☰'}</span>
-            <span className="text-sm font-medium text-gray-700">Menu</span>
-          </button>
         </div>
 
         {/* Mobile menu */}
@@ -165,26 +318,36 @@ export default function Header() {
                 </Link>
               ))}
             </nav>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                    👤
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-800">
-                      {hotel?.name || 'Hôtel Paradis'}
+            
+            {/* Statut du séjour en mobile - uniquement pour clients */}
+            {user && customer && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  {currentStay ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          Chambre {currentStay.room?.room_number}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {currentStay.room?.room_type}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/stays/${currentStay.id}`}
+                        className="text-blue-600 text-sm"
+                      >
+                        Voir
+                      </Link>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {hotel?.slug ? `${hotel.slug}.guestskit.app` : 'Chambre 101'}
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-sm text-amber-600 text-center">
+                      ⏳ Séjour en attente - Présentez-vous à la réception
+                    </p>
+                  )}
                 </div>
-                <button className="p-2 text-gray-600 hover:text-blue-600">
-                  📱 QR Code
-                </button>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

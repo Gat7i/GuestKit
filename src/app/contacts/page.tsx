@@ -32,7 +32,7 @@ export default async function ContactsPage() {
   const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
   
-  // 1. Récupérer tous les contacts de l'Hôtel Paradis (hotel_id = 1)
+  // 1. Récupérer tous les contacts de l'Hôtel
   const { data: contacts, error } = await supabase
     .from('contacts')
     .select('*')
@@ -83,7 +83,7 @@ export default async function ContactsPage() {
                 Contacts utiles
               </h1>
               <p className="text-xl text-blue-100">
-                {hotel?.name || 'Hôtel Paradis'} • Tous les services à portée de main
+                {hotel?.name || 'Hôtel'} • Tous les services à portée de main
               </p>
             </div>
           </div>

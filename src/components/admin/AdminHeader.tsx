@@ -39,18 +39,20 @@ export default function AdminHeader() {
     return null
   }
 
-  const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: '📊' },
-    { name: 'Restaurants', href: '/admin/restaurants', icon: '🍽️' },
-    { name: 'Activités', href: '/admin/activities', icon: '🎭' },
-    { name: 'Spectacles', href: '/admin/shows', icon: '🌟' },
-    { name: 'Découvertes', href: '/admin/suggestions', icon: '✨' },
-    { name: 'Plan', href: '/admin/map-editor', icon: '🗺️' },
-    { name: 'Contacts', href: '/admin/contacts', icon: '📞' },
-    { name: 'Hôtel', href: '/admin/hotel', icon: '🏨' },
-    { name: 'Catégories', href: '/admin/categories', icon: '🏷️' },
-    { name: 'Types POI', href: '/admin/poi-types', icon: '📍' }
-  ]
+ const navItems = [
+  { name: 'Dashboard', href: '/admin', icon: '📊' },
+  { name: 'Restaurants', href: '/admin/restaurants', icon: '🍽️' },
+  { name: 'Activités', href: '/admin/activities', icon: '🎭' },
+  { name: 'Spectacles', href: '/admin/shows', icon: '🌟' },
+  { name: 'Découvertes', href: '/admin/suggestions', icon: '✨' },
+  { name: 'Réception', href: '/admin/reception', icon: '👥' },
+  { name: 'Demandes', href: '/admin/requests/maintenance', icon: '📋' },  // ← AJOUTER ICI
+  { name: 'Plan', href: '/admin/map-editor', icon: '🗺️' },
+  { name: 'Contacts', href: '/admin/contacts', icon: '📞' },
+  { name: 'Hôtel', href: '/admin/hotel', icon: '🏨' },
+  { name: 'Catégories', href: '/admin/categories', icon: '🏷️' },
+  { name: 'Types POI', href: '/admin/poi-types', icon: '📍' }
+]
 
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === href
