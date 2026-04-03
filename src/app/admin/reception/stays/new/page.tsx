@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -14,6 +14,14 @@ type Customer = {
 }
 
 export default function NewStayPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center"><p className="text-gray-600">Chargement...</p></div>}>
+      <NewStayForm />
+    </Suspense>
+  )
+}
+
+function NewStayForm() {
   const [hotel, setHotel] = useState<any>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([])
