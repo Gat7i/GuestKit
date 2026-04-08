@@ -329,7 +329,7 @@ export default function Header() {
         {isMenuOpen && (
           <div className="lg:hidden mt-4 pt-4 border-t border-gray-200 animate-slideDown">
             <nav className="grid grid-cols-2 gap-2">
-              {navItems.map((item) => (
+              {[...navItems, ...animationItems].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
