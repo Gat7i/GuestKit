@@ -307,10 +307,10 @@ export default function Header() {
               // Utilisateur non connecté
               <Link
                 href="/login"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md"
               >
                 <span>🔑</span>
-                <span>Mon espace</span>
+                <span className="hidden sm:inline">Mon espace</span>
               </Link>
             )}
 
