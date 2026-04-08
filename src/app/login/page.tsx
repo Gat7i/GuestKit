@@ -276,19 +276,22 @@ export default function ClientLoginPage() {
           </button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-blue-600 hover:text-blue-800"
-          >
-            {isSignUp 
-              ? 'Déjà un compte ? Connectez-vous' 
-              : 'Pas de compte ? Inscrivez-vous'}
-          </button>
-        </div>
-
-        <p className="mt-6 text-xs text-center text-gray-500">
-          En continuant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
+        <p className="mt-6 text-xs text-center text-gray-400">
+          {isSignUp ? (
+            <>
+              Déjà un compte ?{' '}
+              <button onClick={() => setIsSignUp(false)} className="underline hover:text-gray-600 transition">
+                Se connecter
+              </button>
+            </>
+          ) : (
+            <>
+              Première visite ?{' '}
+              <button onClick={() => setIsSignUp(true)} className="underline hover:text-gray-600 transition">
+                Créer un accès
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>

@@ -305,20 +305,13 @@ export default function Header() {
               </div>
             ) : (
               // Utilisateur non connecté
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
-                >
-                  Se connecter
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"
-                >
-                  Créer un compte
-                </Link>
-              </div>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+              >
+                <span>🔑</span>
+                <span>Mon espace</span>
+              </Link>
             )}
 
             {/* Mobile menu button */}
