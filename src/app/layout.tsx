@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <Header />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}
-        <main className="flex-grow">
+        <main className="flex-grow pb-16 lg:pb-0">
           {children}
         </main>
         <Footer />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}

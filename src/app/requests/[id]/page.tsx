@@ -244,7 +244,12 @@ export default async function RequestDetailPage({
         </div>
 
         {/* Actions - Utilisation du composant client */}
-        <RequestActions requestId={request.id} status={request.status} />
+        <RequestActions
+          requestId={request.id}
+          status={request.status}
+          existingRating={request.rating}
+          existingFeedback={request.feedback}
+        />
       </div>
     </div>
   )

@@ -19,11 +19,13 @@ function NewRequestForm() {
   const [requestType, setRequestType] = useState<any>(null)
   const [customer, setCustomer] = useState<any>(null)
   const [activeStay, setActiveStay] = useState<any>(null)
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: 'normal'
-  })
+  const [formData, setFormData] = useState({ title: '', description: '' })
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text })
+    setTimeout(() => setToast(null), 4000)
+  }
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -117,7 +119,7 @@ function NewRequestForm() {
           request_type_id: requestType.id,
           title: formData.title,
           description: formData.description,
-          priority: formData.priority,
+          priority: 'normal',
           status: 'pending',
           requested_time: new Date().toISOString()
         })
@@ -126,12 +128,14 @@ function NewRequestForm() {
 
       if (error) throw error
 
-      alert('✅ Demande envoyée avec succès !')
-      router.push(`/requests/${data.id}`)
-      router.refresh()
+      showToast('success', 'Demande envoyée avec succès !')
+      setTimeout(() => {
+        router.push(`/requests/${data.id}`)
+        router.refresh()
+      }, 1200)
     } catch (error) {
       console.error('Erreur création demande:', error)
-      alert('❌ Erreur lors de l\'envoi de la demande')
+      showToast('error', 'Erreur lors de l\'envoi de la demande')
     } finally {
       setSaving(false)
     }
@@ -180,6 +184,14 @@ function NewRequestForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
+          toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {toast.text}
+        </div>
+      )}
       <div className="max-w-2xl mx-auto">
         {/* En-tête */}
         <div className="mb-8">
@@ -232,66 +244,6 @@ function NewRequestForm() {
               className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="Décrivez votre demande en détail..."
             />
-          </div>
-
-          {/* Priorité */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priorité
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              <label className={`
-                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition
-                ${formData.priority === 'normal' 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                  : 'border-gray-200 hover:border-gray-300'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="priority"
-                  value="normal"
-                  checked={formData.priority === 'normal'}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="hidden"
-                />
-                <span className="text-sm font-medium">Normal</span>
-              </label>
-              <label className={`
-                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition
-                ${formData.priority === 'high' 
-                  ? 'border-orange-500 bg-orange-50 text-orange-700' 
-                  : 'border-gray-200 hover:border-gray-300'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="priority"
-                  value="high"
-                  checked={formData.priority === 'high'}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="hidden"
-                />
-                <span className="text-sm font-medium">Haute</span>
-              </label>
-              <label className={`
-                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition
-                ${formData.priority === 'urgent' 
-                  ? 'border-red-500 bg-red-50 text-red-700' 
-                  : 'border-gray-200 hover:border-gray-300'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="priority"
-                  value="urgent"
-                  checked={formData.priority === 'urgent'}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="hidden"
-                />
-                <span className="text-sm font-medium">Urgent</span>
-              </label>
-            </div>
           </div>
 
           {/* Boutons */}

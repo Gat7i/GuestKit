@@ -56,6 +56,23 @@ export default async function RequestsPage() {
   // Si pas de client du tout, on propose la création
   const showStayRequest = !customer || (!activeStay && !pendingStay)
 
+  // Récupérer les demandes actives du client
+  let activeRequests: any[] = []
+  if (activeStay) {
+    const { data } = await supabase
+      .from('customer_requests')
+      .select(`
+        id, title, status, priority, created_at,
+        request_type:request_types(name, icon, category)
+      `)
+      .eq('stay_id', activeStay.id)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    activeRequests = data || []
+  }
+
   // Récupérer les types de demandes (si le client a un séjour actif)
   let requestTypes = []
   if (activeStay) {
@@ -145,6 +162,47 @@ export default async function RequestsPage() {
             </p>
             <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm text-blue-700">
               <span>Demande envoyée le {new Date(pendingStay.created_at).toLocaleDateString('fr-FR')}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Mes demandes en cours */}
+        {activeStay && activeRequests.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Mes demandes en cours</h2>
+            <div className="space-y-3">
+              {activeRequests.map((req: any) => {
+                const statusColors: Record<string, string> = {
+                  pending:     'bg-yellow-100 text-yellow-800',
+                  in_progress: 'bg-blue-100 text-blue-800',
+                  completed:   'bg-green-100 text-green-800',
+                }
+                const statusLabels: Record<string, string> = {
+                  pending:     'En attente',
+                  in_progress: 'En cours',
+                  completed:   'Terminée',
+                }
+                return (
+                  <Link
+                    key={req.id}
+                    href={`/requests/${req.id}`}
+                    className="flex items-center justify-between bg-white rounded-xl px-5 py-4 shadow-sm hover:shadow-md transition border border-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{req.request_type?.icon || '📋'}</span>
+                      <div>
+                        <p className="font-medium text-gray-900">{req.title}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(req.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[req.status] || 'bg-gray-100 text-gray-600'}`}>
+                      {statusLabels[req.status] || req.status}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}
