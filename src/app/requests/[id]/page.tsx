@@ -235,12 +235,6 @@ export default async function RequestDetailPage({
             </p>
           )}
 
-          {/* Formulaire de réponse (sera ajouté plus tard) */}
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-sm text-gray-500 text-center">
-              Le service client vous répondra dans les plus brefs délais
-            </p>
-          </div>
         </div>
 
         {/* Actions - Utilisation du composant client */}
@@ -248,6 +242,7 @@ export default async function RequestDetailPage({
           requestId={request.id}
           status={request.status}
           customerName={customer.full_name || 'Client'}
+          customerUuid={customer.customer_uuid}
           existingRating={request.rating}
           existingFeedback={request.feedback}
         />

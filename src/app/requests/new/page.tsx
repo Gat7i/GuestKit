@@ -56,7 +56,6 @@ function NewRequestForm() {
           .single()
 
         if (!customerData) {
-          alert('Client non trouvé')
           router.push('/')
           return
         }
@@ -68,11 +67,10 @@ function NewRequestForm() {
           .select('id')
           .eq('primary_customer_id', customerData.customer_uuid)
           .eq('status', 'active')
-          .single()
+          .maybeSingle()
 
         if (!stayData) {
-          alert('Aucun séjour actif')
-          router.push('/')
+          router.push('/requests')
           return
         }
         setActiveStay(stayData)
@@ -82,10 +80,9 @@ function NewRequestForm() {
           .from('request_types')
           .select('*')
           .eq('id', typeId)
-          .single()
+          .maybeSingle()
 
         if (!typeData) {
-          alert('Type de demande invalide')
           router.push('/requests')
           return
         }

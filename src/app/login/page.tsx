@@ -8,6 +8,7 @@ import Link from 'next/link'
 export default function ClientLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('') // Pour l'inscription
@@ -119,7 +120,7 @@ export default function ClientLoginPage() {
         if (error) throw error
         
         if (data.user) {
-          alert('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.')
+          setSuccess('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.')
           setIsSignUp(false)
           setEmail('')
           setPassword('')
@@ -260,6 +261,12 @@ export default function ClientLoginPage() {
               </p>
             )}
           </div>
+
+          {success && (
+            <div className="bg-green-50 text-green-700 text-sm p-3 rounded-lg border border-green-200">
+              {success}
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">

@@ -385,11 +385,17 @@ export default async function SuggestionsPage() {
               </p>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
-                <span>📞</span>
-                Poste 122
-              </div>
-              <span className="text-xs text-gray-500">24h/24 - 7j/7</span>
+              {hotel?.phone ? (
+                <a href={`tel:${hotel.phone}`} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition">
+                  <span>📞</span>
+                  {hotel.phone}
+                </a>
+              ) : (
+                <div className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
+                  <span>📞</span>
+                  Réception
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -212,24 +212,31 @@ export default async function ContactsPage() {
                   Adresse de l'hôtel
                 </h3>
               </div>
-              <p className="text-gray-700 mb-4">
-                {hotel?.address || '123 Boulevard de la Mer, 06100 Nice, France'}
-              </p>
+              {hotel?.address && (
+                <p className="text-gray-700 mb-4">{hotel.address}</p>
+              )}
               <div className="space-y-2">
-                <a 
-                  href={`tel:${hotel?.phone || '+33493123456'}`}
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-                >
-                  <span>📞</span>
-                  {hotel?.phone || '+33 4 93 12 34 56'}
-                </a>
-                <a 
-                  href={`mailto:${hotel?.email || 'contact@hotel-paradis.fr'}`}
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-                >
-                  <span>✉️</span>
-                  {hotel?.email || 'contact@hotel-paradis.fr'}
-                </a>
+                {hotel?.phone && (
+                  <a
+                    href={`tel:${hotel.phone}`}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
+                  >
+                    <span>📞</span>
+                    {hotel.phone}
+                  </a>
+                )}
+                {hotel?.email && (
+                  <a
+                    href={`mailto:${hotel.email}`}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
+                  >
+                    <span>✉️</span>
+                    {hotel.email}
+                  </a>
+                )}
+                {!hotel?.address && !hotel?.phone && !hotel?.email && (
+                  <p className="text-gray-500 text-sm">Contactez la réception pour toute information.</p>
+                )}
               </div>
             </div>
 
@@ -246,19 +253,10 @@ export default async function ContactsPage() {
                   <span>Réception</span>
                   <span className="font-medium">24h/24 - 7j/7</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Room Service</span>
-                  <span className="font-medium">6h30 - 23h00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Spa & Bien-être</span>
-                  <span className="font-medium">9h00 - 20h00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Piscine</span>
-                  <span className="font-medium">8h00 - 22h00</span>
-                </div>
               </div>
+              <p className="text-xs text-gray-500 mt-3">
+                Horaires des autres services disponibles à la réception.
+              </p>
             </div>
 
             {/* Check-in / Check-out */}
@@ -290,8 +288,8 @@ export default async function ContactsPage() {
           </div>
         </div>
 
-        {/* Bouton d'appel rapide - Fixe en mobile */}
-        <div className="fixed bottom-6 right-6 md:hidden">
+        {/* Bouton d'appel rapide - Fixe en mobile (au-dessus de la nav bar) */}
+        <div className="fixed bottom-20 right-6 lg:hidden">
           <a
             href="tel:0"
             className="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-blue-700 transition"

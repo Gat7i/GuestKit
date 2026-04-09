@@ -9,6 +9,7 @@ type RequestActionsProps = {
   requestId: number
   status: string
   customerName: string
+  customerUuid: string
   existingRating?: number | null
   existingFeedback?: string | null
 }
@@ -17,6 +18,7 @@ export default function RequestActions({
   requestId,
   status,
   customerName,
+  customerUuid,
   existingRating,
   existingFeedback,
 }: RequestActionsProps) {
@@ -45,6 +47,7 @@ export default function RequestActions({
         .from('customer_requests')
         .update({ status: 'cancelled' })
         .eq('id', requestId)
+        .eq('customer_id', customerUuid)
       if (error) throw error
       router.refresh()
     } catch {

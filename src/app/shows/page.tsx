@@ -273,10 +273,12 @@ export default async function ShowsPage() {
               Les places pour nos spectacles sont limitées. 
               Rendez-vous à la réception ou contactez notre équipe d'animation pour réserver.
             </p>
-            <div className="mt-2 inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-4 py-2 rounded-full text-sm">
-              <span>📞</span>
-              Poste 122 - Conciergerie
-            </div>
+            {hotel?.phone && (
+              <div className="mt-2 inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-4 py-2 rounded-full text-sm">
+                <span>📞</span>
+                {hotel.phone}
+              </div>
+            )}
           </div>
         </div>
       </div>
