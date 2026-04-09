@@ -1,6 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function RestaurantsPage() {
   const hotel = await getCurrentHotelServer()
@@ -54,8 +55,8 @@ export default async function RestaurantsPage() {
       <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">
-              🍽️
+            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+              <Icon.Utensils className="w-8 h-8 text-white" />
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
@@ -73,7 +74,7 @@ export default async function RestaurantsPage() {
       <div className="max-w-7xl mx-auto px-4 py-12">
         {(!restaurants || restaurants.length === 0) ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-            <div className="text-7xl mb-6">🍽️</div>
+            <Icon.Utensils className="w-16 h-16 text-amber-200 mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
               Aucun restaurant disponible
             </h2>
@@ -104,14 +105,15 @@ export default async function RestaurantsPage() {
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-                        <span className="text-6xl text-amber-300">🍽️</span>
+                        <Icon.Utensils className="w-14 h-14 text-amber-200" />
                       </div>
                     )}
                     
                     {/* Badge type */}
                     <div className="absolute top-4 left-4">
-                      <span className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                        {restaurant.spot_type === 'restaurant' ? '🍽️ Restaurant' : '🍸 Bar'}
+                      <span className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium text-gray-700 shadow-sm flex items-center gap-1">
+                        <Icon.Utensils className="w-3 h-3" />
+                        {restaurant.spot_type === 'restaurant' ? 'Restaurant' : 'Bar'}
                       </span>
                     </div>
 
@@ -119,7 +121,7 @@ export default async function RestaurantsPage() {
                     {mainImage?.is_principal && (
                       <div className="absolute top-4 right-4">
                         <span className="bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-1">
-                          <span>⭐</span> Principal
+                          <Icon.Star className="w-3 h-3" /> Principal
                         </span>
                       </div>
                     )}
@@ -164,7 +166,7 @@ export default async function RestaurantsPage() {
                     {/* Emplacement */}
                     {restaurant.location && (
                       <div className="flex items-center gap-1 text-gray-600 text-sm mb-2">
-                        <span className="text-gray-400">📍</span>
+                        <Icon.Pin className="w-3 h-3 text-gray-400 flex-shrink-0" />
                         <span>{restaurant.location.name}</span>
                       </div>
                     )}
@@ -178,7 +180,7 @@ export default async function RestaurantsPage() {
                     {restaurant.hours && restaurant.hours.length > 0 && (
                       <div className="bg-gray-50 rounded-lg p-3 mb-4">
                         <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
-                          <span>🕐</span> Horaires d'ouverture
+                          <Icon.Clock className="w-3 h-3 text-gray-500" /> Horaires d'ouverture
                         </p>
                         <div className="space-y-1">
                           {restaurant.hours
@@ -212,7 +214,7 @@ export default async function RestaurantsPage() {
                           rel="noopener noreferrer"
                           className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
                         >
-                          <span>📄</span>
+                          <Icon.ExternalLink className="w-4 h-4" />
                           Menu
                         </a>
                       )}
@@ -221,7 +223,7 @@ export default async function RestaurantsPage() {
                         href={`/restaurants/${restaurant.id}`}
                         className="flex-1 bg-white border border-gray-200 hover:border-amber-300 text-gray-700 hover:text-amber-600 px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
                         >
-                        <span>🔍</span>
+                        <Icon.ChevronRight className="w-4 h-4" />
                         Voir détails
                         </Link>
                     </div>
@@ -236,7 +238,7 @@ export default async function RestaurantsPage() {
         {restaurants && restaurants.length > 0 && (
           <div className="mt-12 bg-amber-50 border border-amber-200 rounded-xl p-6 text-sm text-amber-800">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
+              <Icon.Bell className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-medium mb-1">Réservation recommandée</h3>
                 <p className="text-amber-700">

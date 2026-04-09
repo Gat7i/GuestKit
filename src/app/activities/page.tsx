@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server-client'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 // Jours de la semaine en français
 const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
@@ -147,7 +148,7 @@ export default async function ActivitiesPage() {
         {/* Message si aucune activité */}
         {(!activities || activities.length === 0) && (
           <div className="bg-white rounded-xl p-8 text-center">
-            <div className="text-6xl mb-4">🎭</div>
+            <Icon.Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
               Aucune activité programmée pour le moment
             </h2>
@@ -234,7 +235,7 @@ export default async function ActivitiesPage() {
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-                                      <span className="text-2xl text-blue-300">🎯</span>
+                                      <Icon.Activity className="w-8 h-8 text-blue-200" />
                                     </div>
                                   )}
                                 </div>
@@ -256,13 +257,13 @@ export default async function ActivitiesPage() {
                                   
                                   <div className="flex flex-wrap gap-3 text-xs">
                                     {item.location && (
-                                      <span className="flex items-center text-gray-600">
-                                        <span className="mr-1">📍</span>
+                                      <span className="flex items-center gap-1 text-gray-600">
+                                        <Icon.Pin className="w-3 h-3 flex-shrink-0" />
                                         {item.location.name}
                                       </span>
                                     )}
-                                    <span className="flex items-center text-gray-600">
-                                      <span className="mr-1">⏱️</span>
+                                    <span className="flex items-center gap-1 text-gray-600">
+                                      <Icon.Clock className="w-3 h-3 flex-shrink-0" />
                                       {item.schedule.duration_minutes} min
                                     </span>
                                   </div>
@@ -282,7 +283,7 @@ export default async function ActivitiesPage() {
         {/* Note d'information */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
           <div className="flex items-start gap-3">
-            <span className="text-lg">ℹ️</span>
+            <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium mb-1">Inscription aux activités</p>
               <p>

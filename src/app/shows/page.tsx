@@ -1,6 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 // Mois en français
 const MONTHS_FR = [
@@ -102,8 +103,8 @@ export default async function ShowsPage() {
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 py-16 text-center">
-          <div className="inline-block p-2 px-4 bg-purple-600/20 backdrop-blur rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-500/30">
-            ✨ Soirées & Spectacles
+          <div className="inline-flex items-center gap-2 p-2 px-4 bg-purple-600/20 backdrop-blur rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-500/30">
+            <Icon.Show className="w-4 h-4" /> Soirées & Spectacles
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
             Vivez la magie des <span className="text-purple-400">soirées</span>
@@ -118,7 +119,7 @@ export default async function ShowsPage() {
         {/* Message si aucun spectacle */}
         {(!upcomingShows || upcomingShows.length === 0) && (
           <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-12 text-center border border-gray-700">
-            <div className="text-7xl mb-6">🎭</div>
+            <Icon.Show className="w-16 h-16 text-gray-500 mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-white mb-3">
               Aucun spectacle programmé pour le moment
             </h2>
@@ -126,7 +127,6 @@ export default async function ShowsPage() {
               Notre équipe prépare de nouvelles soirées exceptionnelles
             </p>
             <div className="inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-6 py-3 rounded-full">
-              <span>✨</span>
               Revenez nous voir bientôt
             </div>
           </div>
@@ -184,24 +184,24 @@ export default async function ShowsPage() {
                         <div className="flex flex-wrap gap-3 text-sm">
                           {/* Lieu */}
                           {show.location && (
-                            <div className="flex items-center text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
-                              <span className="mr-1">📍</span>
+                            <div className="flex items-center gap-1.5 text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
+                              <Icon.Pin className="w-3 h-3 flex-shrink-0" />
                               {show.location.name}
                             </div>
                           )}
 
                           {/* Public cible */}
                           {show.nextSchedule.target_audience && (
-                            <div className="flex items-center text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
-                              <span className="mr-1">👥</span>
+                            <div className="flex items-center gap-1.5 text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
+                              <Icon.User className="w-3 h-3 flex-shrink-0" />
                               {show.nextSchedule.target_audience}
                             </div>
                           )}
 
                           {/* Durée */}
                           {show.nextSchedule.duration_minutes && (
-                            <div className="flex items-center text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
-                              <span className="mr-1">⏱️</span>
+                            <div className="flex items-center gap-1.5 text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-full">
+                              <Icon.Clock className="w-3 h-3 flex-shrink-0" />
                               {show.nextSchedule.duration_minutes} min
                             </div>
                           )}
@@ -229,7 +229,8 @@ export default async function ShowsPage() {
           <div className="mt-16 opacity-75">
             <details className="group">
               <summary className="text-gray-400 cursor-pointer hover:text-white transition flex items-center gap-2">
-                <span className="text-sm">🎭 Spectacles passés</span>
+                <Icon.Show className="w-4 h-4" />
+                <span className="text-sm">Spectacles passés</span>
                 <span className="group-open:rotate-90 transition">▶</span>
               </summary>
               
@@ -239,7 +240,7 @@ export default async function ShowsPage() {
                   return (
                     <div key={show.id} className="bg-gray-800/30 rounded-xl p-4 border border-gray-700">
                       <div className="flex items-start gap-3">
-                        <div className="text-2xl">🎭</div>
+                        <Icon.Show className="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-medium text-white">{show.title}</h4>
                           <p className="text-xs text-gray-500 mt-1">
@@ -265,7 +266,7 @@ export default async function ShowsPage() {
         {/* Note d'information */}
         <div className="mt-16 bg-purple-900/30 backdrop-blur border border-purple-700/50 rounded-xl p-6 text-center">
           <div className="flex flex-col items-center gap-3">
-            <span className="text-4xl">🎟️</span>
+            <Icon.Star className="w-8 h-8 text-purple-400" />
             <h3 className="text-lg font-semibold text-white">
               Réservation recommandée
             </h3>
@@ -275,7 +276,7 @@ export default async function ShowsPage() {
             </p>
             {hotel?.phone && (
               <div className="mt-2 inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-4 py-2 rounded-full text-sm">
-                <span>📞</span>
+                <Icon.Phone className="w-4 h-4" />
                 {hotel.phone}
               </div>
             )}

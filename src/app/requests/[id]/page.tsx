@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server-client'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import RequestActions from './RequestActions'  // ← Import du composant client
+import RequestActions from './RequestActions'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function RequestDetailPage({
   params
@@ -99,11 +100,11 @@ export default async function RequestDetailPage({
     urgent: 'Urgente'
   }
 
-  const categoryIcons: Record<string, string> = {
-    maintenance: '🔧',
-    room_service: '🍽️',
-    housekeeping: '🧹',
-    concierge: '💎'
+  const categoryIconMap = {
+    maintenance:  Icon.Wrench,
+    room_service: Icon.Utensils,
+    housekeeping: Icon.SparklesCleaning,
+    concierge:    Icon.Concierge,
   }
 
   return (
@@ -123,8 +124,10 @@ export default async function RequestDetailPage({
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl">
-                {request.request_type.icon || categoryIcons[request.request_type.category] || '📋'}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                {request.request_type.icon
+                  ? <span className="text-2xl">{request.request_type.icon}</span>
+                  : (() => { const C = categoryIconMap[request.request_type.category as keyof typeof categoryIconMap] || Icon.ClipboardList; return <C className="w-6 h-6" /> })()}
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
@@ -148,7 +151,7 @@ export default async function RequestDetailPage({
           {/* Infos chambre */}
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 text-gray-700">
-              <span className="text-xl">🛏️</span>
+              <Icon.Key className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span className="font-medium">Chambre {request.stay.room?.room_number || '?'}</span>
               <span className="text-gray-300">|</span>
               <span className="text-sm text-gray-500">Séjour: {request.stay.booking_reference}</span>
@@ -195,7 +198,7 @@ export default async function RequestDetailPage({
         {/* Messages/Historique */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-2xl">💬</span>
+            <Icon.Chat className="w-5 h-5 text-gray-400" />
             Suivi de la demande
           </h2>
 

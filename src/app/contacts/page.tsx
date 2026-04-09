@@ -1,10 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
-import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
-// ============================================
-// TYPES
-// ============================================
 type ContactType = {
   id: number
   hotel_id: number
@@ -13,26 +10,23 @@ type ContactType = {
   department: string
   created_at: string
 }
-
 type ContactsByDepartment = Record<string, ContactType[]>
 
-// Départements avec leurs icônes et couleurs
-const DEPARTMENTS = {
-  'Réception': { icon: '🛎️', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', text: 'text-blue-700', gradient: 'from-blue-400 to-blue-600' },
-  'Restauration': { icon: '🍽️', color: 'from-amber-500 to-orange-600', bg: 'bg-amber-50', text: 'text-amber-700', gradient: 'from-amber-400 to-orange-600' },
-  'Activités': { icon: '🎭', color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', text: 'text-purple-700', gradient: 'from-purple-400 to-purple-600' },
-  'Conciergerie': { icon: '💎', color: 'from-emerald-500 to-teal-600', bg: 'bg-emerald-50', text: 'text-emerald-700', gradient: 'from-emerald-400 to-teal-600' },
-  'Sécurité': { icon: '🛡️', color: 'from-red-500 to-red-600', bg: 'bg-red-50', text: 'text-red-700', gradient: 'from-red-400 to-red-600' },
-  'Service en chambre': { icon: '🛏️', color: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-50', text: 'text-indigo-700', gradient: 'from-indigo-400 to-indigo-600' },
-  'Spa & Bien-être': { icon: '🧘', color: 'from-green-500 to-emerald-600', bg: 'bg-green-50', text: 'text-green-700', gradient: 'from-green-400 to-emerald-600' },
-  'default': { icon: '📞', color: 'from-gray-500 to-gray-600', bg: 'bg-gray-50', text: 'text-gray-700', gradient: 'from-gray-400 to-gray-600' }
+const DEPT_STYLES: Record<string, { color: string; border: string }> = {
+  'Réception':         { color: 'text-blue-600',   border: 'border-blue-100' },
+  'Restauration':      { color: 'text-amber-600',  border: 'border-amber-100' },
+  'Activités':         { color: 'text-purple-600', border: 'border-purple-100' },
+  'Conciergerie':      { color: 'text-emerald-600',border: 'border-emerald-100' },
+  'Sécurité':          { color: 'text-red-600',    border: 'border-red-100' },
+  'Service en chambre':{ color: 'text-indigo-600', border: 'border-indigo-100' },
+  'Spa & Bien-être':   { color: 'text-green-600',  border: 'border-green-100' },
+  'default':           { color: 'text-gray-600',   border: 'border-gray-100' },
 }
 
 export default async function ContactsPage() {
   const hotel = await getCurrentHotelServer()
   const supabase = await createClient()
-  
-  // 1. Récupérer tous les contacts de l'Hôtel
+
   const { data: contacts, error } = await supabase
     .from('contacts')
     .select('*')
@@ -40,7 +34,6 @@ export default async function ContactsPage() {
     .order('department')
     .order('name')
 
-  // 3. Grouper les contacts par département - AVEC TYPAGE CORRIGÉ
   const contactsByDepartment = contacts?.reduce((acc: ContactsByDepartment, contact: ContactType) => {
     const dept = contact.department || 'Autres services'
     if (!acc[dept]) acc[dept] = []
@@ -48,139 +41,89 @@ export default async function ContactsPage() {
     return acc
   }, {} as ContactsByDepartment) || {}
 
-  // 4. Contacts d'urgence (en dur pour la démo)
   const emergencyContacts = [
-    { name: 'Police', phone: '197', icon: '🚓', bg: 'bg-blue-100', text: 'text-blue-800' },
-    { name: 'SAMU', phone: '198', icon: '🚑', bg: 'bg-red-100', text: 'text-red-800' },
-    { name: 'Pompiers', phone: '198', icon: '🚒', bg: 'bg-orange-100', text: 'text-orange-800' },
-    { name: 'Médecin de garde', phone: '+216 98 333 555', icon: '👨‍⚕️', bg: 'bg-gray-100', text: 'text-gray-800' }
+    { name: 'Police', phone: '197', Icon: Icon.Police, bg: 'bg-blue-50', color: 'text-blue-700' },
+    { name: 'SAMU',   phone: '198', Icon: Icon.Medical, bg: 'bg-red-50',  color: 'text-red-700' },
+    { name: 'Pompiers',phone: '198', Icon: Icon.Fire,  bg: 'bg-orange-50',color: 'text-orange-700' },
+    { name: 'Médecin', phone: '+216 98 333 555', Icon: Icon.Medical, bg: 'bg-gray-50', color: 'text-gray-700' },
   ]
 
-  // 5. Gestion des erreurs
   if (error) {
-    console.error('Erreur Supabase:', error)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl text-red-600">Erreur de chargement</h2>
-          <p className="text-gray-600 mt-2">Impossible de charger les contacts</p>
-        </div>
+        <p className="text-red-600 text-sm">Impossible de charger les contacts</p>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* En-tête de la page */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">
-              📞
+      {/* En-tête */}
+      <div className="bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+              <Icon.Phone className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Contacts utiles
-              </h1>
-              <p className="text-xl text-blue-100">
-                {hotel?.name || 'Hôtel'} • Tous les services à portée de main
-              </p>
+              <h1 className="text-3xl font-semibold">Contacts utiles</h1>
+              <p className="text-gray-400 text-sm mt-1">{hotel?.name} — Tous les services à portée de main</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* === SECTION URGENCES === */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
-              ⚠️
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              Urgences 24h/24
-            </h2>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-12 space-y-12">
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {emergencyContacts.map((contact, index) => (
-              <a
-                key={index}
-                href={`tel:${contact.phone}`}
-                className={`${contact.bg} rounded-xl p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-3xl mb-2">{contact.icon}</span>
-                  <span className={`font-medium ${contact.text}`}>
-                    {contact.name}
-                  </span>
-                  <span className={`text-lg font-bold ${contact.text} mt-1`}>
-                    {contact.phone}
-                  </span>
+        {/* URGENCES */}
+        <div>
+          <div className="flex items-center gap-2 mb-5">
+            <Icon.Police className="w-5 h-5 text-red-500" />
+            <h2 className="text-lg font-semibold text-gray-900">Urgences 24h/24</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {emergencyContacts.map((c) => (
+              <a key={c.name} href={`tel:${c.phone}`}
+                className={`${c.bg} rounded-xl p-4 hover:shadow-md transition border border-gray-100`}>
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className={`w-10 h-10 rounded-full bg-white flex items-center justify-center ${c.color}`}>
+                    <c.Icon className="w-5 h-5" />
+                  </div>
+                  <span className={`font-semibold text-sm ${c.color}`}>{c.name}</span>
+                  <span className={`text-lg font-bold ${c.color}`}>{c.phone}</span>
                 </div>
               </a>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-3 text-center">
-            Appels gratuits depuis votre chambre
-          </p>
+          <p className="text-xs text-gray-400 mt-3">Appels gratuits depuis votre chambre</p>
         </div>
 
-        {/* === CONTACTS DE L'HÔTEL === */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-              🏨
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              Services de l'hôtel
-            </h2>
+        {/* CONTACTS HÔTEL */}
+        <div>
+          <div className="flex items-center gap-2 mb-5">
+            <Icon.Hotel className="w-5 h-5 text-blue-500" />
+            <h2 className="text-lg font-semibold text-gray-900">Services de l'hôtel</h2>
           </div>
 
-          {contacts && Object.keys(contactsByDepartment).length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.keys(contactsByDepartment).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(contactsByDepartment).map(([department, deptContacts]) => {
-                // CORRECTION : Typer explicitement deptContacts
-                const typedDeptContacts = deptContacts as ContactType[]
-                const style = DEPARTMENTS[department as keyof typeof DEPARTMENTS] || DEPARTMENTS.default
-                
+                const style = DEPT_STYLES[department] || DEPT_STYLES['default']
                 return (
-                  <div
-                    key={department}
-                    className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-lg transition"
-                  >
-                    {/* En-tête du département */}
-                    <div className={`bg-gradient-to-r ${style.gradient} px-4 py-3 text-white`}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{style.icon}</span>
-                        <h3 className="font-semibold">{department}</h3>
-                      </div>
+                  <div key={department}
+                    className={`bg-white rounded-xl border ${style.border} overflow-hidden`}>
+                    <div className="px-4 py-3 border-b border-gray-50">
+                      <h3 className={`font-semibold text-sm ${style.color}`}>{department}</h3>
                     </div>
-
-                    {/* Liste des contacts - AVEC TYPAGE CORRIGÉ */}
-                    <div className="p-4">
-                      {typedDeptContacts.map((contact: ContactType) => (
-                        <a
-                          key={contact.id}
-                          href={`tel:${contact.phone_number}`}
-                          className="flex items-center justify-between py-2 hover:bg-gray-50 px-2 rounded-lg transition group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-gray-400 group-hover:text-blue-500 transition">
-                              📞
-                            </span>
-                            <div>
-                              <div className="font-medium text-gray-800">
-                                {contact.name}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {contact.phone_number}
-                              </div>
-                            </div>
+                    <div className="divide-y divide-gray-50">
+                      {(deptContacts as ContactType[]).map((contact) => (
+                        <a key={contact.id} href={`tel:${contact.phone_number}`}
+                          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition group">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{contact.name}</p>
+                            <p className="text-xs text-gray-500">{contact.phone_number}</p>
                           </div>
-                          <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition">
-                            Appeler →
-                          </span>
+                          <Icon.Phone className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition" />
                         </a>
                       ))}
                     </div>
@@ -189,115 +132,89 @@ export default async function ContactsPage() {
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
-              <div className="text-5xl mb-4">📞</div>
-              <h3 className="text-lg font-medium text-gray-800 mb-2">
-                Aucun contact disponible
-              </h3>
-              <p className="text-gray-600">
-                Veuillez contacter la réception au poste 0 pour toute demande.
-              </p>
+            <div className="bg-white rounded-xl p-8 text-center border border-gray-100">
+              <Icon.Phone className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">Aucun contact disponible — contactez la réception</p>
             </div>
           )}
         </div>
 
-        {/* === INFORMATIONS PRATIQUES === */}
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Adresse et contact principal */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">📍</span>
-                <h3 className="text-lg font-bold text-gray-800">
-                  Adresse de l'hôtel
-                </h3>
+        {/* INFOS PRATIQUES */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            {/* Adresse */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon.Pin className="w-4 h-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-800">Adresse</h3>
               </div>
-              {hotel?.address && (
-                <p className="text-gray-700 mb-4">{hotel.address}</p>
-              )}
-              <div className="space-y-2">
+              {hotel?.address && <p className="text-sm text-gray-600 mb-3">{hotel.address}</p>}
+              <div className="space-y-1.5">
                 {hotel?.phone && (
-                  <a
-                    href={`tel:${hotel.phone}`}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-                  >
-                    <span>📞</span>
-                    {hotel.phone}
+                  <a href={`tel:${hotel.phone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition">
+                    <Icon.Phone className="w-3.5 h-3.5" /> {hotel.phone}
                   </a>
                 )}
                 {hotel?.email && (
-                  <a
-                    href={`mailto:${hotel.email}`}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-                  >
-                    <span>✉️</span>
-                    {hotel.email}
+                  <a href={`mailto:${hotel.email}`} className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition">
+                    <Icon.Mail className="w-3.5 h-3.5" /> {hotel.email}
                   </a>
                 )}
                 {!hotel?.address && !hotel?.phone && !hotel?.email && (
-                  <p className="text-gray-500 text-sm">Contactez la réception pour toute information.</p>
+                  <p className="text-sm text-gray-400">Contactez la réception</p>
                 )}
               </div>
             </div>
 
-            {/* Horaires réception */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🕐</span>
-                <h3 className="text-lg font-bold text-gray-800">
-                  Horaires d'ouverture
-                </h3>
+            {/* Horaires */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon.Clock className="w-4 h-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-800">Horaires</h3>
               </div>
-              <div className="space-y-2 text-gray-700">
+              <div className="space-y-1.5 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>Réception</span>
-                  <span className="font-medium">24h/24 - 7j/7</span>
+                  <span className="font-medium text-gray-900">24h/24</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-gray-400 mt-2">
                 Horaires des autres services disponibles à la réception.
               </p>
             </div>
 
-            {/* Check-in / Check-out */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🔑</span>
-                <h3 className="text-lg font-bold text-gray-800">
-                  Arrivée & Départ
-                </h3>
+            {/* Check-in / out */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon.Key className="w-4 h-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-800">Arrivée & Départ</h3>
               </div>
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600">Check-in</span>
-                  <span className="font-bold text-blue-600 text-lg">
-                    {hotel?.check_in_time?.slice(0,5) || '15:00'}
-                  </span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2">
+                  <span className="text-sm text-gray-600">Check-in</span>
+                  <span className="font-bold text-blue-600">{hotel?.check_in_time?.slice(0, 5) || '—'}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Check-out</span>
-                  <span className="font-bold text-blue-600 text-lg">
-                    {hotel?.check_out_time?.slice(0,5) || '11:00'}
-                  </span>
+                <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2">
+                  <span className="text-sm text-gray-600">Check-out</span>
+                  <span className="font-bold text-blue-600">{hotel?.check_out_time?.slice(0, 5) || '—'}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-3">
-                  Demande de départ tardif possible sous réserve de disponibilité
-                </p>
+                <p className="text-xs text-gray-400">Départ tardif possible sur demande</p>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Bouton d'appel rapide - Fixe en mobile (au-dessus de la nav bar) */}
-        <div className="fixed bottom-20 right-6 lg:hidden">
-          <a
-            href="tel:0"
-            className="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-blue-700 transition"
-          >
-            📞
+      {/* Bouton appel rapide mobile */}
+      {hotel?.phone && (
+        <div className="fixed bottom-20 right-5 lg:hidden">
+          <a href={`tel:${hotel.phone}`}
+            className="bg-blue-600 text-white w-13 h-13 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition">
+            <Icon.Phone className="w-5 h-5" />
           </a>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import RequestStayButton from '@/components/requests/RequestStayButton'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function RequestsPage() {
   const supabase = await createClient()
@@ -99,12 +100,12 @@ export default async function RequestsPage() {
     return acc
   }, {})
 
-  const categoryLabels: Record<string, { title: string, icon: string, color: string }> = {
-    maintenance: { title: 'Maintenance', icon: '🔧', color: 'from-orange-500 to-red-600' },
-    room_service: { title: 'Room Service', icon: '🍽️', color: 'from-green-500 to-emerald-600' },
-    housekeeping: { title: 'Housekeeping', icon: '🧹', color: 'from-blue-500 to-cyan-600' },
-    concierge: { title: 'Conciergerie', icon: '💎', color: 'from-purple-500 to-pink-600' }
-  }
+  const categoryLabels = {
+    maintenance:  { title: 'Maintenance',  LabelIcon: Icon.Wrench,            color: 'from-orange-500 to-red-600' },
+    room_service: { title: 'Room Service', LabelIcon: Icon.Utensils,          color: 'from-green-500 to-emerald-600' },
+    housekeeping: { title: 'Housekeeping', LabelIcon: Icon.SparklesCleaning,  color: 'from-blue-500 to-cyan-600' },
+    concierge:    { title: 'Conciergerie', LabelIcon: Icon.Concierge,         color: 'from-purple-500 to-pink-600' },
+  } as const
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -129,7 +130,7 @@ export default async function RequestsPage() {
         {/* Message si pas de séjour */}
         {showStayRequest && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 mb-8 text-center">
-            <div className="text-6xl mb-4">🏨</div>
+            <Icon.Hotel className="w-16 h-16 text-amber-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-amber-800 mb-3">
               Vous n'avez pas de séjour actif
             </h2>
@@ -152,7 +153,7 @@ export default async function RequestsPage() {
         {/* Message si séjour en attente */}
         {pendingStay && !activeStay && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 mb-8 text-center">
-            <div className="text-6xl mb-4">⏳</div>
+            <Icon.Clock className="w-12 h-12 text-blue-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-blue-800 mb-3">
               Demande de séjour en attente
             </h2>
@@ -189,7 +190,9 @@ export default async function RequestsPage() {
                     className="flex items-center justify-between bg-white rounded-xl px-5 py-4 shadow-sm hover:shadow-md transition border border-gray-100"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{req.request_type?.icon || '📋'}</span>
+                      {req.request_type?.icon
+                        ? <span className="text-2xl">{req.request_type.icon}</span>
+                        : <Icon.ClipboardList className="w-6 h-6 text-gray-400 flex-shrink-0" />}
                       <div>
                         <p className="font-medium text-gray-900">{req.title}</p>
                         <p className="text-xs text-gray-500">
@@ -210,17 +213,20 @@ export default async function RequestsPage() {
         {/* Affichage des catégories de demandes (si séjour actif) */}
         {activeStay && Object.keys(categories).length > 0 && (
           Object.entries(categories).map(([key, category]: [string, any]) => {
-            const label = categoryLabels[key] || { title: key, icon: '📋', color: 'from-gray-500 to-gray-600' }
-            
+            const labelDef = categoryLabels[key as keyof typeof categoryLabels]
+            const LabelIcon = labelDef?.LabelIcon || Icon.ClipboardList
+            const labelColor = labelDef?.color || 'from-gray-500 to-gray-600'
+            const labelTitle = labelDef?.title || key
+
             return (
               <div key={key} className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${label.color} flex items-center justify-center text-white text-2xl shadow-lg`}>
-                    {label.icon}
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${labelColor} flex items-center justify-center text-white shadow-lg`}>
+                    <LabelIcon className="w-6 h-6" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">
-                      {label.title}
+                      {labelTitle}
                     </h2>
                     <p className="text-gray-600">
                       {category.items.length} service{category.items.length > 1 ? 's' : ''} disponible{category.items.length > 1 ? 's' : ''}
@@ -237,12 +243,14 @@ export default async function RequestsPage() {
                     >
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${label.color} flex items-center justify-center text-white text-2xl`}>
-                            {type.icon || label.icon}
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${labelColor} flex items-center justify-center text-white`}>
+                            {type.icon
+                              ? <span className="text-2xl">{type.icon}</span>
+                              : <LabelIcon className="w-6 h-6" />}
                           </div>
                           {type.estimated_time && (
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                              ⏱️ {type.estimated_time} min
+                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                              <Icon.Clock className="w-3 h-3" /> {type.estimated_time} min
                             </span>
                           )}
                         </div>

@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 export default function SuggestionNotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center max-w-md mx-auto px-4">
-        <div className="text-8xl mb-6">✨</div>
+        <Icon.Compass className="w-20 h-20 text-gray-300 mx-auto mb-6" />
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
           Découverte introuvable
         </h1>

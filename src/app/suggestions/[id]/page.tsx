@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server-client'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SuggestionGallery from '@/components/suggestions/SuggestionGallery'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function SuggestionDetailPage({
   params
@@ -44,7 +45,7 @@ export default async function SuggestionDetailPage({
 
   // 3. Déterminer le type (interne/externe)
   const isInternal = suggestion.location_type === 'internal'
-  const typeIcon = isInternal ? '🏨' : '🗺️'
+  const TypeIcon = isInternal ? Icon.Hotel : Icon.Map
   const typeLabel = isInternal ? 'Dans l\'hôtel' : 'Aux alentours'
   const typeColor = isInternal ? 'bg-blue-600' : 'bg-amber-600'
   const typeBg = isInternal ? 'bg-blue-50' : 'bg-amber-50'
@@ -52,7 +53,7 @@ export default async function SuggestionDetailPage({
 
   // 4. Style de la catégorie
   const categoryStyle = suggestion.category || {
-    icon: '✨',
+    icon: null,
     name: 'Découverte',
     color: 'from-purple-500 to-purple-600',
     bg_color: 'bg-purple-50',
@@ -87,7 +88,7 @@ export default async function SuggestionDetailPage({
         {suggestion.images && suggestion.images.length > 0 ? (
           <>
             <img
-              src={suggestion.images.find((img: any) => img.is_principal)?.image.url || 
+              src={suggestion.images.find((img: any) => img.is_principal)?.image.url ||
                    suggestion.images[0].image.url}
               alt={suggestion.title}
               className="w-full h-full object-cover opacity-80"
@@ -96,7 +97,9 @@ export default async function SuggestionDetailPage({
           </>
         ) : (
           <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${categoryStyle.color}`}>
-            <span className="text-8xl text-white/30">{categoryStyle.icon}</span>
+            {categoryStyle.icon
+              ? <span className="text-8xl text-white/30">{categoryStyle.icon}</span>
+              : <Icon.Compass className="w-24 h-24 text-white/20" />}
           </div>
         )}
 
@@ -106,13 +109,15 @@ export default async function SuggestionDetailPage({
             <div className="flex items-center gap-3 text-white/80 text-sm mb-2">
               {/* Badge type (interne/externe) */}
               <span className={`${typeBg} ${typeText} px-3 py-1 rounded-full flex items-center gap-1`}>
-                <span>{typeIcon}</span>
+                <TypeIcon className="w-3 h-3" />
                 {typeLabel}
               </span>
               
               {/* Badge catégorie */}
               <span className={`${categoryStyle.bg_color} ${categoryStyle.text_color} px-3 py-1 rounded-full flex items-center gap-1`}>
-                <span>{categoryStyle.icon}</span>
+                {categoryStyle.icon
+                  ? <span>{categoryStyle.icon}</span>
+                  : <Icon.Compass className="w-3 h-3" />}
                 {categoryStyle.name}
               </span>
             </div>
@@ -138,8 +143,7 @@ export default async function SuggestionDetailPage({
             {/* Galerie photos */}
             {suggestion.images && suggestion.images.length > 0 && (
               <section className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <span className="text-3xl">🖼️</span>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
                   Galerie photos
                 </h2>
                 <SuggestionGallery images={suggestion.images} />
@@ -148,22 +152,22 @@ export default async function SuggestionDetailPage({
 
             {/* Description détaillée */}
             <section className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-3xl">📖</span>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 À propos
               </h2>
               <div className="prose max-w-none text-gray-600">
                 <p className="text-lg leading-relaxed">
                   {suggestion.description || 'Aucune description disponible pour le moment.'}
                 </p>
-                
+
                 {/* Informations complémentaires */}
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   {suggestion.is_hotel_internal !== undefined && (
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-500 mb-1">Localisation</p>
-                      <p className="font-medium text-gray-800">
-                        {suggestion.is_hotel_internal ? '🏨 Dans l\'hôtel' : '🗺️ Aux alentours'}
+                      <p className="font-medium text-gray-800 flex items-center gap-1">
+                        <TypeIcon className="w-4 h-4" />
+                        {suggestion.is_hotel_internal ? 'Dans l\'hôtel' : 'Aux alentours'}
                       </p>
                     </div>
                   )}
@@ -171,7 +175,7 @@ export default async function SuggestionDetailPage({
                     <div className={`${categoryStyle.bg_color} p-4 rounded-lg`}>
                       <p className={`text-sm ${categoryStyle.text_color} mb-1`}>Catégorie</p>
                       <p className={`font-medium ${categoryStyle.text_color} flex items-center gap-1`}>
-                        <span>{categoryStyle.icon}</span>
+                        {categoryStyle.icon && <span>{categoryStyle.icon}</span>}
                         {categoryStyle.name}
                       </p>
                     </div>
@@ -184,14 +188,14 @@ export default async function SuggestionDetailPage({
             {!isInternal && suggestion.address && (
               <section className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <span className="text-3xl">🗺️</span>
+                  <Icon.Map className="w-6 h-6 text-gray-500" />
                   Localisation
                 </h2>
                 <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
                   {/* Ici vous pourrez intégrer une vraie carte Google Maps plus tard */}
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
                     <div className="text-center">
-                      <div className="text-6xl mb-3 text-gray-400">📍</div>
+                      <Icon.Pin className="w-16 h-16 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-600 font-medium">{suggestion.address}</p>
                       <p className="text-sm text-gray-500 mt-2">
                         Carte interactive bientôt disponible
@@ -209,7 +213,7 @@ export default async function SuggestionDetailPage({
             {/* Carte d'informations */}
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span className="text-2xl">ℹ️</span>
+                <Icon.Bell className="w-5 h-5 text-gray-400" />
                 Informations
               </h2>
               
@@ -217,7 +221,7 @@ export default async function SuggestionDetailPage({
                 {/* Type (interne/externe) */}
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 ${typeBg} rounded-lg flex items-center justify-center ${typeText} flex-shrink-0`}>
-                    {typeIcon}
+                    <TypeIcon className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Type</p>
@@ -228,7 +232,9 @@ export default async function SuggestionDetailPage({
                 {/* Catégorie */}
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 ${categoryStyle.bg_color} rounded-lg flex items-center justify-center ${categoryStyle.text_color} flex-shrink-0`}>
-                    {categoryStyle.icon}
+                    {categoryStyle.icon
+                      ? <span>{categoryStyle.icon}</span>
+                      : <Icon.Compass className="w-4 h-4" />}
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Catégorie</p>
@@ -240,7 +246,7 @@ export default async function SuggestionDetailPage({
                 {suggestion.address && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-                      📍
+                      <Icon.Pin className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Adresse</p>
@@ -253,7 +259,7 @@ export default async function SuggestionDetailPage({
                 {suggestion.phone && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
-                      📞
+                      <Icon.Phone className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Téléphone</p>
@@ -271,7 +277,7 @@ export default async function SuggestionDetailPage({
                 {!isInternal && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
-                      🚗
+                      <Icon.Map className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Distance</p>
@@ -288,21 +294,21 @@ export default async function SuggestionDetailPage({
                     href={`tel:${suggestion.phone}`}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                   >
-                    <span>📞</span>
+                    <Icon.Phone className="w-4 h-4" />
                     Appeler
                   </a>
                 )}
-                
+
                 {!isInternal && (
                   <button className="w-full bg-white border border-gray-200 hover:border-amber-300 text-gray-700 hover:text-amber-600 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2">
-                    <span>📍</span>
+                    <Icon.Pin className="w-4 h-4" />
                     Obtenir l'itinéraire
                   </button>
                 )}
-                
+
                 {isInternal && (
                   <button className="w-full bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:text-blue-600 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2">
-                    <span>🛎️</span>
+                    <Icon.Bell className="w-4 h-4" />
                     Contacter la réception
                   </button>
                 )}
@@ -312,7 +318,7 @@ export default async function SuggestionDetailPage({
               {isInternal && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
                   <div className="flex items-start gap-2">
-                    <span>💡</span>
+                    <Icon.Bell className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <p>
                       Ce service est disponible directement à l'hôtel. 
                       Rendez-vous à la réception ou composez le poste 122.
@@ -326,8 +332,7 @@ export default async function SuggestionDetailPage({
 
         {/* Section "À découvrir aussi" */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-3xl">✨</span>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
             Vous aimerez aussi
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -336,7 +341,9 @@ export default async function SuggestionDetailPage({
               href="/suggestions"
               className="group bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 border border-gray-100"
             >
-              <div className="text-4xl mb-3 group-hover:scale-110 transition">🧘</div>
+              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-purple-100 transition">
+                <Icon.Compass className="w-6 h-6 text-purple-500" />
+              </div>
               <h3 className="font-bold text-gray-800 mb-1">Spa "L'Oasis"</h3>
               <p className="text-sm text-gray-600">Détente et bien-être au cœur de l'hôtel</p>
             </Link>
@@ -344,7 +351,9 @@ export default async function SuggestionDetailPage({
               href="/suggestions"
               className="group bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 border border-gray-100"
             >
-              <div className="text-4xl mb-3 group-hover:scale-110 transition">🏄</div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-100 transition">
+                <Icon.Activity className="w-6 h-6 text-blue-500" />
+              </div>
               <h3 className="font-bold text-gray-800 mb-1">Location de Jet-Ski</h3>
               <p className="text-sm text-gray-600">Sensations fortes sur la Méditerranée</p>
             </Link>
@@ -352,7 +361,9 @@ export default async function SuggestionDetailPage({
               href="/suggestions"
               className="group bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 border border-gray-100"
             >
-              <div className="text-4xl mb-3 group-hover:scale-110 transition">🍷</div>
+              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 transition">
+                <Icon.Utensils className="w-6 h-6 text-amber-500" />
+              </div>
               <h3 className="font-bold text-gray-800 mb-1">Dégustation de vins</h3>
               <p className="text-sm text-gray-600">Découvrez les crus de la région</p>
             </Link>

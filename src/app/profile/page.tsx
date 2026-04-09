@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function ProfilePage() {
   const cookieStore = await cookies()
@@ -78,8 +79,8 @@ export default async function ProfilePage() {
                 className="w-16 h-16 rounded-full"
               />
             ) : (
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
-                👤
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <Icon.User className="w-8 h-8 text-blue-400" />
               </div>
             )}
             <div>
@@ -108,11 +109,13 @@ export default async function ProfilePage() {
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-gray-900">
-                          🏨 Chambre {stay.room?.room_number || '?'} • {stay.room?.room_type || ''}
+                        <p className="font-medium text-gray-900 flex items-center gap-1.5">
+                          <Icon.Key className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                          Chambre {stay.room?.room_number || '?'} • {stay.room?.room_type || ''}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          📅 Du {new Date(stay.check_in_date).toLocaleDateString('fr-FR')} 
+                        <p className="text-sm text-gray-600 mt-1 flex items-center gap-1.5">
+                          <Icon.Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                          Du {new Date(stay.check_in_date).toLocaleDateString('fr-FR')}
                           au {new Date(stay.check_out_date).toLocaleDateString('fr-FR')}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -128,7 +131,7 @@ export default async function ProfilePage() {
           ) : (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">⏳</span>
+                <Icon.Clock className="w-6 h-6 text-amber-500 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-amber-800">
                     Vous n'avez pas de séjour actif

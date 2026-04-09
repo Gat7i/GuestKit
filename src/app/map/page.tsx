@@ -1,6 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function MapPage() {
   const hotel = await getCurrentHotelServer()
@@ -65,8 +66,8 @@ export default async function MapPage() {
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">
-              🗺️
+            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+              <Icon.Map className="w-8 h-8 text-white" />
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
@@ -154,8 +155,8 @@ export default async function MapPage() {
                   {/* En-tête de l'étage */}
                   <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xl">
-                        🏨
+                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
+                        <Icon.Hotel className="w-5 h-5" />
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-gray-800">
@@ -280,7 +281,7 @@ export default async function MapPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-200">
-            <div className="text-6xl mb-4">🗺️</div>
+            <Icon.Map className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
               Plan non disponible
             </h2>
@@ -293,7 +294,7 @@ export default async function MapPage() {
         {/* Information accessible */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6 text-sm text-blue-800">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">♿</span>
+            <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-medium mb-1">Accès pour personnes à mobilité réduite</h3>
               <p className="text-blue-700">
@@ -310,7 +311,7 @@ export default async function MapPage() {
             href="/contacts"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition bg-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md"
           >
-            <span>🛎️</span>
+            <Icon.Bell className="w-4 h-4" />
             Besoin d'un renseignement ? Contactez la réception
             <span>→</span>
           </Link>

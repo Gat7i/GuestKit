@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Icon } from '@/components/ui/Icons'
 
 export default function NewRequestPage() {
   return (
@@ -183,15 +184,15 @@ function NewRequestForm() {
     concierge: 'from-purple-500 to-pink-600'
   }
 
-  const categoryIcons = {
-    maintenance: '🔧',
-    room_service: '🍽️',
-    housekeeping: '🧹',
-    concierge: '💎'
+  const categoryIconMap = {
+    maintenance:  Icon.Wrench,
+    room_service: Icon.Utensils,
+    housekeeping: Icon.SparklesCleaning,
+    concierge:    Icon.Concierge,
   }
 
   const color = categoryColors[requestType.category as keyof typeof categoryColors] || 'from-gray-500 to-gray-600'
-  const icon = requestType.icon || categoryIcons[requestType.category as keyof typeof categoryIcons] || '📋'
+  const CategoryIcon = categoryIconMap[requestType.category as keyof typeof categoryIconMap] || Icon.ClipboardList
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -213,8 +214,10 @@ function NewRequestForm() {
             ← Retour aux demandes
           </Link>
           <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-3xl shadow-lg`}>
-              {icon}
+            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg`}>
+              {requestType.icon
+                ? <span className="text-3xl">{requestType.icon}</span>
+                : <CategoryIcon className="w-8 h-8" />}
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -278,7 +281,7 @@ function NewRequestForm() {
         {/* Note d'information */}
         <div className="mt-6 bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
           <div className="flex items-start gap-2">
-            <span className="text-lg">ℹ️</span>
+            <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium mb-1">Temps d'attente estimé</p>
               <p>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 type RequestActionsProps = {
   requestId: number
@@ -115,7 +116,7 @@ export default function RequestActions({
       {status !== 'cancelled' && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <span>💬</span> Ajouter un message
+            <Icon.Chat className="w-5 h-5 text-gray-400" /> Ajouter un message
           </h2>
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <input
@@ -141,7 +142,7 @@ export default function RequestActions({
       {status === 'completed' && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-2xl">⭐</span>
+            <Icon.Star className="w-5 h-5 text-yellow-400" />
             {ratingSubmitted ? 'Votre avis' : 'Évaluez ce service'}
           </h2>
 

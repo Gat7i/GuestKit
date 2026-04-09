@@ -3,6 +3,7 @@ import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function ActivityDetailPage({
   params
@@ -130,7 +131,7 @@ const { data: otherActivities } = await supabase
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-700 to-indigo-800">
-            <span className="text-8xl text-white/30">🎯</span>
+            <Icon.Activity className="w-24 h-24 text-white/20" />
           </div>
         )}
 
@@ -147,8 +148,8 @@ const { data: otherActivities } = await supabase
               )}
               
               {/* Badge activité journalière */}
-              <span className="bg-blue-600/80 backdrop-blur px-3 py-1 rounded-full text-white">
-                🎭 Activité journalière
+              <span className="bg-blue-600/80 backdrop-blur px-3 py-1 rounded-full text-white flex items-center gap-1">
+                <Icon.Activity className="w-3 h-3" /> Activité journalière
               </span>
             </div>
             
@@ -173,8 +174,7 @@ const { data: otherActivities } = await supabase
             {/* Galerie photos (si plusieurs images) */}
             {activity.images && activity.images.length > 1 && (
               <section className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <span className="text-3xl">🖼️</span>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
                   Galerie photos
                 </h2>
                 <div className="grid grid-cols-3 gap-2">
@@ -193,8 +193,7 @@ const { data: otherActivities } = await supabase
 
             {/* Description détaillée */}
             <section className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-3xl">📖</span>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 À propos
               </h2>
               <div className="prose max-w-none text-gray-600">
@@ -218,7 +217,7 @@ const { data: otherActivities } = await supabase
             {/* Carte d'informations */}
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span className="text-2xl">ℹ️</span>
+                <Icon.Bell className="w-5 h-5 text-gray-400" />
                 Informations
               </h2>
               
@@ -240,7 +239,7 @@ const { data: otherActivities } = await supabase
                 {activity.location && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-                      📍
+                      <Icon.Pin className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Emplacement</p>
@@ -253,7 +252,7 @@ const { data: otherActivities } = await supabase
                 {sortedSchedules.length > 0 && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
-                      ⏱️
+                      <Icon.Clock className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Durée moyenne</p>
@@ -269,7 +268,7 @@ const { data: otherActivities } = await supabase
               {sortedSchedules.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <span>🕐</span>
+                    <Icon.Clock className="w-4 h-4 text-gray-400" />
                     Horaires de la semaine
                   </h3>
                   <div className="space-y-2">
@@ -298,11 +297,11 @@ const { data: otherActivities } = await supabase
               {/* Boutons d'action */}
               <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
                 <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                  <span>📅</span>
+                  <Icon.Bell className="w-4 h-4" />
                   Je participe
                 </button>
                 <button className="w-full bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:text-blue-600 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2">
-                  <span>📞</span>
+                  <Icon.Phone className="w-4 h-4" />
                   Contacter l'animation
                 </button>
               </div>
@@ -313,16 +312,14 @@ const { data: otherActivities } = await supabase
        {/* Section "À découvrir aussi" */}
 {otherActivities && otherActivities.length > 0 && (
   <section className="mt-16">
-    <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-      <span className="text-3xl">✨</span>
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">
       Vous aimerez aussi
     </h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {otherActivities.map((otherActivity: any) => {
-        const activityImage = otherActivity.images?.find((img: any) => img.is_principal)?.image || 
+        const activityImage = otherActivity.images?.find((img: any) => img.is_principal)?.image ||
                               otherActivity.images?.[0]?.image
-        const categoryIcon = otherActivity.category?.icon || '🎯'
-        
+
         return (
           <Link
             key={otherActivity.id}
@@ -332,14 +329,16 @@ const { data: otherActivities } = await supabase
             {/* Image miniature */}
             <div className="h-32 bg-gray-100 relative overflow-hidden">
               {activityImage ? (
-                <img 
-                  src={activityImage.url} 
+                <img
+                  src={activityImage.url}
                   alt={otherActivity.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <span className="text-4xl text-blue-300">{categoryIcon}</span>
+                  {otherActivity.category?.icon
+                    ? <span className="text-4xl text-blue-300">{otherActivity.category.icon}</span>
+                    : <Icon.Activity className="w-10 h-10 text-blue-200" />}
                 </div>
               )}
             </div>

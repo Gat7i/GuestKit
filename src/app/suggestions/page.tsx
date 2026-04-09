@@ -1,6 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function SuggestionsPage() {
   const hotel = await getCurrentHotelServer()
@@ -115,7 +116,7 @@ export default async function SuggestionsPage() {
         {/* Message si aucune suggestion */}
         {(!suggestions || suggestions.length === 0) && (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-            <div className="text-7xl mb-6">✨</div>
+            <Icon.Compass className="w-16 h-16 text-gray-300 mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
               Aucune suggestion pour le moment
             </h2>
@@ -129,8 +130,8 @@ export default async function SuggestionsPage() {
         {internalSuggestions.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg">
-                🏨
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <Icon.Hotel className="w-6 h-6" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -183,8 +184,8 @@ export default async function SuggestionsPage() {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                             <div className="absolute top-3 right-3">
-                              <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                                ⭐ Sur place
+                              <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm flex items-center gap-1">
+                                <Icon.Hotel className="w-3 h-3" /> Sur place
                               </span>
                             </div>
                             <div className="absolute bottom-3 left-3">
@@ -207,15 +208,15 @@ export default async function SuggestionsPage() {
                             <div className="space-y-2 text-sm">
                               {suggestion.address && (
                                 <div className="flex items-start gap-2 text-gray-600">
-                                  <span className="text-gray-400 mt-0.5">📍</span>
+                                  <Icon.Pin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                                   <span className="flex-1 text-xs line-clamp-1">{suggestion.address}</span>
                                 </div>
                               )}
-                              
+
                               {suggestion.phone && (
                                 <div className="flex items-center gap-2 text-gray-600">
-                                  <span className="text-gray-400">📞</span>
-                                  <a 
+                                  <Icon.Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                  <a
                                     href={`tel:${suggestion.phone}`}
                                     className="text-blue-600 hover:underline text-xs"
                                   >
@@ -234,7 +235,7 @@ export default async function SuggestionsPage() {
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
                               >
                                 Plus d'infos
-                                <span className="text-lg">→</span>
+                                <Icon.ChevronRight className="w-4 h-4" />
                               </Link>
                             </div>
                           </div>
@@ -252,8 +253,8 @@ export default async function SuggestionsPage() {
         {externalSuggestions.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg">
-                🗺️
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <Icon.Map className="w-6 h-6" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -307,8 +308,8 @@ export default async function SuggestionsPage() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                             {suggestion.distance_minutes && (
                             <div className="absolute top-3 right-3">
-                              <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                                🚗 {suggestion.distance_minutes} min
+                              <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm flex items-center gap-1">
+                                <Icon.Clock className="w-3 h-3" /> {suggestion.distance_minutes} min
                               </span>
                             </div>
                             )}
@@ -331,15 +332,15 @@ export default async function SuggestionsPage() {
                             <div className="space-y-2 text-sm bg-gray-50 p-3 rounded-lg">
                               {suggestion.address && (
                                 <div className="flex items-start gap-2 text-gray-700">
-                                  <span className="text-gray-500 mt-0.5">📍</span>
+                                  <Icon.Pin className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
                                   <span className="flex-1 text-xs line-clamp-1">{suggestion.address}</span>
                                 </div>
                               )}
-                              
+
                               {suggestion.phone && (
                                 <div className="flex items-center gap-2 text-gray-700">
-                                  <span className="text-gray-500">📞</span>
-                                  <a 
+                                  <Icon.Phone className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                                  <a
                                     href={`tel:${suggestion.phone}`}
                                     className="text-amber-600 hover:underline text-xs"
                                   >
@@ -354,7 +355,7 @@ export default async function SuggestionsPage() {
                                 href={`/suggestions/${suggestion.id}`}
                                 className="w-full bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
                               >
-                                <span>🔍</span>
+                                <Icon.ChevronRight className="w-4 h-4" />
                                 Voir détails
                               </Link>
                             </div>
@@ -372,8 +373,8 @@ export default async function SuggestionsPage() {
         {/* Conseil de la conciergerie */}
         <div className="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-3xl">
-              💎
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <Icon.Concierge className="w-8 h-8 text-blue-500" />
             </div>
             <div className="flex-1 text-center md:text-left">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -387,12 +388,12 @@ export default async function SuggestionsPage() {
             <div className="flex flex-col items-center gap-2">
               {hotel?.phone ? (
                 <a href={`tel:${hotel.phone}`} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition">
-                  <span>📞</span>
+                  <Icon.Phone className="w-4 h-4" />
                   {hotel.phone}
                 </a>
               ) : (
                 <div className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
-                  <span>📞</span>
+                  <Icon.Phone className="w-4 h-4" />
                   Réception
                 </div>
               )}
