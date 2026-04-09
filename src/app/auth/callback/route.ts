@@ -6,7 +6,6 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const hotelSlug = requestUrl.searchParams.get('hotel')
 
   if (code) {
     const cookieStore = await cookies()
@@ -33,20 +32,19 @@ export async function GET(request: NextRequest) {
     // Récupérer l'utilisateur connecté
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (user && hotelSlug) {
-      // Récupérer l'ID de l'hôtel à partir du slug
-      const { data: hotel } = await supabase
-        .from('hotels')
-        .select('id')
-        .eq('slug', hotelSlug)
-        .single()
-
-      if (hotel) {
-        // Mettre à jour le customer avec le bon hotel_id
+    if (user) {
+      const hotelId = parseInt(process.env.NEXT_PUBLIC_HOTEL_ID || '0')
+      if (hotelId) {
+        // Upsert customer lié à cet hôtel
         await supabase
           .from('customers')
-          .update({ hotel_id: hotel.id })
-          .eq('id', user.id)
+          .upsert({
+            user_id: user.id,
+            hotel_id: hotelId,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+            avatar_url: user.user_metadata?.avatar_url || null,
+          }, { onConflict: 'user_id' })
       }
     }
   }

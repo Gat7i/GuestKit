@@ -8,17 +8,26 @@ import Link from 'next/link'
 type RequestActionsProps = {
   requestId: number
   status: string
+  customerName: string
   existingRating?: number | null
   existingFeedback?: string | null
 }
 
-export default function RequestActions({ requestId, status, existingRating, existingFeedback }: RequestActionsProps) {
+export default function RequestActions({
+  requestId,
+  status,
+  customerName,
+  existingRating,
+  existingFeedback,
+}: RequestActionsProps) {
   const [cancelling, setCancelling] = useState(false)
   const [rating, setRating] = useState<number>(existingRating || 0)
   const [hoverRating, setHoverRating] = useState<number>(0)
   const [feedback, setFeedback] = useState(existingFeedback || '')
   const [submittingRating, setSubmittingRating] = useState(false)
   const [ratingSubmitted, setRatingSubmitted] = useState(!!existingRating)
+  const [message, setMessage] = useState('')
+  const [sendingMessage, setSendingMessage] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
@@ -30,44 +39,59 @@ export default function RequestActions({ requestId, status, existingRating, exis
 
   const handleCancel = async () => {
     if (!confirm('Êtes-vous sûr de vouloir annuler cette demande ?')) return
-
     setCancelling(true)
     try {
       const { error } = await supabase
         .from('customer_requests')
         .update({ status: 'cancelled' })
         .eq('id', requestId)
-
       if (error) throw error
-
       router.refresh()
-    } catch (error) {
-      console.error('Erreur annulation:', error)
-      showToast('error', 'Erreur lors de l\'annulation')
+    } catch {
+      showToast('error', "Erreur lors de l'annulation")
     } finally {
       setCancelling(false)
+    }
+  }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!message.trim()) return
+    setSendingMessage(true)
+    try {
+      const { error } = await supabase.from('request_messages').insert({
+        request_id: requestId,
+        sender_type: 'customer',
+        sender_name: customerName,
+        message: message.trim(),
+        is_internal: false,
+      })
+      if (error) throw error
+      setMessage('')
+      showToast('success', 'Message envoyé')
+      router.refresh()
+    } catch {
+      showToast('error', "Erreur lors de l'envoi")
+    } finally {
+      setSendingMessage(false)
     }
   }
 
   const handleRatingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!rating) return
-
     setSubmittingRating(true)
     try {
       const { error } = await supabase
         .from('customer_requests')
         .update({ rating, feedback: feedback.trim() || null })
         .eq('id', requestId)
-
       if (error) throw error
-
       setRatingSubmitted(true)
       showToast('success', 'Merci pour votre avis !')
       router.refresh()
-    } catch (error) {
-      console.error('Erreur envoi avis:', error)
-      showToast('error', 'Erreur lors de l\'envoi de l\'avis')
+    } catch {
+      showToast('error', "Erreur lors de l'envoi de l'avis")
     } finally {
       setSubmittingRating(false)
     }
@@ -84,7 +108,33 @@ export default function RequestActions({ requestId, status, existingRating, exis
         </div>
       )}
 
-      {/* Rating section for completed requests */}
+      {/* Formulaire de message guest (si demande non annulée) */}
+      {status !== 'cancelled' && (
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <span>💬</span> Ajouter un message
+          </h2>
+          <form onSubmit={handleSendMessage} className="flex gap-2">
+            <input
+              type="text"
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder="Précisez votre demande au service…"
+              className="flex-1 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+              disabled={sendingMessage}
+            />
+            <button
+              type="submit"
+              disabled={!message.trim() || sendingMessage}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 whitespace-nowrap"
+            >
+              {sendingMessage ? '…' : 'Envoyer'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Rating section pour les demandes terminées */}
       {status === 'completed' && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -134,7 +184,7 @@ export default function RequestActions({ requestId, status, existingRating, exis
                 value={feedback}
                 onChange={e => setFeedback(e.target.value)}
                 rows={3}
-                placeholder="Commentaire optionnel..."
+                placeholder="Commentaire optionnel…"
                 className="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
               />
               <button
@@ -142,14 +192,14 @@ export default function RequestActions({ requestId, status, existingRating, exis
                 disabled={!rating || submittingRating}
                 className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2.5 rounded-lg font-medium transition disabled:opacity-40"
               >
-                {submittingRating ? 'Envoi...' : 'Envoyer mon avis'}
+                {submittingRating ? 'Envoi…' : 'Envoyer mon avis'}
               </button>
             </form>
           )}
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Boutons d'action */}
       <div className="flex gap-3">
         {status === 'pending' && (
           <button
@@ -157,7 +207,7 @@ export default function RequestActions({ requestId, status, existingRating, exis
             disabled={cancelling}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50"
           >
-            {cancelling ? 'Annulation...' : 'Annuler la demande'}
+            {cancelling ? 'Annulation…' : 'Annuler la demande'}
           </button>
         )}
         <Link

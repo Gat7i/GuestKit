@@ -27,7 +27,7 @@ export default async function RequestDetailPage({
   // Récupérer le client
   const { data: customer } = await supabase
     .from('customers')
-    .select('customer_uuid')
+    .select('customer_uuid, full_name')
     .eq('user_id', user.id)
     .single()
 
@@ -247,6 +247,7 @@ export default async function RequestDetailPage({
         <RequestActions
           requestId={request.id}
           status={request.status}
+          customerName={customer.full_name || 'Client'}
           existingRating={request.rating}
           existingFeedback={request.feedback}
         />

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export default function NewRequestPage() {
   return (
@@ -143,10 +144,23 @@ function NewRequestForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">⏳</div>
-          <p className="text-gray-600">Chargement...</p>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-4 w-32" />
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-16 h-16 rounded-2xl flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </div>
       </div>
     )
