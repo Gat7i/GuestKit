@@ -7,35 +7,49 @@ import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import RestaurantImages from '@/components/restaurants/RestaurantImages'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
+
+type Restaurant = {
+  id: number
+  hotel_id: number
+  name: string
+  description: string | null
+  opening_hours: string | null
+  location: string | null
+  menu_pdf_url: string | null
+  spot_type: string
+}
 
 export default function AdminRestaurantsPage() {
   const [hotel, setHotel] = useState<any>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [restaurants, setRestaurants] = useState<any[]>([])
-  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null)
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [imageRefreshKey, setImageRefreshKey] = useState(0)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const { toast, toasts } = useToast()
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    opening_hours: '',
+    location: '',
+    menu_pdf_url: '',
+  })
 
   const supabase = createClient()
 
-  // ============================================
-  // CHARGEMENT INITIAL
-  // ============================================
   useEffect(() => {
     const init = async () => {
       try {
         const hotelData = await getCurrentHotelClient()
         setHotel(hotelData)
-        
-        // Déterminer si c'est un super_admin (pas d'hôtel assigné)
         if (!hotelData) {
           setIsSuperAdmin(true)
-          setSelectedHotelId(null)
-          // Pour super_admin, on ne charge pas les données tout de suite
-          // On attend la sélection d'un hôtel
           setLoading(false)
         } else {
           setIsSuperAdmin(false)
@@ -50,13 +64,8 @@ export default function AdminRestaurantsPage() {
     init()
   }, [])
 
-  // ============================================
-  // CHARGEMENT QUAND UN HÔTEL EST SÉLECTIONNÉ
-  // ============================================
   useEffect(() => {
-    if (selectedHotelId) {
-      loadRestaurants(selectedHotelId)
-    }
+    if (selectedHotelId) loadRestaurants(selectedHotelId)
   }, [selectedHotelId])
 
   async function loadRestaurants(hotelId: number) {
@@ -64,23 +73,13 @@ export default function AdminRestaurantsPage() {
     try {
       const { data } = await supabase
         .from('food_spots')
-        .select(`
-          *,
-          images:food_spot_images(
-            is_principal,
-            image:image_id(
-              url,
-              alt_text
-            )
-          )
-        `)
+        .select('*')
         .eq('hotel_id', hotelId)
         .eq('spot_type', 'restaurant')
         .order('name')
-      
       setRestaurants(data || [])
       if (data?.length && !selectedRestaurant) {
-        setSelectedRestaurant(data[0])
+        selectRestaurant(data[0])
       }
     } catch (error) {
       console.error('Erreur chargement:', error)
@@ -89,170 +88,337 @@ export default function AdminRestaurantsPage() {
     }
   }
 
-  async function updateRestaurant() {
-    if (!selectedRestaurant || !selectedHotelId) return
+  function selectRestaurant(r: Restaurant) {
+    setSelectedRestaurant(r)
+    setFormData({
+      name: r.name || '',
+      description: r.description || '',
+      opening_hours: r.opening_hours || '',
+      location: r.location || '',
+      menu_pdf_url: r.menu_pdf_url || '',
+    })
+    setEditing(false)
+  }
 
+  async function saveRestaurant() {
+    if (!selectedRestaurant || !selectedHotelId) return
+    if (!formData.name.trim()) { toast('Le nom est obligatoire', 'warning'); return }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('food_spots')
         .update({
-          name: selectedRestaurant.name,
-          description: selectedRestaurant.description,
-          opening_hours: selectedRestaurant.opening_hours,
-          location: selectedRestaurant.location,
-          menu_pdf_url: selectedRestaurant.menu_pdf_url
+          name: formData.name.trim(),
+          description: formData.description,
+          opening_hours: formData.opening_hours,
+          location: formData.location,
+          menu_pdf_url: formData.menu_pdf_url,
         })
         .eq('id', selectedRestaurant.id)
         .eq('hotel_id', selectedHotelId)
-
       if (error) throw error
-      
       toast('Restaurant mis à jour')
       setEditing(false)
       await loadRestaurants(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
-  if (loading) {
+  async function deleteRestaurant(id: number) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
+    if (!selectedHotelId) return
+    setConfirmDeleteId(null)
+    try {
+      const { error } = await supabase
+        .from('food_spots')
+        .delete()
+        .eq('id', id)
+        .eq('hotel_id', selectedHotelId)
+      if (error) throw error
+      toast('Restaurant supprimé')
+      if (selectedRestaurant?.id === id) { setSelectedRestaurant(null); resetForm() }
+      await loadRestaurants(selectedHotelId)
+    } catch (error) {
+      toast('Erreur lors de la suppression', 'error')
+    }
+  }
+
+  function resetForm() {
+    setFormData({ name: '', description: '', opening_hours: '', location: '', menu_pdf_url: '' })
+  }
+
+  if (loading && !restaurants.length && selectedHotelId) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">🍽️</div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Icon.Spinner className="w-8 h-8 text-amber-500" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <span>🍽️</span> Gestion des restaurants
-          {hotel && !isSuperAdmin && (
-            <span className="text-lg font-normal text-gray-500 ml-2">
-              - {hotel.name}
-            </span>
-          )}
-        </h1>
-        <p className="text-gray-600 mb-6">
-          {isSuperAdmin 
-            ? 'Mode Super Admin : sélectionnez un hôtel pour gérer ses restaurants'
-            : 'Gérez les restaurants et leurs photos'}
-        </p>
 
-        {/* ===== SÉLECTEUR D'HÔTEL POUR SUPER ADMIN ===== */}
+        {/* En-tête */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Icon.Utensils className="w-6 h-6 text-amber-600" />
+              Restaurants & Bars
+              {hotel && !isSuperAdmin && (
+                <span className="text-base font-normal text-gray-500 ml-2">— {hotel.name}</span>
+              )}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {isSuperAdmin ? 'Mode Super Admin — sélectionnez un hôtel' : 'Gérez les restaurants, horaires et photos'}
+            </p>
+          </div>
+        </div>
+
         {isSuperAdmin && (
-          <HotelSelector
-            onSelect={(hotelId) => setSelectedHotelId(hotelId)}
-            selectedId={selectedHotelId}
-            className="mb-6"
-          />
+          <HotelSelector onSelect={(id) => setSelectedHotelId(id)} selectedId={selectedHotelId} className="mb-6" />
         )}
 
-        {/* ===== CONTENU PRINCIPAL (visible seulement si un hôtel est sélectionné) ===== */}
         {selectedHotelId ? (
           <div className="grid grid-cols-12 gap-6">
-            {/* Colonne 1 : Liste des restaurants */}
-            <div className="col-span-3 bg-white rounded-xl shadow-sm p-4">
-              <h2 className="font-semibold text-gray-800 mb-4">Restaurants</h2>
-              <div className="space-y-2">
+
+            {/* Liste */}
+            <div className="col-span-3 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-700">
+                  Restaurants
+                  <span className="ml-2 text-xs text-gray-400 font-normal">{restaurants.length}</span>
+                </h2>
+              </div>
+              <div className="divide-y divide-gray-50 max-h-[70vh] overflow-y-auto">
                 {restaurants.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4 text-sm">
-                    Aucun restaurant
-                  </p>
+                  <p className="text-center text-gray-400 py-10 text-sm">Aucun restaurant</p>
                 ) : (
-                  restaurants.map((restaurant) => (
+                  restaurants.map((r) => (
                     <button
-                      key={restaurant.id}
-                      onClick={() => {
-                        setSelectedRestaurant(restaurant)
-                        setEditing(false)
-                      }}
-                      className={`
-                        w-full text-left p-3 rounded-lg transition
-                        ${selectedRestaurant?.id === restaurant.id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                        }
-                      `}
+                      key={r.id}
+                      onClick={() => selectRestaurant(r)}
+                      className={`w-full text-left px-4 py-3 transition ${
+                        selectedRestaurant?.id === r.id
+                          ? 'bg-amber-50 border-l-2 border-amber-500'
+                          : 'hover:bg-gray-50 border-l-2 border-transparent'
+                      }`}
                     >
-                      <div className="font-medium">{restaurant.name}</div>
-                      <div className={`text-xs ${
-                        selectedRestaurant?.id === restaurant.id
-                          ? 'text-blue-200'
-                          : 'text-gray-500'
-                      }`}>
-                        {restaurant.location || 'Emplacement non défini'}
-                      </div>
+                      <div className="font-medium text-sm text-gray-800 truncate">{r.name}</div>
+                      {r.location && (
+                        <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                          <Icon.Location className="w-3 h-3" />
+                          {r.location}
+                        </div>
+                      )}
                     </button>
                   ))
                 )}
               </div>
             </div>
 
-            {/* Colonne 2 : Édition et images */}
-            <div className="col-span-9 space-y-6">
+            {/* Détail */}
+            <div className="col-span-9 space-y-4">
               {selectedRestaurant ? (
                 <>
-                  {/* Fiche restaurant (identique à avant) */}
-                  <div className="bg-white rounded-xl shadow-sm p-6">
-                    {/* ... contenu existant ... */}
+                  {/* Fiche */}
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                      <h2 className="font-semibold text-gray-800">
+                        {editing ? 'Modifier' : selectedRestaurant.name}
+                      </h2>
+                      <div className="flex items-center gap-2">
+                        {!editing ? (
+                          <>
+                            <button
+                              onClick={() => setEditing(true)}
+                              className="flex items-center gap-1.5 text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition"
+                            >
+                              <Icon.Pencil className="w-4 h-4" />
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => deleteRestaurant(selectedRestaurant.id)}
+                              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition ${
+                                confirmDeleteId === selectedRestaurant.id
+                                  ? 'bg-red-600 text-white animate-pulse'
+                                  : 'text-red-600 hover:bg-red-50'
+                              }`}
+                            >
+                              <Icon.Trash className="w-4 h-4" />
+                              {confirmDeleteId === selectedRestaurant.id ? 'Confirmer ?' : 'Supprimer'}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={saveRestaurant}
+                              disabled={saving}
+                              className="flex items-center gap-1.5 text-sm bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-lg transition disabled:opacity-50"
+                            >
+                              {saving ? <Icon.Spinner className="w-4 h-4" /> : <Icon.Save className="w-4 h-4" />}
+                              Enregistrer
+                            </button>
+                            <button
+                              onClick={() => { setEditing(false); selectRestaurant(selectedRestaurant) }}
+                              className="flex items-center gap-1.5 text-sm text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition"
+                            >
+                              <Icon.X className="w-4 h-4" />
+                              Annuler
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      {editing ? (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Nom <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              className="w-full rounded-lg border-gray-300 shadow-sm text-sm"
+                              placeholder="Nom du restaurant"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                              value={formData.description}
+                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                              rows={3}
+                              className="w-full rounded-lg border-gray-300 shadow-sm text-sm"
+                              placeholder="Ambiance, spécialités, style culinaire..."
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Horaires</label>
+                              <input
+                                type="text"
+                                value={formData.opening_hours}
+                                onChange={(e) => setFormData({ ...formData, opening_hours: e.target.value })}
+                                className="w-full rounded-lg border-gray-300 shadow-sm text-sm"
+                                placeholder="Ex: 12h-14h · 19h-22h"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Emplacement</label>
+                              <input
+                                type="text"
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                className="w-full rounded-lg border-gray-300 shadow-sm text-sm"
+                                placeholder="Ex: Niveau 1, Piscine..."
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Lien PDF menu</label>
+                            <input
+                              type="url"
+                              value={formData.menu_pdf_url}
+                              onChange={(e) => setFormData({ ...formData, menu_pdf_url: e.target.value })}
+                              className="w-full rounded-lg border-gray-300 shadow-sm text-sm"
+                              placeholder="https://..."
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {selectedRestaurant.description && (
+                            <p className="text-sm text-gray-600">{selectedRestaurant.description}</p>
+                          )}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                                <Icon.Clock className="w-3 h-3" /> Horaires
+                              </p>
+                              <p className="text-sm font-medium text-gray-800">
+                                {selectedRestaurant.opening_hours || '—'}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                                <Icon.Location className="w-3 h-3" /> Emplacement
+                              </p>
+                              <p className="text-sm font-medium text-gray-800">
+                                {selectedRestaurant.location || '—'}
+                              </p>
+                            </div>
+                          </div>
+                          {selectedRestaurant.menu_pdf_url && (
+                            <a
+                              href={selectedRestaurant.menu_pdf_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+                            >
+                              <Icon.ExternalLink className="w-3.5 h-3.5" />
+                              Voir la carte PDF
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Gestion des images */}
-                  <div className="bg-white rounded-xl shadow-sm p-6">
-                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <span className="text-2xl">🖼️</span>
-                      Photos du restaurant
-                    </h3>
-
-                    <RestaurantImages
-                      foodSpotId={selectedRestaurant.id}
-                      editable={true}
-                      onImageUpdate={() => {
-                        // Rafraîchir les images
-                      }}
-                    />
-
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        Ajouter une photo
-                      </h4>
-                      <ImageUploader
-                        hotelId={selectedHotelId}
+                  {/* Photos */}
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <Icon.Image className="w-4 h-4 text-gray-500" />
+                        Photos
+                      </h3>
+                    </div>
+                    <div className="p-6 space-y-6">
+                      <RestaurantImages
+                        key={imageRefreshKey}
                         foodSpotId={selectedRestaurant.id}
-                        onImageUploaded={() => {
-                          window.dispatchEvent(new CustomEvent('restaurantImageUpdate'))
-                        }}
+                        editable={true}
+                        onImageUpdate={() => setImageRefreshKey(k => k + 1)}
                       />
+                      <div className="pt-4 border-t border-gray-100">
+                        <p className="text-xs font-medium text-gray-600 mb-3">Ajouter une photo</p>
+                        <ImageUploader
+                          hotelId={selectedHotelId}
+                          foodSpotId={selectedRestaurant.id}
+                          onImageUploaded={() => setImageRefreshKey(k => k + 1)}
+                        />
+                      </div>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                  <p className="text-gray-500">
-                    Sélectionnez un restaurant dans la liste
-                  </p>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+                  <Icon.Utensils className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Sélectionnez un restaurant dans la liste</p>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          // Message si aucun hôtel sélectionné (pour super_admin)
           isSuperAdmin && (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center border-2 border-dashed border-amber-200">
-              <div className="text-7xl mb-4">🏨</div>
-              <h3 className="text-xl font-medium text-amber-800 mb-2">
-                Aucun hôtel sélectionné
-              </h3>
-              <p className="text-amber-600">
-                Veuillez sélectionner un hôtel dans la liste ci-dessus pour commencer à gérer ses restaurants.
-              </p>
+            <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-16 text-center">
+              <Icon.Hotel className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">Sélectionnez un hôtel pour gérer ses restaurants.</p>
             </div>
           )
         )}

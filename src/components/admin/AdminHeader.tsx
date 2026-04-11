@@ -43,6 +43,7 @@ export default function AdminHeader() {
     { name: 'Plan',        href: '/admin/map-editor',             NavIcon: Icon.Map          },
     { name: 'Contacts',    href: '/admin/contacts',               NavIcon: Icon.Phone        },
     { name: 'Hôtel',       href: '/admin/hotel',                  NavIcon: Icon.Hotel        },
+    { name: 'Emplacements', href: '/admin/locations',              NavIcon: Icon.Location     },
     { name: 'Catégories',  href: '/admin/categories',             NavIcon: Icon.Tag          },
     { name: 'Types POI',   href: '/admin/poi-types',              NavIcon: Icon.Pin          },
   ]

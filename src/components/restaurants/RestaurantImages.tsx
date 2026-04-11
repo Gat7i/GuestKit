@@ -10,13 +10,14 @@ interface RestaurantImagesProps {
   onImageUpdate?: () => void
 }
 
-export default function RestaurantImages({ 
-  foodSpotId, 
+export default function RestaurantImages({
+  foodSpotId,
   editable = false,
-  onImageUpdate 
+  onImageUpdate
 }: RestaurantImagesProps) {
   const [images, setImages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -70,15 +71,18 @@ export default function RestaurantImages({
   }
 
   const deleteImage = async (imageId: number) => {
-    if (!confirm('Supprimer cette image ?')) return
-
+    if (confirmDeleteId !== imageId) {
+      setConfirmDeleteId(imageId)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
+    setConfirmDeleteId(null)
     try {
       await supabase
         .from('food_spot_images')
         .delete()
         .eq('food_spot_id', foodSpotId)
         .eq('image_id', imageId)
-
       await loadImages()
       if (onImageUpdate) onImageUpdate()
     } catch (error) {
@@ -119,10 +123,13 @@ export default function RestaurantImages({
             <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
               <button
                 onClick={() => deleteImage(principalImage.image.id)}
-                className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700"
-                title="Supprimer"
+                className={`text-white px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  confirmDeleteId === principalImage.image.id
+                    ? 'bg-red-700 animate-pulse'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
               >
-                🗑️
+                {confirmDeleteId === principalImage.image.id ? 'Confirmer ?' : 'Supprimer'}
               </button>
             </div>
           )}
@@ -144,17 +151,20 @@ export default function RestaurantImages({
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-lg flex items-center justify-center gap-1">
                   <button
                     onClick={() => setAsPrincipal(img.image.id)}
-                    className="bg-blue-600 text-white p-1.5 rounded-full hover:bg-blue-700 text-xs"
-                    title="Définir comme principale"
+                    className="bg-blue-600 text-white px-2 py-1 rounded-lg text-xs font-medium hover:bg-blue-700"
+                    title="Principale"
                   >
-                    ⭐
+                    Principale
                   </button>
                   <button
                     onClick={() => deleteImage(img.image.id)}
-                    className="bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 text-xs"
-                    title="Supprimer"
+                    className={`text-white px-2 py-1 rounded-lg text-xs font-medium transition ${
+                      confirmDeleteId === img.image.id
+                        ? 'bg-red-700 animate-pulse'
+                        : 'bg-red-600 hover:bg-red-700'
+                    }`}
                   >
-                    🗑️
+                    {confirmDeleteId === img.image.id ? 'Confirmer ?' : 'Suppr.'}
                   </button>
                 </div>
               )}

@@ -1,391 +1,263 @@
 // src/app/admin/page.tsx
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server-client'
+import { Icon } from '@/components/ui/Icons'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
   const hotelId = parseInt(process.env.NEXT_PUBLIC_HOTEL_ID || '0')
 
-  // ============================================
-  // STATISTIQUES POUR LE DASHBOARD
-  // ============================================
+  const [
+    { count: restaurantsCount },
+    { count: activitiesCount },
+    { count: showsCount },
+    { count: suggestionsCount },
+    { count: contactsCount },
+    { count: pendingRequestsCount },
+    { count: inProgressRequestsCount },
+    { data: recentRequests },
+    { count: activeStaysCount },
+  ] = await Promise.all([
+    supabase.from('food_spots').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('spot_type', 'restaurant'),
+    supabase.from('entertainments').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('is_daily_activity', true),
+    supabase.from('entertainments').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('is_night_show', true),
+    supabase.from('suggestions').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId),
+    supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId),
+    supabase.from('customer_requests').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('status', 'pending'),
+    supabase.from('customer_requests').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('status', 'in_progress'),
+    supabase.from('customer_requests').select('id, title, status, priority, created_at, request_type:request_types(name, category)').eq('hotel_id', hotelId).in('status', ['pending', 'in_progress']).order('created_at', { ascending: false }).limit(5),
+    supabase.from('stays').select('*', { count: 'exact', head: true }).eq('hotel_id', hotelId).eq('status', 'active'),
+  ])
 
-  // Restaurants
-  const { count: restaurantsCount } = await supabase
-    .from('food_spots')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('spot_type', 'restaurant')
+  const totalRequests = (pendingRequestsCount || 0) + (inProgressRequestsCount || 0)
 
-  // Activités
-  const { count: activitiesCount } = await supabase
-    .from('entertainments')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('is_daily_activity', true)
+  const priorityColors: Record<string, string> = {
+    urgent: 'bg-red-100 text-red-700',
+    high: 'bg-orange-100 text-orange-700',
+    normal: 'bg-blue-100 text-blue-700',
+    low: 'bg-gray-100 text-gray-600',
+  }
 
-  // Spectacles
-  const { count: showsCount } = await supabase
-    .from('entertainments')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('is_night_show', true)
+  const statusColors: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+  }
 
-  // Suggestions
-  const { count: suggestionsCount } = await supabase
-    .from('suggestions')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
+  const statusLabels: Record<string, string> = {
+    pending: 'En attente',
+    in_progress: 'En cours',
+  }
 
-  // Contacts
-  const { count: contactsCount } = await supabase
-    .from('contacts')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-
-  // Plans (étages)
-  const { count: plansCount } = await supabase
-    .from('plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('is_active', true)
-
-  // Catégories
-  const { count: categoriesCount } = await supabase
-    .from('categories')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('is_active', true)
-
-  // Types de POI
-  const { count: poiTypesCount } = await supabase
-    .from('poi_types')
-    .select('*', { count: 'exact', head: true })
-    .eq('hotel_id', hotelId)
-    .eq('is_active', true)
-
-  // ============================================
-  // MODULES D'ADMINISTRATION
-  // ============================================
-  
-  const adminModules = [
-    {
-      title: 'Restaurants & Bars',
-      description: 'Gérer les restaurants, bars et leurs menus',
-      icon: '🍽️',
-      href: '/admin/restaurants',
-      color: 'from-amber-500 to-orange-600',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-700',
-      count: restaurantsCount || 0
-    },
-    {
-      title: 'Activités',
-      description: 'Gérer les activités journalières et animations',
-      icon: '🎭',
-      href: '/admin/activities',
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
-      count: activitiesCount || 0
-    },
-    {
-      title: 'Spectacles',
-      description: 'Gérer les spectacles nocturnes et soirées',
-      icon: '🌟',
-      href: '/admin/shows',
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-700',
-      count: showsCount || 0
-    },
-    {
-      title: 'Découvertes',
-      description: 'Gérer les suggestions et activités externes',
-      icon: '✨',
-      href: '/admin/suggestions',
-      color: 'from-pink-500 to-rose-600',
-      bgColor: 'bg-pink-50',
-      textColor: 'text-pink-700',
-      count: suggestionsCount || 0
-    },
-    {
-      title: 'Contacts',
-      description: 'Gérer les numéros utiles et services',
-      icon: '📞',
-      href: '/admin/contacts',
-      color: 'from-green-500 to-emerald-600',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
-      count: contactsCount || 0
-    },
-    {
-      title: 'Plan de l\'hôtel',
-      description: 'Gérer les étages et points d\'intérêt',
-      icon: '🗺️',
-      href: '/admin/map-editor',
-      color: 'from-emerald-500 to-teal-600',
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-700',
-      count: plansCount || 0
-    }
-  ]
-
-  // ============================================
-  // MODULES DE CONFIGURATION
-  // ============================================
-  
-  const configModules = [
-    {
-      title: 'Catégories',
-      description: 'Gérer les catégories pour activités et découvertes',
-      icon: '🏷️',
-      href: '/admin/categories',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-700',
-      count: categoriesCount || 0
-    },
-    {
-      title: 'Types de POI',
-      description: 'Gérer les types de points d\'intérêt du plan',
-      icon: '📍',
-      href: '/admin/poi-types',
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-700',
-      count: poiTypesCount || 0
-    },
-    {
-      title: 'Hôtel',
-      description: 'Configurer les informations de l\'établissement',
-      icon: '🏨',
-      href: '/admin/hotel',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700'
-    },
-    {
-      title: 'Utilisateurs',
-      description: 'Gérer les administrateurs (bientôt)',
-      icon: '👥',
-      href: '/admin/users',
-      bgColor: 'bg-gray-50',
-      textColor: 'text-gray-700'
-    }
-  ]
+  function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 60) return `${m}min`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h`
+    return `${Math.floor(h / 24)}j`
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* ===== EN-TÊTE ===== */}
-      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">
-              🏨
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Administration GuestsKit
-              </h1>
-              <p className="text-xl text-blue-100">
-                Gérez tout le contenu de votre application
+              <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Système opérationnel
+              </span>
+              <Link href="/" target="_blank" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                <Icon.ExternalLink className="w-3.5 h-3.5" />
+                Site client
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ===== DASHBOARD ===== */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        
-        {/* ===== STATISTIQUES RAPIDES ===== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">🍽️</div>
-            <div className="text-2xl font-bold text-gray-800">{restaurantsCount || 0}</div>
-            <div className="text-xs text-gray-500">Restaurants</div>
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+        {/* KPIs opérationnels */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className={`bg-white rounded-xl border p-5 ${totalRequests > 0 ? 'border-amber-200' : 'border-gray-100'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Demandes actives</span>
+              <Icon.ClipboardList className={`w-4 h-4 ${totalRequests > 0 ? 'text-amber-500' : 'text-gray-400'}`} />
+            </div>
+            <div className={`text-3xl font-bold mb-1 ${totalRequests > 0 ? 'text-amber-600' : 'text-gray-800'}`}>
+              {totalRequests}
+            </div>
+            <div className="text-xs text-gray-500">
+              {pendingRequestsCount || 0} en attente · {inProgressRequestsCount || 0} en cours
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">🎭</div>
-            <div className="text-2xl font-bold text-gray-800">{activitiesCount || 0}</div>
-            <div className="text-xs text-gray-500">Activités</div>
+
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Séjours actifs</span>
+              <Icon.Users className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{activeStaysCount || 0}</div>
+            <div className="text-xs text-gray-500">Clients actuellement présents</div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">🌟</div>
-            <div className="text-2xl font-bold text-gray-800">{showsCount || 0}</div>
-            <div className="text-xs text-gray-500">Spectacles</div>
+
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Contenu</span>
+              <Icon.ChartBar className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">
+              {(restaurantsCount || 0) + (activitiesCount || 0) + (showsCount || 0) + (suggestionsCount || 0)}
+            </div>
+            <div className="text-xs text-gray-500">
+              {restaurantsCount || 0} restau · {activitiesCount || 0} activ · {showsCount || 0} spectacles
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">✨</div>
-            <div className="text-2xl font-bold text-gray-800">{suggestionsCount || 0}</div>
-            <div className="text-xs text-gray-500">Découvertes</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">📞</div>
-            <div className="text-2xl font-bold text-gray-800">{contactsCount || 0}</div>
-            <div className="text-xs text-gray-500">Contacts</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">🗺️</div>
-            <div className="text-2xl font-bold text-gray-800">{plansCount || 0}</div>
-            <div className="text-xs text-gray-500">Étages</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">🏷️</div>
-            <div className="text-2xl font-bold text-gray-800">{categoriesCount || 0}</div>
-            <div className="text-xs text-gray-500">Catégories</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="text-2xl mb-1">📍</div>
-            <div className="text-2xl font-bold text-gray-800">{poiTypesCount || 0}</div>
-            <div className="text-xs text-gray-500">Types POI</div>
+
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Contacts</span>
+              <Icon.Phone className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{contactsCount || 0}</div>
+            <div className="text-xs text-gray-500">Numéros utiles publiés</div>
           </div>
         </div>
 
-        {/* ===== SECTION GESTION DE CONTENU ===== */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <span className="w-1 h-8 bg-blue-600 rounded-full"></span>
-          Gestion du contenu
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {adminModules.map((module) => (
-            <Link
-              key={module.href}
-              href={module.href}
-              className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`
-                    w-14 h-14 rounded-2xl bg-gradient-to-br ${module.color} 
-                    flex items-center justify-center text-white text-2xl
-                    group-hover:scale-110 transition-transform duration-300
-                  `}>
-                    {module.icon}
-                  </div>
-                  {module.count > 0 && (
-                    <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                      {module.count} élément{module.count > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-                
-                <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition">
-                  {module.title}
-                </h3>
-                
-                <p className="text-sm text-gray-600 mb-4">
-                  {module.description}
-                </p>
-                
-                <div className="flex items-center text-blue-600 text-sm font-medium group-hover:gap-2 transition-all">
-                  <span>Gérer</span>
-                  <span className="text-lg group-hover:translate-x-1 transition">→</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* ===== SECTION CONFIGURATION ===== */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <span className="w-1 h-8 bg-gray-600 rounded-full"></span>
-          Configuration
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {configModules.map((module) => (
-            <Link
-              key={module.href}
-              href={module.href}
-              className={`
-                group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 p-6
-                ${module.href === '/admin/users' ? 'opacity-60 hover:opacity-100' : ''}
-              `}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`
-                  w-12 h-12 rounded-xl ${module.bgColor} 
-                  flex items-center justify-center text-2xl ${module.textColor}
-                `}>
-                  {module.icon}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-800 group-hover:text-gray-600 transition">
-                    {module.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {module.description}
-                  </p>
-                  {module.count !== undefined && (
-                    <span className="text-xs font-medium text-gray-400 mt-1 block">
-                      {module.count} élément{module.count > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* ===== ACTIONS RAPIDES ===== */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-2xl">⚡</span>
-            Actions rapides
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link
-              href="/admin/restaurants?action=new"
-              className="bg-white hover:bg-blue-50 rounded-xl p-4 text-center transition border border-gray-200 hover:border-blue-300"
-            >
-              <div className="text-3xl mb-2">➕</div>
-              <div className="text-sm font-medium text-gray-700">Nouveau restaurant</div>
-            </Link>
-            <Link
-              href="/admin/activities?action=new"
-              className="bg-white hover:bg-blue-50 rounded-xl p-4 text-center transition border border-gray-200 hover:border-blue-300"
-            >
-              <div className="text-3xl mb-2">➕</div>
-              <div className="text-sm font-medium text-gray-700">Nouvelle activité</div>
-            </Link>
-            <Link
-              href="/admin/suggestions?action=new"
-              className="bg-white hover:bg-blue-50 rounded-xl p-4 text-center transition border border-gray-200 hover:border-blue-300"
-            >
-              <div className="text-3xl mb-2">➕</div>
-              <div className="text-sm font-medium text-gray-700">Nouvelle découverte</div>
-            </Link>
-            <Link
-              href="/admin/map-editor"
-              className="bg-white hover:bg-blue-50 rounded-xl p-4 text-center transition border border-gray-200 hover:border-blue-300"
-            >
-              <div className="text-3xl mb-2">📍</div>
-              <div className="text-sm font-medium text-gray-700">Ajouter un point</div>
-            </Link>
-          </div>
-        </div>
-
-        {/* ===== INFORMATIONS SYSTÈME ===== */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="font-medium text-gray-700">Connecté en tant que Super Admin</span>
-              <span className="text-gray-300">|</span>
-              <Link href="/" className="text-blue-600 hover:text-blue-800 hover:underline">
-                Voir le site client
+        {/* Demandes récentes + Modules */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Demandes en attente */}
+          <div className="lg:col-span-1 bg-white rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <Icon.Bell className="w-4 h-4 text-amber-500" />
+                Demandes récentes
+              </h2>
+              <Link href="/admin/requests/maintenance" className="text-xs text-blue-600 hover:underline">
+                Voir tout
               </Link>
             </div>
-            <div className="flex items-center gap-4">
-              <span>Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
-                Version 1.0.0
-              </span>
+            <div className="divide-y divide-gray-50">
+              {recentRequests && recentRequests.length > 0 ? (
+                recentRequests.map((req: any) => (
+                  <Link
+                    key={req.id}
+                    href={`/admin/requests/${(req.request_type as any)?.category || 'maintenance'}/${req.id}`}
+                    className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate group-hover:text-blue-600">
+                        {req.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {(req.request_type as any)?.name} · {timeAgo(req.created_at)}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${statusColors[req.status] || ''}`}>
+                      {statusLabels[req.status] || req.status}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <div className="px-5 py-10 text-center">
+                  <Icon.Save className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Aucune demande en cours</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Modules principaux */}
+          <div className="lg:col-span-2">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Gestion du contenu</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { title: 'Demandes', href: '/admin/requests/maintenance', Icon: Icon.ClipboardList, count: totalRequests, accent: totalRequests > 0 ? 'border-amber-200 bg-amber-50' : '' },
+                { title: 'Restaurants', href: '/admin/restaurants', Icon: Icon.Utensils, count: restaurantsCount || 0, accent: '' },
+                { title: 'Activités', href: '/admin/activities', Icon: Icon.Activity, count: activitiesCount || 0, accent: '' },
+                { title: 'Spectacles', href: '/admin/shows', Icon: Icon.Show, count: showsCount || 0, accent: '' },
+                { title: 'Découvertes', href: '/admin/suggestions', Icon: Icon.Compass, count: suggestionsCount || 0, accent: '' },
+                { title: 'Réception', href: '/admin/reception', Icon: Icon.Users, count: activeStaysCount || 0, accent: '' },
+              ].map((mod) => (
+                <Link
+                  key={mod.href}
+                  href={mod.href}
+                  className={`bg-white rounded-xl border p-4 hover:shadow-md transition group ${mod.accent || 'border-gray-100 hover:border-gray-200'}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <mod.Icon className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition" />
+                    {mod.count > 0 && (
+                      <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {mod.count}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition">{mod.title}</p>
+                  <Icon.ChevronRight className="w-3.5 h-3.5 text-gray-400 mt-1 group-hover:translate-x-0.5 transition" />
+                </Link>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Configuration */}
+        <div>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Configuration</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { title: 'Hôtel', href: '/admin/hotel', Icon: Icon.Hotel },
+              { title: 'Emplacements', href: '/admin/locations', Icon: Icon.Location },
+              { title: 'Catégories', href: '/admin/categories', Icon: Icon.Tag },
+              { title: 'Types POI', href: '/admin/poi-types', Icon: Icon.Pin },
+              { title: 'Plan', href: '/admin/map-editor', Icon: Icon.Map },
+            ].map((mod) => (
+              <Link
+                key={mod.href}
+                href={mod.href}
+                className="bg-white rounded-xl border border-gray-100 px-4 py-3 hover:border-gray-300 transition flex items-center gap-3 group"
+              >
+                <mod.Icon className="w-4 h-4 text-gray-400 flex-shrink-0 group-hover:text-blue-500 transition" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{mod.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Accès demandes par catégorie */}
+        <div className="bg-white rounded-xl border border-gray-100">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <Icon.ClipboardList className="w-4 h-4 text-gray-500" />
+              Demandes par service
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+            {[
+              { label: 'Maintenance', href: '/admin/requests/maintenance', Icon: Icon.Wrench },
+              { label: 'Room Service', href: '/admin/requests/room-service', Icon: Icon.Utensils },
+              { label: 'Housekeeping', href: '/admin/requests/housekeeping', Icon: Icon.SparklesCleaning },
+              { label: 'Conciergerie', href: '/admin/requests/concierge', Icon: Icon.Concierge },
+            ].map((cat) => (
+              <Link
+                key={cat.href}
+                href={cat.href}
+                className="flex flex-col items-center gap-2 px-6 py-5 hover:bg-gray-50 transition group"
+              >
+                <cat.Icon className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" />
+                <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">{cat.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   )
