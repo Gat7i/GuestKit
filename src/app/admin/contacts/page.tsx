@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
 
 // ============================================
@@ -28,6 +30,10 @@ export default function AdminContactsPage() {
   const [selectedContact, setSelectedContact] = useState<ContactType | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     name: '',
     phone_number: '',
@@ -115,16 +121,13 @@ export default function AdminContactsPage() {
   // CRUD CONTACTS
   // ============================================
   async function createContact() {
+    if (!formData.name.trim() || !formData.phone_number.trim() || !formData.department) {
+      toast('Veuillez remplir tous les champs', 'warning')
+      return
+    }
+    if (!selectedHotelId) return
+    setSaving(true)
     try {
-      if (!formData.name || !formData.phone_number || !formData.department) {
-        alert('Veuillez remplir tous les champs')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       const { data, error } = await supabase
         .from('contacts')
         .insert({
@@ -138,20 +141,26 @@ export default function AdminContactsPage() {
 
       if (error) throw error
 
-      alert('✅ Contact créé avec succès !')
+      toast('Contact créé avec succès')
       setEditing(false)
       resetForm()
       await loadData(selectedHotelId)
       setSelectedContact(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updateContact() {
     if (!selectedContact || !selectedHotelId) return
-
+    if (!formData.name.trim() || !formData.phone_number.trim()) {
+      toast('Veuillez remplir tous les champs', 'warning')
+      return
+    }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('contacts')
@@ -165,19 +174,26 @@ export default function AdminContactsPage() {
 
       if (error) throw error
 
-      alert('✅ Contact mis à jour')
+      toast('Contact mis à jour')
       setEditing(false)
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deleteContact(id: number) {
-    if (!confirm('Supprimer définitivement ce contact ?')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('contacts')
@@ -187,15 +203,14 @@ export default function AdminContactsPage() {
 
       if (error) throw error
 
-      alert('✅ Contact supprimé')
+      toast('Contact supprimé')
       await loadData(selectedHotelId)
-      if (selectedContact?.id === id) {
-        setSelectedContact(null)
-        resetForm()
-      }
+      if (selectedContact?.id === id) { setSelectedContact(null); resetForm() }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -256,6 +271,7 @@ export default function AdminContactsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">

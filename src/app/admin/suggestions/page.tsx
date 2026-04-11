@@ -6,6 +6,8 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import SuggestionImages from '@/components/suggestions/SuggestionImages'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
 
 export default function AdminSuggestionsPage() {
@@ -17,6 +19,10 @@ export default function AdminSuggestionsPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -128,16 +134,13 @@ export default function AdminSuggestionsPage() {
   // CRUD SUGGESTIONS
   // ============================================
   async function createSuggestion() {
+    if (!formData.title.trim() || !formData.category_id) {
+      toast('Veuillez remplir le titre et la catégorie', 'warning')
+      return
+    }
+    if (!selectedHotelId) return
+    setSaving(true)
     try {
-      if (!formData.title || !formData.category_id) {
-        alert('Veuillez remplir le titre et la catégorie')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       const { data, error } = await supabase
         .from('suggestions')
         .insert({
@@ -155,20 +158,23 @@ export default function AdminSuggestionsPage() {
 
       if (error) throw error
 
-      alert('✅ Suggestion créée avec succès !')
+      toast('Suggestion créée avec succès')
       setEditing(false)
       resetForm()
       await loadData(selectedHotelId)
       setSelectedSuggestion(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updateSuggestion() {
     if (!selectedSuggestion || !selectedHotelId) return
-
+    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('suggestions')
@@ -186,19 +192,26 @@ export default function AdminSuggestionsPage() {
 
       if (error) throw error
 
-      alert('✅ Suggestion mise à jour')
+      toast('Suggestion mise à jour')
       setEditing(false)
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deleteSuggestion(id: number) {
-    if (!confirm('Supprimer définitivement cette suggestion ?')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('suggestions')
@@ -208,15 +221,14 @@ export default function AdminSuggestionsPage() {
 
       if (error) throw error
 
-      alert('✅ Suggestion supprimée')
+      toast('Suggestion supprimée')
       await loadData(selectedHotelId)
-      if (selectedSuggestion?.id === id) {
-        setSelectedSuggestion(null)
-        resetForm()
-      }
+      if (selectedSuggestion?.id === id) { setSelectedSuggestion(null); resetForm() }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -272,7 +284,7 @@ export default function AdminSuggestionsPage() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">✨</div>
+          <Icon.Spinner className="w-10 h-10 text-purple-500 mx-auto mb-4" />
           <p className="text-gray-600">Chargement des suggestions...</p>
         </div>
       </div>
@@ -281,6 +293,7 @@ export default function AdminSuggestionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">

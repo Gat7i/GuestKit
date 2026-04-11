@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 
 // ============================================
@@ -32,7 +33,10 @@ export default function AdminCategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [filterType, setFilterType] = useState('all')
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     name: '',
     category_type: 'suggestion',
@@ -147,16 +151,10 @@ export default function AdminCategoriesPage() {
   // CRUD CATÉGORIES
   // ============================================
   async function createCategory() {
+    if (!formData.name.trim() || !formData.category_type) { toast('Veuillez remplir le nom et le type de catégorie', 'warning'); return }
+    if (!selectedHotelId) { toast('Aucun hôtel sélectionné', 'warning'); return }
+    setSaving(true)
     try {
-      if (!formData.name || !formData.category_type) {
-        alert('Veuillez remplir le nom et le type de catégorie')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       const { data, error } = await supabase
         .from('categories')
         .insert({
@@ -175,20 +173,23 @@ export default function AdminCategoriesPage() {
 
       if (error) throw error
 
-      alert('✅ Catégorie créée avec succès !')
+      toast('Catégorie créée avec succès')
       setEditing(false)
       resetForm()
       await loadCategories(selectedHotelId)
       setSelectedCategory(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updateCategory() {
     if (!selectedCategory || !selectedHotelId) return
-
+    if (!formData.name.trim()) { toast('Veuillez saisir un nom', 'warning'); return }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('categories')
@@ -207,19 +208,25 @@ export default function AdminCategoriesPage() {
 
       if (error) throw error
 
-      alert('✅ Catégorie mise à jour')
+      toast('Catégorie mise à jour')
       setEditing(false)
       await loadCategories(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deleteCategory(id: number) {
-    if (!confirm('Supprimer définitivement cette catégorie ?\nLes éléments liés ne seront plus catégorisés.')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('categories')
@@ -229,7 +236,7 @@ export default function AdminCategoriesPage() {
 
       if (error) throw error
 
-      alert('✅ Catégorie supprimée')
+      toast('Catégorie supprimée')
       await loadCategories(selectedHotelId)
       if (selectedCategory?.id === id) {
         setSelectedCategory(null)
@@ -237,7 +244,7 @@ export default function AdminCategoriesPage() {
       }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
     }
   }
 
@@ -336,6 +343,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">
@@ -742,10 +750,14 @@ export default function AdminCategoriesPage() {
                             </button>
                             <button
                               onClick={() => deleteCategory(selectedCategory.id)}
-                              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                              className={`px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2 ${
+                                confirmDeleteId === selectedCategory.id
+                                  ? 'bg-red-700 text-white animate-pulse'
+                                  : 'bg-red-600 hover:bg-red-700 text-white'
+                              }`}
                             >
                               <span>🗑️</span>
-                              Supprimer
+                              {confirmDeleteId === selectedCategory.id ? 'Confirmer ?' : 'Supprimer'}
                             </button>
                           </div>
                         </div>

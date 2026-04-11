@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -17,6 +18,7 @@ export default function AdminHotelPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
+  const { toast, toasts } = useToast()
   const [creating, setCreating] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -208,18 +210,16 @@ export default function AdminHotelPage() {
 
       if (linkError) throw linkError
 
-      alert('✅ Image ajoutée au carrousel')
+      toast('Image ajoutée au carrousel')
       await loadHotelImages(selectedHotelId)
     } catch (error) {
       console.error('Erreur ajout image:', error)
-      alert('❌ Erreur lors de l\'ajout')
+      toast('Erreur lors de l\'ajout', 'error')
     }
   }
 
   async function deleteCarouselImage(imageId: number) {
-    if (!confirm('Supprimer cette image du carrousel ?')) return
     if (!selectedHotelId) return
-
     try {
       const { error } = await supabase
         .from('hotel_images')
@@ -229,11 +229,11 @@ export default function AdminHotelPage() {
 
       if (error) throw error
 
-      alert('✅ Image supprimée')
+      toast('Image supprimée')
       await loadHotelImages(selectedHotelId)
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
     }
   }
 
@@ -259,13 +259,9 @@ export default function AdminHotelPage() {
   // CRÉER UN NOUVEL HÔTEL
   // ============================================
   async function createHotel() {
+    if (!formData.name.trim() || !formData.slug.trim()) { toast('Veuillez remplir le nom et le slug de l\'hôtel', 'warning'); return }
     setSaving(true)
     try {
-      if (!formData.name || !formData.slug) {
-        alert('Veuillez remplir le nom et le slug de l\'hôtel')
-        return
-      }
-
       const { data: existing } = await supabase
         .from('hotels')
         .select('id')
@@ -273,7 +269,7 @@ export default function AdminHotelPage() {
         .maybeSingle()
 
       if (existing) {
-        alert('Ce slug est déjà utilisé. Veuillez en choisir un autre.')
+        toast('Ce slug est déjà utilisé. Veuillez en choisir un autre.', 'warning')
         return
       }
 
@@ -298,7 +294,7 @@ export default function AdminHotelPage() {
 
       if (error) throw error
 
-      alert('✅ Hôtel créé avec succès !')
+      toast('Hôtel créé avec succès')
       setCreating(false)
       setEditing(false)
       setSelectedHotelId(data.id)
@@ -306,7 +302,7 @@ export default function AdminHotelPage() {
       await loadHotelImages(data.id)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -317,13 +313,9 @@ export default function AdminHotelPage() {
   // ============================================
   async function updateHotel() {
     if (!selectedHotelId) return
-    
+    if (!formData.name.trim() || !formData.slug.trim()) { toast('Veuillez remplir le nom et le slug de l\'hôtel', 'warning'); return }
     setSaving(true)
     try {
-      if (!formData.name || !formData.slug) {
-        alert('Veuillez remplir le nom et le slug de l\'hôtel')
-        return
-      }
 
       const { error } = await supabase
         .from('hotels')
@@ -345,12 +337,12 @@ export default function AdminHotelPage() {
 
       if (error) throw error
 
-      alert('✅ Informations mises à jour avec succès !')
+      toast('Informations mises à jour avec succès')
       setEditing(false)
       await loadHotelData(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
@@ -410,6 +402,7 @@ export default function AdminHotelPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-5xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">
@@ -708,7 +701,7 @@ export default function AdminHotelPage() {
                                       try {
                                         await uploadImage(file)
                                       } catch (error) {
-                                        alert('Erreur lors de l\'upload')
+                                        toast('Erreur lors de l\'upload', 'error')
                                       }
                                     }
                                   }}

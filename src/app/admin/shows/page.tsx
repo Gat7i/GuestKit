@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
 
 export default function AdminShowsPage() {
@@ -15,6 +17,10 @@ export default function AdminShowsPage() {
   const [locations, setLocations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -107,16 +113,10 @@ export default function AdminShowsPage() {
   // CRUD SPECTACLES
   // ============================================
   async function createShow() {
+    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
+    if (!selectedHotelId) return
+    setSaving(true)
     try {
-      if (!formData.title) {
-        alert('Veuillez saisir un titre')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       const { data, error } = await supabase
         .from('entertainments')
         .insert({
@@ -132,19 +132,22 @@ export default function AdminShowsPage() {
 
       if (error) throw error
 
-      alert('✅ Spectacle créé avec succès !')
+      toast('Spectacle créé avec succès')
       setEditing(false)
       await loadData(selectedHotelId)
       setSelectedShow(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updateShow() {
     if (!selectedShow || !selectedHotelId) return
-
+    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('entertainments')
@@ -158,19 +161,26 @@ export default function AdminShowsPage() {
 
       if (error) throw error
 
-      alert('✅ Spectacle mis à jour')
+      toast('Spectacle mis à jour')
       setEditing(false)
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deleteShow(id: number) {
-    if (!confirm('Supprimer définitivement ce spectacle ?')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('entertainments')
@@ -180,15 +190,14 @@ export default function AdminShowsPage() {
 
       if (error) throw error
 
-      alert('✅ Spectacle supprimé')
+      toast('Spectacle supprimé')
       await loadData(selectedHotelId)
-      if (selectedShow?.id === id) {
-        setSelectedShow(null)
-        resetForm()
-      }
+      if (selectedShow?.id === id) { setSelectedShow(null); resetForm() }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -206,7 +215,7 @@ export default function AdminShowsPage() {
         .single()
 
       if (checkShow?.hotel_id !== selectedHotelId) {
-        alert('Action non autorisée')
+        toast('Action non autorisée', 'error')
         return
       }
 
@@ -222,11 +231,11 @@ export default function AdminShowsPage() {
 
       if (error) throw error
 
-      alert('✅ Date ajoutée')
+      toast('Date ajoutée')
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur ajout date:', error)
-      alert('❌ Erreur lors de l\'ajout')
+      toast("Erreur lors de l'ajout", 'error')
     }
   }
 
@@ -252,11 +261,11 @@ export default function AdminShowsPage() {
 
       if (error) throw error
 
-      alert('✅ Date supprimée')
+      toast('Date supprimée')
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur suppression date:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
     }
   }
 
@@ -312,6 +321,7 @@ export default function AdminShowsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">

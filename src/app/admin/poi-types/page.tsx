@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 
 export default function AdminPoiTypesPage() {
@@ -14,6 +15,9 @@ export default function AdminPoiTypesPage() {
   const [selectedType, setSelectedType] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     type_key: '',
     name: '',
@@ -121,16 +125,10 @@ export default function AdminPoiTypesPage() {
   // CRUD TYPES DE POI
   // ============================================
   async function createPoiType() {
+    if (!formData.type_key || !formData.name.trim()) { toast('Veuillez remplir la clé et le nom du type', 'warning'); return }
+    if (!selectedHotelId) { toast('Aucun hôtel sélectionné', 'warning'); return }
+    setSaving(true)
     try {
-      if (!formData.type_key || !formData.name) {
-        alert('Veuillez remplir la clé et le nom du type')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       // Vérifier si la clé existe déjà pour cet hôtel
       const { data: existing } = await supabase
         .from('poi_types')
@@ -140,7 +138,7 @@ export default function AdminPoiTypesPage() {
         .maybeSingle()
 
       if (existing) {
-        alert('Cette clé existe déjà. Veuillez en choisir une autre.')
+        toast('Cette clé existe déjà. Veuillez en choisir une autre.', 'warning')
         return
       }
 
@@ -162,20 +160,23 @@ export default function AdminPoiTypesPage() {
 
       if (error) throw error
 
-      alert('✅ Type de point créé avec succès !')
+      toast('Type de point créé avec succès')
       setEditing(false)
       resetForm()
       await loadPoiTypes(selectedHotelId)
       setSelectedType(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updatePoiType() {
     if (!selectedType || !selectedHotelId) return
-
+    if (!formData.name.trim()) { toast('Veuillez saisir un nom', 'warning'); return }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('poi_types')
@@ -193,19 +194,25 @@ export default function AdminPoiTypesPage() {
 
       if (error) throw error
 
-      alert('✅ Type de point mis à jour')
+      toast('Type de point mis à jour')
       setEditing(false)
       await loadPoiTypes(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deletePoiType(id: number) {
-    if (!confirm('Supprimer définitivement ce type de point ?\nLes points d\'intérêt utilisant ce type seront orphelins.')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('poi_types')
@@ -215,7 +222,7 @@ export default function AdminPoiTypesPage() {
 
       if (error) throw error
 
-      alert('✅ Type de point supprimé')
+      toast('Type de point supprimé')
       await loadPoiTypes(selectedHotelId)
       if (selectedType?.id === id) {
         setSelectedType(null)
@@ -223,7 +230,7 @@ export default function AdminPoiTypesPage() {
       }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
     }
   }
 
@@ -318,6 +325,7 @@ export default function AdminPoiTypesPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">
@@ -658,10 +666,14 @@ export default function AdminPoiTypesPage() {
                           </button>
                           <button
                             onClick={() => deletePoiType(selectedType.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                            className={`px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2 ${
+                              confirmDeleteId === selectedType.id
+                                ? 'bg-red-700 text-white animate-pulse'
+                                : 'bg-red-600 hover:bg-red-700 text-white'
+                            }`}
                           >
                             <span>🗑️</span>
-                            Supprimer
+                            {confirmDeleteId === selectedType.id ? 'Confirmer ?' : 'Supprimer'}
                           </button>
                         </div>
                       </div>

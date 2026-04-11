@@ -6,6 +6,7 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import RestaurantImages from '@/components/restaurants/RestaurantImages'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 
 export default function AdminRestaurantsPage() {
@@ -16,6 +17,7 @@ export default function AdminRestaurantsPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const { toast, toasts } = useToast()
 
   const supabase = createClient()
 
@@ -105,12 +107,12 @@ export default function AdminRestaurantsPage() {
 
       if (error) throw error
       
-      alert('✅ Restaurant mis à jour')
+      toast('Restaurant mis à jour')
       setEditing(false)
       await loadRestaurants(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
     }
   }
 
@@ -127,6 +129,7 @@ export default function AdminRestaurantsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <span>🍽️</span> Gestion des restaurants

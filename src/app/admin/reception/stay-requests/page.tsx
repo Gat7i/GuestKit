@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -40,6 +41,7 @@ export default function StayRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<StayRequest | null>(null)
   const [rooms, setRooms] = useState<any[]>([])
   const [assigning, setAssigning] = useState(false)
+  const { toast, toasts } = useToast()
   const [error, setError] = useState<string | null>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
   const [hotels, setHotels] = useState<any[]>([])
@@ -174,7 +176,7 @@ export default function StayRequestsPage() {
 
   async function assignRoom(requestId: number, roomId: number) {
     if (!roomId) {
-      alert('Veuillez sélectionner une chambre')
+      toast('Veuillez sélectionner une chambre', 'warning')
       return
     }
 
@@ -194,7 +196,7 @@ export default function StayRequestsPage() {
       if (error) throw error
 
       console.log('✅ Séjour activé avec succès')
-      alert('✅ Séjour activé avec succès')
+      toast('Séjour activé avec succès')
       setSelectedRequest(null)
       
       // Recharger selon le contexte
@@ -207,7 +209,7 @@ export default function StayRequestsPage() {
       router.refresh()
     } catch (error) {
       console.error('❌ Erreur activation:', error)
-      alert('❌ Erreur lors de l\'activation')
+      toast('Erreur lors de l\'activation', 'error')
     } finally {
       setAssigning(false)
     }
@@ -247,6 +249,7 @@ export default function StayRequestsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

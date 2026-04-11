@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -22,6 +23,7 @@ export default function CheckInPage() {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const { toast, toasts } = useToast()
   const router = useRouter()
   const supabase = createClient()
 
@@ -105,7 +107,7 @@ export default function CheckInPage() {
 
   const handleAssignStays = () => {
     if (selectedCustomers.length === 0) {
-      alert('Veuillez sélectionner au moins un client')
+      toast('Veuillez sélectionner au moins un client', 'warning')
       return
     }
     const customerIds = selectedCustomers.join(',')
@@ -130,6 +132,7 @@ export default function CheckInPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">

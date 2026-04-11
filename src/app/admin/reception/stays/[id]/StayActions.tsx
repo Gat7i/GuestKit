@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client-browser'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 
 type StayActionsProps = {
@@ -18,12 +19,11 @@ type StayActionsProps = {
 export default function StayActions({ stay }: StayActionsProps) {
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const { toast, toasts } = useToast()
   const router = useRouter()
   const supabase = createClient()
 
   const handleCheckIn = async () => {
-    if (!confirm('Confirmer l\'arrivée de ce client ?')) return
-    
     setIsCheckingIn(true)
     try {
       const { error } = await supabase
@@ -35,20 +35,18 @@ export default function StayActions({ stay }: StayActionsProps) {
         .eq('id', stay.id)
 
       if (error) throw error
-      
-      alert('✅ Arrivée enregistrée')
+
+      toast('Arrivée enregistrée')
       router.refresh()
     } catch (error) {
       console.error('Erreur check-in:', error)
-      alert('❌ Erreur lors de l\'enregistrement')
+      toast('Erreur lors de l\'enregistrement', 'error')
     } finally {
       setIsCheckingIn(false)
     }
   }
 
   const handleCheckOut = async () => {
-    if (!confirm('Confirmer le départ de ce client ?')) return
-    
     setIsCheckingOut(true)
     try {
       const { error } = await supabase
@@ -60,19 +58,21 @@ export default function StayActions({ stay }: StayActionsProps) {
         .eq('id', stay.id)
 
       if (error) throw error
-      
-      alert('✅ Départ enregistré')
+
+      toast('Départ enregistré')
       router.refresh()
     } catch (error) {
       console.error('Erreur check-out:', error)
-      alert('❌ Erreur lors de l\'enregistrement')
+      toast('Erreur lors de l\'enregistrement', 'error')
     } finally {
       setIsCheckingOut(false)
     }
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <>
+      <ToastContainer toasts={toasts} />
+      <div className="grid grid-cols-3 gap-4">
       {stay.status === 'upcoming' && (
         <button
           onClick={handleCheckIn}
@@ -104,5 +104,6 @@ export default function StayActions({ stay }: StayActionsProps) {
         👤 Fiche client
       </Link>
     </div>
+    </>
   )
 }

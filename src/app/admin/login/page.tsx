@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Icon } from '@/components/ui/Icons'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('admin@guestskit.com')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -83,8 +84,8 @@ const handleLogin = async (e: React.FormEvent) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-4">
-            🏨
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+            <Icon.Hotel className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">GuestSkit Admin</h1>
           <p className="text-gray-600 text-sm mt-1">Connectez-vous pour gérer votre hôtel</p>
@@ -125,12 +126,6 @@ const handleLogin = async (e: React.FormEvent) => {
           </button>
         </form>
 
-        {/* Note d'information pour la démo */}
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            Démo : admin@guestskit.com / admin123
-          </p>
-        </div>
       </div>
     </div>
   )

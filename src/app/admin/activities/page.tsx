@@ -6,6 +6,8 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ActivityImages from '@/components/activities/ActivityImages'
 import ImageUploader from '@/components/admin/ImageUploader'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
 
 export default function AdminActivitiesPage() {
@@ -18,6 +20,10 @@ export default function AdminActivitiesPage() {
   const [locations, setLocations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -159,16 +165,13 @@ export default function AdminActivitiesPage() {
   // CRUD ACTIVITÉS
   // ============================================
   async function createActivity() {
+    if (!formData.title.trim()) {
+      toast('Veuillez saisir un titre', 'warning')
+      return
+    }
+    if (!selectedHotelId) return
+    setSaving(true)
     try {
-      if (!formData.title) {
-        alert('Veuillez saisir un titre')
-        return
-      }
-      if (!selectedHotelId) {
-        alert('Aucun hôtel sélectionné')
-        return
-      }
-
       const { data, error } = await supabase
         .from('entertainments')
         .insert({
@@ -185,19 +188,25 @@ export default function AdminActivitiesPage() {
 
       if (error) throw error
 
-      alert('✅ Activité créée avec succès !')
+      toast('Activité créée avec succès')
       setEditing(false)
       await loadData(selectedHotelId)
       setSelectedActivity(data)
     } catch (error) {
       console.error('Erreur création:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function updateActivity() {
     if (!selectedActivity || !selectedHotelId) return
-
+    if (!formData.title.trim()) {
+      toast('Veuillez saisir un titre', 'warning')
+      return
+    }
+    setSaving(true)
     try {
       const { error } = await supabase
         .from('entertainments')
@@ -212,19 +221,26 @@ export default function AdminActivitiesPage() {
 
       if (error) throw error
 
-      alert('✅ Activité mise à jour')
+      toast('Activité mise à jour')
       setEditing(false)
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
-      alert('❌ Erreur lors de la mise à jour')
+      toast('Erreur lors de la mise à jour', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function deleteActivity(id: number) {
-    if (!confirm('Supprimer définitivement cette activité ?')) return
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      setTimeout(() => setConfirmDeleteId(null), 3000)
+      return
+    }
     if (!selectedHotelId) return
-
+    setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const { error } = await supabase
         .from('entertainments')
@@ -234,7 +250,7 @@ export default function AdminActivitiesPage() {
 
       if (error) throw error
 
-      alert('✅ Activité supprimée')
+      toast('Activité supprimée')
       await loadData(selectedHotelId)
       if (selectedActivity?.id === id) {
         setSelectedActivity(null)
@@ -242,7 +258,9 @@ export default function AdminActivitiesPage() {
       }
     } catch (error) {
       console.error('Erreur suppression:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -251,17 +269,15 @@ export default function AdminActivitiesPage() {
   // ============================================
   async function addSchedule(activityId: number, dayOfWeek: number, startTime: string) {
     if (!selectedHotelId) return
-    
     try {
-      // Vérifier d'abord que l'activité appartient bien à cet hôtel
       const { data: activity } = await supabase
         .from('entertainments')
         .select('hotel_id')
         .eq('id', activityId)
         .single()
-      
+
       if (activity?.hotel_id !== selectedHotelId) {
-        alert('Action non autorisée')
+        toast('Action non autorisée', 'error')
         return
       }
 
@@ -276,31 +292,25 @@ export default function AdminActivitiesPage() {
 
       if (error) throw error
 
-      alert('✅ Horaire ajouté')
+      toast('Horaire ajouté')
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur ajout horaire:', error)
-      alert('❌ Erreur lors de l\'ajout')
+      toast("Erreur lors de l'ajout", 'error')
     }
   }
 
   async function deleteSchedule(scheduleId: number) {
     if (!selectedHotelId) return
-    
     try {
-      // Récupérer d'abord les IDs des activités de l'hôtel
       const { data: hotelActivities } = await supabase
         .from('entertainments')
         .select('id')
         .eq('hotel_id', selectedHotelId)
 
-      if (!hotelActivities || hotelActivities.length === 0) {
-        alert('Aucune activité trouvée pour cet hôtel')
-        return
-      }
+      if (!hotelActivities?.length) return
 
       const activityIds = hotelActivities.map(a => a.id)
-
       const { error } = await supabase
         .from('daily_schedules')
         .delete()
@@ -309,11 +319,11 @@ export default function AdminActivitiesPage() {
 
       if (error) throw error
 
-      alert('✅ Horaire supprimé')
+      toast('Horaire supprimé')
       await loadData(selectedHotelId)
     } catch (error) {
       console.error('Erreur suppression horaire:', error)
-      alert('❌ Erreur lors de la suppression')
+      toast('Erreur lors de la suppression', 'error')
     }
   }
 
@@ -369,7 +379,7 @@ export default function AdminActivitiesPage() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">🎭</div>
+          <Icon.Spinner className="w-10 h-10 text-blue-500 mx-auto mb-4" />
           <p className="text-gray-600">Chargement des activités...</p>
         </div>
       </div>
@@ -378,12 +388,14 @@ export default function AdminActivitiesPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-              <span>🎭</span> Gestion des activités
+              <Icon.Activity className="w-8 h-8 text-blue-600" />
+              Gestion des activités
               {hotel && !isSuperAdmin && (
                 <span className="text-lg font-normal text-gray-500 ml-2">
                   - {hotel.name}
@@ -398,14 +410,10 @@ export default function AdminActivitiesPage() {
           </div>
           {selectedHotelId && (
             <button
-              onClick={() => {
-                resetForm()
-                setSelectedActivity(null)
-                setEditing(true)
-              }}
+              onClick={() => { resetForm(); setSelectedActivity(null); setEditing(true) }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
             >
-              <span>➕</span>
+              <Icon.Plus className="w-4 h-4" />
               Nouvelle activité
             </button>
           )}
@@ -426,7 +434,7 @@ export default function AdminActivitiesPage() {
             {/* Colonne 1 : Liste des activités */}
             <div className="col-span-3 bg-white rounded-xl shadow-sm p-4">
               <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span>📋</span>
+                <Icon.ClipboardList className="w-4 h-4 text-gray-500" />
                 Activités
                 <span className="ml-auto bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
                   {activities.length}
@@ -497,8 +505,10 @@ export default function AdminActivitiesPage() {
               {editing ? (
                 // ===== FORMULAIRE D'ÉDITION =====
                 <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    {selectedActivity ? '✏️ Modifier' : '➕ Nouvelle activité'}
+                  <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    {selectedActivity
+                      ? <><Icon.Pencil className="w-5 h-5 text-blue-600" /> Modifier</>
+                      : <><Icon.Plus className="w-5 h-5 text-blue-600" /> Nouvelle activité</>}
                   </h2>
 
                   <div className="space-y-4">
@@ -572,16 +582,20 @@ export default function AdminActivitiesPage() {
                     <div className="flex gap-3 pt-4">
                       <button
                         onClick={selectedActivity ? updateActivity : createActivity}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                        disabled={saving}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
                       >
-                        <span>💾</span>
+                        {saving
+                          ? <Icon.Spinner className="w-4 h-4" />
+                          : <Icon.Save className="w-4 h-4" />}
                         {selectedActivity ? 'Mettre à jour' : 'Créer'}
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
+                        disabled={saving}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
                       >
-                        <span>✕</span>
+                        <Icon.X className="w-4 h-4" />
                         Annuler
                       </button>
                     </div>
@@ -618,15 +632,22 @@ export default function AdminActivitiesPage() {
                             onClick={() => startEdit(selectedActivity)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
                           >
-                            <span>✏️</span>
+                            <Icon.Pencil className="w-4 h-4" />
                             Modifier
                           </button>
                           <button
                             onClick={() => deleteActivity(selectedActivity.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                            disabled={deletingId === selectedActivity.id}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                              confirmDeleteId === selectedActivity.id
+                                ? 'bg-red-700 text-white animate-pulse'
+                                : 'bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600'
+                            }`}
                           >
-                            <span>🗑️</span>
-                            Supprimer
+                            {deletingId === selectedActivity.id
+                              ? <Icon.Spinner className="w-4 h-4" />
+                              : <Icon.Trash className="w-4 h-4" />}
+                            {confirmDeleteId === selectedActivity.id ? 'Confirmer ?' : 'Supprimer'}
                           </button>
                         </div>
                       </div>
@@ -649,7 +670,7 @@ export default function AdminActivitiesPage() {
                       {/* Gestion des horaires */}
                       <div className="mt-6 pt-6 border-t border-gray-200">
                         <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                          <span>🕐</span>
+                          <Icon.Clock className="w-4 h-4 text-gray-500" />
                           Horaires hebdomadaires
                         </h3>
 
@@ -670,9 +691,9 @@ export default function AdminActivitiesPage() {
                               </div>
                               <button
                                 onClick={() => deleteSchedule(schedule.id)}
-                                className="text-red-600 hover:text-red-800"
+                                className="text-red-400 hover:text-red-700 p-1 rounded hover:bg-red-50 transition"
                               >
-                                🗑️
+                                <Icon.Trash className="w-4 h-4" />
                               </button>
                             </div>
                           ))}
@@ -712,13 +733,9 @@ export default function AdminActivitiesPage() {
                                 const select = document.getElementById('day_select') as HTMLSelectElement
                                 const timeInput = document.getElementById('start_time') as HTMLInputElement
                                 if (select.value && timeInput.value) {
-                                  addSchedule(
-                                    selectedActivity.id,
-                                    parseInt(select.value),
-                                    timeInput.value
-                                  )
+                                  addSchedule(selectedActivity.id, parseInt(select.value), timeInput.value)
                                 } else {
-                                  alert('Veuillez sélectionner un jour et une heure')
+                                  toast('Veuillez sélectionner un jour et une heure', 'warning')
                                 }
                               }}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
@@ -732,7 +749,7 @@ export default function AdminActivitiesPage() {
                       {/* ===== GESTION DES IMAGES ===== */}
                       <div className="mt-6 pt-6 border-t border-gray-200">
                         <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                          <span className="text-2xl">🖼️</span>
+                          <Icon.Globe className="w-5 h-5 text-gray-500" />
                           Photos de l'activité
                         </h3>
 
@@ -764,7 +781,7 @@ export default function AdminActivitiesPage() {
                   </>
                 ) : (
                   <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <div className="text-7xl mb-4">🎭</div>
+                    <Icon.Activity className="w-16 h-16 text-gray-200 mx-auto mb-4" />
                     <h3 className="text-xl font-medium text-gray-800 mb-2">
                       Aucune activité sélectionnée
                     </h3>
@@ -779,7 +796,7 @@ export default function AdminActivitiesPage() {
         ) : (
           isSuperAdmin && (
             <div className="bg-white rounded-xl shadow-sm p-12 text-center border-2 border-dashed border-amber-200">
-              <div className="text-7xl mb-4">🏨</div>
+              <Icon.Hotel className="w-16 h-16 text-amber-300 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-amber-800 mb-2">
                 Aucun hôtel sélectionné
               </h3>

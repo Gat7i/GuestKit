@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
+import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -28,6 +29,7 @@ function NewStayForm() {
   const [rooms, setRooms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { toast, toasts } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerIds = searchParams.get('customers')?.split(',') || []
@@ -114,7 +116,7 @@ function NewStayForm() {
     e.preventDefault()
     if (!hotel) return
     if (!formData.primary_customer_id) {
-      alert('Veuillez sélectionner un client principal')
+      toast('Veuillez sélectionner un client principal', 'warning')
       return
     }
 
@@ -169,12 +171,12 @@ function NewStayForm() {
         })
         .eq('customer_uuid', formData.primary_customer_id)
 
-      alert('✅ Séjour créé avec succès !')
+      toast('Séjour créé avec succès')
       router.push(`/admin/reception/stays/${stay.id}`)
       router.refresh()
     } catch (error) {
       console.error('Erreur création séjour:', error)
-      alert('❌ Erreur lors de la création')
+      toast('Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -193,6 +195,7 @@ function NewStayForm() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <ToastContainer toasts={toasts} />
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="mb-8">
