@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
-import ImageUploader from '@/components/admin/ImageUploader'
-import SuggestionImages from '@/components/suggestions/SuggestionImages'
+import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
@@ -656,30 +655,14 @@ export default function AdminSuggestionsPage() {
                     {/* Gestion des images */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
                       <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                        <span className="text-2xl">🖼️</span>
-                        Photos de la suggestion
+                        <Icon.Image className="w-5 h-5 text-gray-500" />
+                        Photos de la découverte
                       </h3>
-
-                      <SuggestionImages
-                        suggestionId={selectedSuggestion.id}
-                        editable={true}
-                        onImageUpdate={() => {
-                          // Rafraîchir les images
-                        }}
+                      <AdminImageGallery
+                        entityType="suggestion"
+                        entityId={selectedSuggestion.id}
+                        hotelId={selectedHotelId!}
                       />
-
-                      <div className="mt-6 pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">
-                          Ajouter une photo
-                        </h4>
-                        <ImageUploader
-                          hotelId={selectedHotelId}
-                          suggestionId={selectedSuggestion.id}
-                          onImageUploaded={() => {
-                            window.dispatchEvent(new CustomEvent('suggestionImageUpdate'))
-                          }}
-                        />
-                      </div>
                     </div>
                   </>
                 ) : (

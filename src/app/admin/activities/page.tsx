@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
-import ActivityImages from '@/components/activities/ActivityImages'
-import ImageUploader from '@/components/admin/ImageUploader'
+import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
@@ -749,33 +748,14 @@ export default function AdminActivitiesPage() {
                       {/* ===== GESTION DES IMAGES ===== */}
                       <div className="mt-6 pt-6 border-t border-gray-200">
                         <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                          <Icon.Globe className="w-5 h-5 text-gray-500" />
+                          <Icon.Image className="w-5 h-5 text-gray-500" />
                           Photos de l'activité
                         </h3>
-
-                        <ActivityImages
-                          activityId={selectedActivity.id}
-                          editable={true}
-                          onImageUpdate={() => {
-                            // Rafraîchir les images
-                          }}
+                        <AdminImageGallery
+                          entityType="activity"
+                          entityId={selectedActivity.id}
+                          hotelId={selectedHotelId!}
                         />
-
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">
-                            Ajouter une photo
-                          </h4>
-                          <ImageUploader
-                            hotelId={selectedHotelId}
-                            activityId={selectedActivity.id}
-                            onImageUploaded={() => {
-                              window.dispatchEvent(new CustomEvent('activityImageUpdate'))
-                            }}
-                          />
-                          <p className="text-xs text-gray-500 mt-2">
-                            ⚠️ La première image ajoutée sera automatiquement définie comme image principale.
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </>

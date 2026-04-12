@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { Icon } from '@/components/ui/Icons'
 
 type Show = {
@@ -525,6 +526,25 @@ export default function AdminShowsPage() {
                                   </button>
                                 </div>
                               ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Photos du spectacle */}
+                      {selectedHotelId && (
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+                          <div className="px-6 py-4 border-b border-gray-100">
+                            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <Icon.Image className="w-4 h-4" />
+                              Photos
+                            </h3>
+                          </div>
+                          <div className="p-6">
+                            <AdminImageGallery
+                              entityType="show"
+                              entityId={selectedShow.id}
+                              hotelId={selectedHotelId}
+                            />
                           </div>
                         </div>
                       )}

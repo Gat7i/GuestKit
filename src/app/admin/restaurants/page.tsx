@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
-import ImageUploader from '@/components/admin/ImageUploader'
-import RestaurantImages from '@/components/restaurants/RestaurantImages'
+import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
@@ -30,7 +29,7 @@ export default function AdminRestaurantsPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [imageRefreshKey, setImageRefreshKey] = useState(0)
+
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
@@ -388,21 +387,12 @@ export default function AdminRestaurantsPage() {
                         Photos
                       </h3>
                     </div>
-                    <div className="p-6 space-y-6">
-                      <RestaurantImages
-                        key={imageRefreshKey}
-                        foodSpotId={selectedRestaurant.id}
-                        editable={true}
-                        onImageUpdate={() => setImageRefreshKey(k => k + 1)}
+                    <div className="p-6">
+                      <AdminImageGallery
+                        entityType="restaurant"
+                        entityId={selectedRestaurant.id}
+                        hotelId={selectedHotelId!}
                       />
-                      <div className="pt-4 border-t border-gray-100">
-                        <p className="text-xs font-medium text-gray-600 mb-3">Ajouter une photo</p>
-                        <ImageUploader
-                          hotelId={selectedHotelId}
-                          foodSpotId={selectedRestaurant.id}
-                          onImageUploaded={() => setImageRefreshKey(k => k + 1)}
-                        />
-                      </div>
                     </div>
                   </div>
                 </>
