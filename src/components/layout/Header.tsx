@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useHotelData } from '@/hooks/useHotelData'
@@ -124,7 +123,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="h-16 w-40 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition overflow-hidden relative">
                 {hotel?.logo_url ? (
-                  <Image src={hotel.logo_url} alt={hotel?.name ?? ''} fill className="object-contain" priority />
+                  <img src={hotel.logo_url} alt={hotel?.name ?? ''} className="h-full w-full object-contain" />
                 ) : (
                   <span className="text-5xl">🏨</span>
                 )}
