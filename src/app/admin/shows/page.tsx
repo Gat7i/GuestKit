@@ -7,6 +7,13 @@ import HotelSelector from '@/components/admin/HotelSelector'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { Icon } from '@/components/ui/Icons'
+import {
+  createEntertainment,
+  updateEntertainment,
+  deleteEntertainment,
+  createNightSchedule,
+  deleteNightSchedule,
+} from '@/app/admin/entertainments-actions'
 
 type Show = {
   id: number
@@ -105,25 +112,20 @@ export default function AdminShowsPage() {
     if (!selectedHotelId) return
     setSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('entertainments')
-        .insert({
-          hotel_id: selectedHotelId,
-          title: showForm.title.trim(),
-          description: showForm.description,
-          location_id: showForm.location_id ? parseInt(showForm.location_id) : null,
-          is_daily_activity: false,
-          is_night_show: true,
-        })
-        .select()
-        .single()
-      if (error) throw error
+      const data = await createEntertainment({
+        hotel_id: selectedHotelId,
+        title: showForm.title.trim(),
+        description: showForm.description,
+        location_id: showForm.location_id ? parseInt(showForm.location_id) : null,
+        is_daily_activity: false,
+        is_night_show: true,
+      })
       toast('Spectacle créé')
       setEditing(false)
       await loadData(selectedHotelId)
       setSelectedShow(data)
-    } catch {
-      toast('Erreur lors de la création', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -134,21 +136,16 @@ export default function AdminShowsPage() {
     if (!showForm.title.trim()) { toast('Titre obligatoire', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('entertainments')
-        .update({
-          title: showForm.title.trim(),
-          description: showForm.description,
-          location_id: showForm.location_id ? parseInt(showForm.location_id) : null,
-        })
-        .eq('id', selectedShow.id)
-        .eq('hotel_id', selectedHotelId)
-      if (error) throw error
+      await updateEntertainment(selectedShow.id, selectedHotelId, {
+        title: showForm.title.trim(),
+        description: showForm.description,
+        location_id: showForm.location_id ? parseInt(showForm.location_id) : null,
+      })
       toast('Spectacle mis à jour')
       setEditing(false)
       await loadData(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la mise à jour', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
@@ -163,13 +160,12 @@ export default function AdminShowsPage() {
     if (!selectedHotelId) return
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase.from('entertainments').delete().eq('id', id).eq('hotel_id', selectedHotelId)
-      if (error) throw error
+      await deleteEntertainment(id, selectedHotelId)
       toast('Spectacle supprimé')
       if (selectedShow?.id === id) setSelectedShow(null)
       await loadData(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la suppression', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la suppression', 'error')
     }
   }
 
@@ -184,19 +180,18 @@ export default function AdminShowsPage() {
     if (!selectedHotelId) return
     setAddingDate(true)
     try {
-      const { error } = await supabase.from('night_schedules').insert({
+      await createNightSchedule({
         entertainment_id: parseInt(addDateForm.show_id),
         show_date: addDateForm.show_date,
         start_time: addDateForm.start_time,
         duration_minutes: parseInt(addDateForm.duration_minutes) || 90,
         target_audience: addDateForm.target_audience || null,
       })
-      if (error) throw error
       toast('Date ajoutée au calendrier')
       setAddDateForm(f => ({ ...f, show_date: '', target_audience: '' }))
       await loadData(selectedHotelId)
-    } catch {
-      toast("Erreur lors de l'ajout", 'error')
+    } catch (error: any) {
+      toast(error.message || "Erreur lors de l'ajout", 'error')
     } finally {
       setAddingDate(false)
     }
@@ -211,13 +206,11 @@ export default function AdminShowsPage() {
     if (!selectedHotelId) return
     setConfirmDeleteScheduleId(null)
     try {
-      const showIds = shows.map(s => s.id)
-      const { error } = await supabase.from('night_schedules').delete().eq('id', scheduleId).in('entertainment_id', showIds)
-      if (error) throw error
+      await deleteNightSchedule(scheduleId)
       toast('Date supprimée')
       await loadData(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la suppression', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la suppression', 'error')
     }
   }
 

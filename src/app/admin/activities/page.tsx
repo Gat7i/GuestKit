@@ -8,6 +8,13 @@ import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
+import {
+  createEntertainment,
+  updateEntertainment,
+  deleteEntertainment,
+  createDailySchedule,
+  deleteDailySchedule,
+} from '@/app/admin/entertainments-actions'
 
 export default function AdminActivitiesPage() {
   const [hotel, setHotel] = useState<any>(null)
@@ -164,36 +171,25 @@ export default function AdminActivitiesPage() {
   // CRUD ACTIVITÉS
   // ============================================
   async function createActivity() {
-    if (!formData.title.trim()) {
-      toast('Veuillez saisir un titre', 'warning')
-      return
-    }
+    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
     if (!selectedHotelId) return
     setSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('entertainments')
-        .insert({
-          hotel_id: selectedHotelId,
-          title: formData.title,
-          description: formData.description,
-          category_id: formData.category_id ? parseInt(formData.category_id) : null,
-          location_id: formData.location_id ? parseInt(formData.location_id) : null,
-          is_daily_activity: true,
-          is_night_show: false
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
+      const data = await createEntertainment({
+        hotel_id: selectedHotelId,
+        title: formData.title,
+        description: formData.description,
+        category_id: formData.category_id ? parseInt(formData.category_id) : null,
+        location_id: formData.location_id ? parseInt(formData.location_id) : null,
+        is_daily_activity: true,
+        is_night_show: false,
+      })
       toast('Activité créée avec succès')
       setEditing(false)
       await loadData(selectedHotelId)
       setSelectedActivity(data)
-    } catch (error) {
-      console.error('Erreur création:', error)
-      toast('Erreur lors de la création', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -201,31 +197,20 @@ export default function AdminActivitiesPage() {
 
   async function updateActivity() {
     if (!selectedActivity || !selectedHotelId) return
-    if (!formData.title.trim()) {
-      toast('Veuillez saisir un titre', 'warning')
-      return
-    }
+    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('entertainments')
-        .update({
-          title: formData.title,
-          description: formData.description,
-          category_id: formData.category_id ? parseInt(formData.category_id) : null,
-          location_id: formData.location_id ? parseInt(formData.location_id) : null
-        })
-        .eq('id', selectedActivity.id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await updateEntertainment(selectedActivity.id, selectedHotelId, {
+        title: formData.title,
+        description: formData.description,
+        category_id: formData.category_id ? parseInt(formData.category_id) : null,
+        location_id: formData.location_id ? parseInt(formData.location_id) : null,
+      })
       toast('Activité mise à jour')
       setEditing(false)
       await loadData(selectedHotelId)
-    } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      toast('Erreur lors de la mise à jour', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
@@ -241,23 +226,12 @@ export default function AdminActivitiesPage() {
     setDeletingId(id)
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase
-        .from('entertainments')
-        .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await deleteEntertainment(id, selectedHotelId)
       toast('Activité supprimée')
       await loadData(selectedHotelId)
-      if (selectedActivity?.id === id) {
-        setSelectedActivity(null)
-        resetForm()
-      }
-    } catch (error) {
-      console.error('Erreur suppression:', error)
-      toast('Erreur lors de la suppression', 'error')
+      if (selectedActivity?.id === id) { setSelectedActivity(null); resetForm() }
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la suppression', 'error')
     } finally {
       setDeletingId(null)
     }
@@ -269,60 +243,22 @@ export default function AdminActivitiesPage() {
   async function addSchedule(activityId: number, dayOfWeek: number, startTime: string) {
     if (!selectedHotelId) return
     try {
-      const { data: activity } = await supabase
-        .from('entertainments')
-        .select('hotel_id')
-        .eq('id', activityId)
-        .single()
-
-      if (activity?.hotel_id !== selectedHotelId) {
-        toast('Action non autorisée', 'error')
-        return
-      }
-
-      const { error } = await supabase
-        .from('daily_schedules')
-        .insert({
-          entertainment_id: activityId,
-          day_of_week: dayOfWeek,
-          start_time: startTime,
-          duration_minutes: 60
-        })
-
-      if (error) throw error
-
+      await createDailySchedule({ entertainment_id: activityId, day_of_week: dayOfWeek, start_time: startTime, duration_minutes: 60 })
       toast('Horaire ajouté')
       await loadData(selectedHotelId)
-    } catch (error) {
-      console.error('Erreur ajout horaire:', error)
-      toast("Erreur lors de l'ajout", 'error')
+    } catch (error: any) {
+      toast(error.message || "Erreur lors de l'ajout", 'error')
     }
   }
 
   async function deleteSchedule(scheduleId: number) {
     if (!selectedHotelId) return
     try {
-      const { data: hotelActivities } = await supabase
-        .from('entertainments')
-        .select('id')
-        .eq('hotel_id', selectedHotelId)
-
-      if (!hotelActivities?.length) return
-
-      const activityIds = hotelActivities.map(a => a.id)
-      const { error } = await supabase
-        .from('daily_schedules')
-        .delete()
-        .eq('id', scheduleId)
-        .in('entertainment_id', activityIds)
-
-      if (error) throw error
-
+      await deleteDailySchedule(scheduleId)
       toast('Horaire supprimé')
       await loadData(selectedHotelId)
-    } catch (error) {
-      console.error('Erreur suppression horaire:', error)
-      toast('Erreur lors de la suppression', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la suppression', 'error')
     }
   }
 

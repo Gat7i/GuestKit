@@ -8,6 +8,7 @@ import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
+import { createFoodSpot, updateFoodSpot, deleteFoodSpot } from '@/app/admin/entertainments-actions'
 
 type Restaurant = {
   id: number
@@ -108,24 +109,18 @@ export default function AdminRestaurantsPage() {
     if (!formData.name.trim()) { toast('Le nom est obligatoire', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('food_spots')
-        .update({
-          name: formData.name.trim(),
-          description: formData.description,
-          opening_hours: formData.opening_hours,
-          location: formData.location,
-          menu_pdf_url: formData.menu_pdf_url,
-        })
-        .eq('id', selectedRestaurant.id)
-        .eq('hotel_id', selectedHotelId)
-      if (error) throw error
-      toast('Restaurant mis à jour')
+      await updateFoodSpot(selectedRestaurant.id, selectedHotelId, {
+        name: formData.name.trim(),
+        description: formData.description,
+        opening_hours: formData.opening_hours,
+        location: formData.location,
+        menu_pdf_url: formData.menu_pdf_url,
+      })
+      toast('Mise à jour effectuée')
       setEditing(false)
       await loadRestaurants(selectedHotelId)
-    } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      toast('Erreur lors de la mise à jour', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
@@ -140,17 +135,12 @@ export default function AdminRestaurantsPage() {
     if (!selectedHotelId) return
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase
-        .from('food_spots')
-        .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-      if (error) throw error
-      toast('Restaurant supprimé')
+      await deleteFoodSpot(id, selectedHotelId)
+      toast('Supprimé')
       if (selectedRestaurant?.id === id) { setSelectedRestaurant(null); resetForm() }
       await loadRestaurants(selectedHotelId)
-    } catch (error) {
-      toast('Erreur lors de la suppression', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la suppression', 'error')
     }
   }
 
