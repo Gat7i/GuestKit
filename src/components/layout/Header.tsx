@@ -124,7 +124,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="h-16 w-40 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition overflow-hidden relative">
                 {hotel?.logo_url ? (
-                  <Image src={hotel.logo_url} alt={hotel?.name ?? ''} fill className="object-contain" />
+                  <Image src={hotel.logo_url} alt={hotel?.name ?? ''} fill className="object-contain" priority />
                 ) : (
                   <span className="text-5xl">🏨</span>
                 )}

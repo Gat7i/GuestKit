@@ -68,10 +68,12 @@ export default function ImageCarousel({ images, autoPlayInterval = 5000 }: Image
               index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           >
-            <img
+            <Image
               src={image.url}
               alt={image.title || image.alt_text || `Image ${index + 1}`}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              priority={index === 0}
             />
             {/* Overlay gradient pour lisibilité */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
