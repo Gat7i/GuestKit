@@ -180,6 +180,7 @@ export default function AdminHotelPage() {
 
       setFormData(prev => ({ ...prev, logo_url: logoUrl }))
       setLogoPreview(logoUrl)
+      await loadHotelData(selectedHotelId)
       toast('Logo mis à jour avec succès')
     } catch (error) {
       console.error('[Logo] Erreur inattendue:', error)
@@ -751,9 +752,11 @@ export default function AdminHotelPage() {
                             <button
                               onClick={async () => {
                                 if (!selectedHotelId) return
-                                await supabase.from('hotels').update({ logo_url: null }).eq('id', selectedHotelId)
+                                const { error } = await supabase.from('hotels').update({ logo_url: null }).eq('id', selectedHotelId)
+                                if (error) { toast(`Erreur : ${error.message}`, 'error'); return }
                                 setFormData(prev => ({ ...prev, logo_url: '' }))
                                 setLogoPreview(null)
+                                await loadHotelData(selectedHotelId)
                                 toast('Logo supprimé')
                               }}
                               className="text-red-600 hover:text-red-800 text-xs block"
