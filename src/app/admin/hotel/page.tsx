@@ -6,6 +6,7 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { updateHotelLogo } from './actions'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -139,9 +140,11 @@ export default function AdminHotelPage() {
   // UPLOAD LOGO CLOUDINARY + SAUVEGARDE DB
   // ============================================
   async function uploadImage(file: File) {
-    if (!selectedHotelId) return
+    if (!selectedHotelId) { toast('Hôtel non sélectionné', 'error'); return }
+
     setUploadingLogo(true)
     try {
+      // 1. Upload vers Cloudinary (même logique que le carrousel)
       const fd = new FormData()
       fd.append('file', file)
       fd.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
@@ -150,41 +153,22 @@ export default function AdminHotelPage() {
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         { method: 'POST', body: fd }
       )
+      const cloudinaryData = await res.json()
 
-      const data = await res.json()
-
-      if (data.error) {
-        console.error('[Logo] Erreur Cloudinary:', data.error)
-        toast(`Erreur Cloudinary : ${data.error.message}`, 'error')
+      if (cloudinaryData.error) {
+        toast(`Erreur Cloudinary : ${cloudinaryData.error.message}`, 'error')
         return
       }
 
-      const logoUrl = data.secure_url
-      if (!logoUrl) {
-        console.error('[Logo] Pas de secure_url dans la réponse Cloudinary:', data)
-        toast('Réponse Cloudinary invalide', 'error')
-        return
-      }
+      // 2. Sauvegarde via server action (contourne RLS côté serveur)
+      await updateHotelLogo(selectedHotelId, cloudinaryData.secure_url)
 
-      // Sauvegarde immédiate en base
-      const { error: dbError } = await supabase
-        .from('hotels')
-        .update({ logo_url: logoUrl })
-        .eq('id', selectedHotelId)
-
-      if (dbError) {
-        console.error('[Logo] Erreur Supabase update:', dbError)
-        toast(`Erreur base de données : ${dbError.message}`, 'error')
-        return
-      }
-
-      setFormData(prev => ({ ...prev, logo_url: logoUrl }))
-      setLogoPreview(logoUrl)
+      setLogoPreview(cloudinaryData.secure_url)
+      setFormData(prev => ({ ...prev, logo_url: cloudinaryData.secure_url }))
       await loadHotelData(selectedHotelId)
       toast('Logo mis à jour avec succès')
-    } catch (error) {
-      console.error('[Logo] Erreur inattendue:', error)
-      toast('Erreur lors de l\'upload du logo', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de l\'upload du logo', 'error')
     } finally {
       setUploadingLogo(false)
     }
@@ -746,12 +730,15 @@ export default function AdminHotelPage() {
                             <button
                               onClick={async () => {
                                 if (!selectedHotelId) return
-                                const { error } = await supabase.from('hotels').update({ logo_url: null }).eq('id', selectedHotelId)
-                                if (error) { toast(`Erreur : ${error.message}`, 'error'); return }
-                                setFormData(prev => ({ ...prev, logo_url: '' }))
-                                setLogoPreview(null)
-                                await loadHotelData(selectedHotelId)
-                                toast('Logo supprimé')
+                                try {
+                                  await updateHotelLogo(selectedHotelId, null)
+                                  setFormData(prev => ({ ...prev, logo_url: '' }))
+                                  setLogoPreview(null)
+                                  await loadHotelData(selectedHotelId)
+                                  toast('Logo supprimé')
+                                } catch (error: any) {
+                                  toast(error.message || 'Erreur suppression', 'error')
+                                }
                               }}
                               className="text-red-600 hover:text-red-800 text-xs block"
                             >
