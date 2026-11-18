@@ -526,11 +526,12 @@ export default function AdminHotelPage() {
                 />
                 <div className="px-6 py-4 flex items-center gap-4">
                   {hotel.logo_url ? (
-                    <div className="w-20 h-20 bg-white rounded-xl shadow-md overflow-hidden flex items-center justify-center -mt-8 border-4 border-white">
-                      <img 
-                        src={hotel.logo_url} 
+                    <div className="w-20 h-20 bg-white rounded-xl shadow-md overflow-hidden flex items-center justify-center -mt-8 border-4 border-white relative">
+                      <Image
+                        src={hotel.logo_url}
                         alt={hotel.name}
-                        className="w-full h-full object-contain"
+                        fill
+                        className="object-contain"
                       />
                     </div>
                   ) : (
@@ -703,17 +704,18 @@ export default function AdminHotelPage() {
                       </label>
                       <div className="flex items-center gap-6">
                         {/* Aperçu */}
-                        <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                           {uploadingLogo ? (
                             <svg className="w-8 h-8 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                             </svg>
                           ) : (logoPreview || hotel?.logo_url) ? (
-                            <img
-                              src={logoPreview || hotel?.logo_url}
+                            <Image
+                              src={logoPreview || hotel?.logo_url!}
                               alt="Logo"
-                              className="w-full h-full object-contain"
+                              fill
+                              className="object-contain"
                             />
                           ) : (
                             <span className="text-4xl text-gray-400">🏨</span>
