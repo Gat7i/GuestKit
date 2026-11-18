@@ -2,13 +2,13 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'GuestsKit',
-    short_name: 'GuestsKit',
-    description: 'Votre compagnon de séjour à l\'hôtel',
+    name: 'Les Orangers Resort',
+    short_name: 'Les Orangers',
+    description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#0ea5e9',
+    theme_color: '#746865',
     icons: [
       {
         src: '/icon-192.png',

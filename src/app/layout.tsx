@@ -8,8 +8,8 @@ import Footer from '@/components/layout/Footer'  // ← CLIENT
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'One Resort Premium',
-  description: 'Votre application de séjour',
+  title: 'The Orangers Beach Resort & Bungalows',
+  description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows — Hammamet, Tunisie',
 }
 
 export default function RootLayout({
