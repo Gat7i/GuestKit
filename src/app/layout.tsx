@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'The Orangers Beach Resort & Bungalows',
   description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows — Hammamet, Tunisie',
+  icons: { icon: '/favicon.ico' },
 }
 
 export default function RootLayout({
