@@ -31,6 +31,7 @@ export default function AdminRestaurantsPage() {
   const [saving, setSaving] = useState(false)
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [activeType, setActiveType] = useState<string>('restaurant')
   const { toast, toasts } = useToast()
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +40,12 @@ export default function AdminRestaurantsPage() {
     location: '',
     menu_pdf_url: '',
   })
+
+  const SPOT_TYPES = [
+    { value: 'restaurant', label: 'Restaurants', icon: '🍽️' },
+    { value: 'bar',        label: 'Bars',        icon: '🍷' },
+    { value: 'café',       label: 'Cafés',        icon: '☕' },
+  ]
 
   const supabase = createClient()
 
@@ -74,12 +81,9 @@ export default function AdminRestaurantsPage() {
         .from('food_spots')
         .select('*')
         .eq('hotel_id', hotelId)
-        .eq('spot_type', 'restaurant')
+        .order('spot_type')
         .order('name')
       setRestaurants(data || [])
-      if (data?.length && !selectedRestaurant) {
-        selectRestaurant(data[0])
-      }
     } catch (error) {
       console.error('Erreur chargement:', error)
     } finally {
@@ -188,21 +192,49 @@ export default function AdminRestaurantsPage() {
         )}
 
         {selectedHotelId ? (
+          <div className="space-y-4">
+
+            {/* Tabs par type */}
+            <div className="flex gap-2 flex-wrap">
+              {SPOT_TYPES.map((t) => {
+                const count = restaurants.filter(r => r.spot_type === t.value).length
+                return (
+                  <button
+                    key={t.value}
+                    onClick={() => { setActiveType(t.value); setSelectedRestaurant(null) }}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+                      activeType === t.value
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:border-amber-300'
+                    }`}
+                  >
+                    <span>{t.icon}</span>
+                    {t.label}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeType === t.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
           <div className="grid grid-cols-12 gap-6">
 
-            {/* Liste */}
+            {/* Liste filtrée par type actif */}
             <div className="col-span-3 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-gray-100">
                 <h2 className="text-sm font-semibold text-gray-700">
-                  Restaurants
-                  <span className="ml-2 text-xs text-gray-400 font-normal">{restaurants.length}</span>
+                  {SPOT_TYPES.find(t => t.value === activeType)?.label ?? activeType}
+                  <span className="ml-2 text-xs text-gray-400 font-normal">
+                    {restaurants.filter(r => r.spot_type === activeType).length}
+                  </span>
                 </h2>
               </div>
               <div className="divide-y divide-gray-50 max-h-[70vh] overflow-y-auto">
-                {restaurants.length === 0 ? (
-                  <p className="text-center text-gray-400 py-10 text-sm">Aucun restaurant</p>
+                {restaurants.filter(r => r.spot_type === activeType).length === 0 ? (
+                  <p className="text-center text-gray-400 py-10 text-sm">Aucun élément</p>
                 ) : (
-                  restaurants.map((r) => (
+                  restaurants.filter(r => r.spot_type === activeType).map((r) => (
                     <button
                       key={r.id}
                       onClick={() => selectRestaurant(r)}
@@ -399,10 +431,11 @@ export default function AdminRestaurantsPage() {
               ) : (
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
                   <Icon.Utensils className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">Sélectionnez un restaurant dans la liste</p>
+                  <p className="text-gray-500 text-sm">Sélectionnez un élément dans la liste</p>
                 </div>
               )}
             </div>
+          </div>
           </div>
         ) : (
           isSuperAdmin && (

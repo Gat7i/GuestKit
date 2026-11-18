@@ -18,28 +18,12 @@ export default async function RestaurantDetailPage({
     .from('food_spots')
     .select(`
       *,
-      location:locations(
-        id,
-        name,
-        description
-      ),
-      hours:opening_hours(
-        day_of_week,
-        open_time,
-        close_time,
-        is_closed
-      ),
       images:food_spot_images(
         is_principal,
-        image:image_id(
-          id,
-          url,
-          alt_text
-        )
+        image:image_id(id, url, alt_text)
       )
     `)
     .eq('id', id)
-    .eq('spot_type', 'restaurant')
     .single()
 
   // 2. Si le restaurant n'existe pas → page 404
@@ -47,22 +31,11 @@ export default async function RestaurantDetailPage({
     notFound()
   }
 
-  // 3. Organiser les horaires par jour
-  const daysOrder = [1, 2, 3, 4, 5, 6, 0] // Lundi → Dimanche
-  const sortedHours = restaurant.hours?.sort((a: any, b: any) => 
-    daysOrder.indexOf(a.day_of_week) - daysOrder.indexOf(b.day_of_week)
-  )
-
-  // 4. Jours en français
-  const daysFrench = [
-    'Dimanche',
-    'Lundi',
-    'Mardi',
-    'Mercredi',
-    'Jeudi',
-    'Vendredi',
-    'Samedi'
-  ]
+  const typeLabels: Record<string, string> = {
+    restaurant: 'Restaurant',
+    bar: 'Bar',
+    café: 'Café',
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,7 +49,7 @@ export default async function RestaurantDetailPage({
             </Link>
             <span className="text-gray-400">›</span>
             <Link href="/restaurants" className="text-gray-500 hover:text-gray-700">
-              Restaurants
+              Restauration & Bars
             </Link>
             <span className="text-gray-400">›</span>
             <span className="text-gray-900 font-medium">
@@ -111,12 +84,12 @@ export default async function RestaurantDetailPage({
             <div className="flex items-center gap-3 text-white/80 text-sm mb-2">
               <span className="bg-white/20 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1">
                 <Icon.Utensils className="w-3 h-3" />
-                {restaurant.spot_type === 'restaurant' ? 'Restaurant' : 'Bar'}
+                {typeLabels[restaurant.spot_type] ?? restaurant.spot_type}
               </span>
               {restaurant.location && (
                 <span className="bg-white/20 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1">
                   <Icon.Pin className="w-3 h-3" />
-                  {restaurant.location.name}
+                  {restaurant.location}
                 </span>
               )}
             </div>
@@ -156,12 +129,6 @@ export default async function RestaurantDetailPage({
                 <p className="text-lg leading-relaxed">
                   {restaurant.description || 'Aucune description disponible pour le moment.'}
                 </p>
-                {restaurant.location?.description && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold text-gray-800 mb-2">Emplacement</h3>
-                    <p className="text-gray-600">{restaurant.location.description}</p>
-                  </div>
-                )}
               </div>
             </section>
 
@@ -211,7 +178,7 @@ export default async function RestaurantDetailPage({
                   <div>
                     <p className="text-sm text-gray-500">Type</p>
                     <p className="font-medium text-gray-800">
-                      {restaurant.spot_type === 'restaurant' ? 'Restaurant gastronomique' : 'Bar & Lounge'}
+                      {typeLabels[restaurant.spot_type] ?? restaurant.spot_type}
                     </p>
                   </div>
                 </div>
@@ -224,7 +191,7 @@ export default async function RestaurantDetailPage({
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Emplacement</p>
-                      <p className="font-medium text-gray-800">{restaurant.location.name}</p>
+                      <p className="font-medium text-gray-800">{restaurant.location}</p>
                     </div>
                   </div>
                 )}
@@ -252,29 +219,14 @@ export default async function RestaurantDetailPage({
                 </div>
               </div>
 
-              {/* Horaires détaillés */}
-              {sortedHours && sortedHours.length > 0 && (
+              {/* Horaires */}
+              {restaurant.opening_hours && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                     <Icon.Clock className="w-4 h-4 text-gray-400" />
                     Horaires d'ouverture
                   </h3>
-                  <div className="space-y-2">
-                    {sortedHours.map((hour: any) => (
-                      <div key={hour.day_of_week} className="flex justify-between text-sm">
-                        <span className="text-gray-600">
-                          {daysFrench[hour.day_of_week]}
-                        </span>
-                        {hour.is_closed ? (
-                          <span className="text-red-600 font-medium">Fermé</span>
-                        ) : (
-                          <span className="font-medium text-gray-900">
-                            {hour.open_time.slice(0,5)} - {hour.close_time.slice(0,5)}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm text-gray-700">{restaurant.opening_hours}</p>
                 </div>
               )}
 
