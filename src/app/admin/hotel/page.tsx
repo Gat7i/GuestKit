@@ -22,6 +22,7 @@ export default function AdminHotelPage() {
   const [creating, setCreating] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -135,31 +136,48 @@ export default function AdminHotelPage() {
   }
 
   // ============================================
-  // UPLOAD IMAGE CLOUDINARY
+  // UPLOAD LOGO CLOUDINARY + SAUVEGARDE DB
   // ============================================
   async function uploadImage(file: File) {
+    if (!selectedHotelId) return
+    setUploadingLogo(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
-      
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
+
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData
-        }
+        { method: 'POST', body: fd }
       )
-      
+
       const data = await res.json()
-      
-      setFormData(prev => ({ ...prev, logo_url: data.secure_url }))
-      setLogoPreview(data.secure_url)
-      
-      return data.secure_url
+
+      if (data.error) {
+        toast(`Erreur Cloudinary : ${data.error.message}`, 'error')
+        return
+      }
+
+      const logoUrl = data.secure_url
+
+      // Sauvegarde immédiate en base
+      const { error: dbError } = await supabase
+        .from('hotels')
+        .update({ logo_url: logoUrl })
+        .eq('id', selectedHotelId)
+
+      if (dbError) {
+        toast('Logo uploadé mais non sauvegardé en base', 'error')
+        return
+      }
+
+      setFormData(prev => ({ ...prev, logo_url: logoUrl }))
+      setLogoPreview(logoUrl)
+      toast('Logo mis à jour avec succès')
     } catch (error) {
-      console.error('Erreur upload:', error)
-      throw error
+      toast('Erreur lors de l\'upload du logo', 'error')
+    } finally {
+      setUploadingLogo(false)
     }
   }
 
@@ -675,76 +693,66 @@ export default function AdminHotelPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Logo de l'hôtel
                       </label>
-                      {(editing || creating) ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-6">
-                            <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-                              {logoPreview ? (
-                                <img 
-                                  src={logoPreview} 
-                                  alt="Logo preview"
-                                  className="w-full h-full object-contain"
-                                />
-                              ) : (
-                                <span className="text-4xl text-gray-400">🏨</span>
-                              )}
-                            </div>
-                            <div>
-                              <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition inline-block">
-                                Choisir un fichier
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0]
-                                    if (file) {
-                                      try {
-                                        await uploadImage(file)
-                                      } catch (error) {
-                                        toast('Erreur lors de l\'upload', 'error')
-                                      }
-                                    }
-                                  }}
-                                  className="hidden"
-                                />
-                              </label>
-                              <p className="text-xs text-gray-500 mt-2">
-                                PNG, JPG ou SVG • 500x500px recommandé
-                              </p>
-                            </div>
-                          </div>
-                          {formData.logo_url && (
-                            <button
-                              onClick={() => {
-                                setFormData({ ...formData, logo_url: '' })
-                                setLogoPreview(null)
+                      <div className="flex items-center gap-6">
+                        {/* Aperçu */}
+                        <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {uploadingLogo ? (
+                            <svg className="w-8 h-8 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                          ) : (logoPreview || hotel?.logo_url) ? (
+                            <img
+                              src={logoPreview || hotel?.logo_url}
+                              alt="Logo"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-4xl text-gray-400">🏨</span>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-2">
+                          <label className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition inline-flex items-center gap-2 ${uploadingLogo ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+                            {uploadingLogo ? (
+                              <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                Upload en cours…
+                              </>
+                            ) : 'Changer le logo'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingLogo}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0]
+                                if (file) await uploadImage(file)
+                                e.target.value = ''
                               }}
-                              className="text-red-600 hover:text-red-800 text-sm"
+                              className="hidden"
+                            />
+                          </label>
+                          <p className="text-xs text-gray-500">PNG, JPG ou SVG • 500x500px recommandé</p>
+                          {(formData.logo_url || hotel?.logo_url) && !uploadingLogo && (
+                            <button
+                              onClick={async () => {
+                                if (!selectedHotelId) return
+                                await supabase.from('hotels').update({ logo_url: null }).eq('id', selectedHotelId)
+                                setFormData(prev => ({ ...prev, logo_url: '' }))
+                                setLogoPreview(null)
+                                toast('Logo supprimé')
+                              }}
+                              className="text-red-600 hover:text-red-800 text-xs block"
                             >
                               Supprimer le logo
                             </button>
                           )}
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-4">
-                          {hotel?.logo_url ? (
-                            <div className="w-20 h-20 bg-white rounded-lg shadow-sm border p-2">
-                              <img 
-                                src={hotel.logo_url} 
-                                alt={hotel.name}
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <span className="text-3xl text-gray-400">🏨</span>
-                            </div>
-                          )}
-                          <span className="text-gray-600">
-                            {hotel?.logo_url ? 'Logo personnalisé' : 'Aucun logo'}
-                          </span>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     {/* Couleur primaire */}
