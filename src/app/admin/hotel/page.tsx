@@ -154,11 +154,17 @@ export default function AdminHotelPage() {
       const data = await res.json()
 
       if (data.error) {
+        console.error('[Logo] Erreur Cloudinary:', data.error)
         toast(`Erreur Cloudinary : ${data.error.message}`, 'error')
         return
       }
 
       const logoUrl = data.secure_url
+      if (!logoUrl) {
+        console.error('[Logo] Pas de secure_url dans la réponse Cloudinary:', data)
+        toast('Réponse Cloudinary invalide', 'error')
+        return
+      }
 
       // Sauvegarde immédiate en base
       const { error: dbError } = await supabase
@@ -167,7 +173,8 @@ export default function AdminHotelPage() {
         .eq('id', selectedHotelId)
 
       if (dbError) {
-        toast('Logo uploadé mais non sauvegardé en base', 'error')
+        console.error('[Logo] Erreur Supabase update:', dbError)
+        toast(`Erreur base de données : ${dbError.message}`, 'error')
         return
       }
 
@@ -175,6 +182,7 @@ export default function AdminHotelPage() {
       setLogoPreview(logoUrl)
       toast('Logo mis à jour avec succès')
     } catch (error) {
+      console.error('[Logo] Erreur inattendue:', error)
       toast('Erreur lors de l\'upload du logo', 'error')
     } finally {
       setUploadingLogo(false)

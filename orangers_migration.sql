@@ -17,6 +17,27 @@
 --   Si une requête échoue → ROLLBACK automatique, rien n'est appliqué.
 -- ============================================================
 
+-- ============================================================
+-- 0. COLONNES MANQUANTES — à exécuter EN PREMIER, hors transaction
+-- ============================================================
+
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS logo_url       text;
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS slug           text;
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS description    text;
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS address        text;
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS website        text;
+ALTER TABLE hotels     ADD COLUMN IF NOT EXISTS secondary_color text;
+
+ALTER TABLE food_spots ADD COLUMN IF NOT EXISTS opening_hours  text;
+ALTER TABLE food_spots ADD COLUMN IF NOT EXISTS location       text;
+ALTER TABLE food_spots ADD COLUMN IF NOT EXISTS menu_pdf_url   text;
+
+ALTER TABLE suggestions ADD COLUMN IF NOT EXISTS is_hotel_internal boolean DEFAULT false;
+ALTER TABLE suggestions ADD COLUMN IF NOT EXISTS location_type     text    DEFAULT 'internal';
+ALTER TABLE suggestions ADD COLUMN IF NOT EXISTS address            text;
+ALTER TABLE suggestions ADD COLUMN IF NOT EXISTS phone             text;
+
+
 BEGIN;
 
 -- ============================================================
