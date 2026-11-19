@@ -65,19 +65,12 @@ export default async function MapPage() {
       {/* En-tête */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-              <Icon.Map className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Plan de l'hôtel
-              </h1>
-              <p className="text-xl text-emerald-100">
-                Repérez-vous facilement et découvrez tous nos services
-              </p>
-            </div>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">
+            Plan de l'hôtel
+          </h1>
+          <p className="text-xl text-emerald-100">
+            Repérez-vous facilement et découvrez tous nos services
+          </p>
         </div>
       </div>
 
@@ -155,9 +148,7 @@ export default async function MapPage() {
                   {/* En-tête de l'étage */}
                   <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
-                        <Icon.Hotel className="w-5 h-5" />
-                      </div>
+                      <div className="w-1 h-8 rounded-full bg-emerald-500" />
                       <div>
                         <h2 className="text-xl font-bold text-gray-800">
                           {plan.name}

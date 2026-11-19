@@ -129,10 +129,8 @@ export default async function SuggestionsPage() {
         {/* ===== SERVICES INTERNES (HÔTEL) ===== */}
         {internalSuggestions.length > 0 && (
           <div className="mb-16">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <Icon.Hotel className="w-6 h-6" />
-              </div>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-1 h-10 rounded-full bg-gradient-to-b from-blue-500 to-blue-600" />
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
                   Dans notre hôtel
@@ -150,8 +148,8 @@ export default async function SuggestionsPage() {
               
               return (
                 <div key={categoryName} className="mb-10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">{style.icon}</span>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-1 h-6 rounded-full bg-gradient-to-b ${style.color}`} />
                     <h3 className="text-lg font-semibold text-gray-700">
                       {categoryName}
                     </h3>
@@ -252,10 +250,8 @@ export default async function SuggestionsPage() {
         {/* ===== SERVICES EXTERNES (ALENTOURS) ===== */}
         {externalSuggestions.length > 0 && (
           <div>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <Icon.Map className="w-6 h-6" />
-              </div>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-1 h-10 rounded-full bg-gradient-to-b from-amber-500 to-orange-600" />
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
                   Aux alentours
@@ -273,8 +269,8 @@ export default async function SuggestionsPage() {
               
               return (
                 <div key={categoryName} className="mb-10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">{style.icon}</span>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-1 h-6 rounded-full bg-gradient-to-b ${style.color}`} />
                     <h3 className="text-lg font-semibold text-gray-700">
                       {categoryName}
                     </h3>

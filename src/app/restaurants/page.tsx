@@ -100,17 +100,10 @@ export default async function RestaurantsPage() {
       {/* En-tête */}
       <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-              <Icon.Utensils className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">Restauration & Bars</h1>
-              <p className="text-xl text-amber-100">
-                Découvrez nos restaurants, bars et espaces de détente
-              </p>
-            </div>
-          </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">Restauration & Bars</h1>
+          <p className="text-xl text-amber-100">
+            Découvrez nos restaurants, bars et espaces de détente
+          </p>
         </div>
       </div>
 
@@ -129,10 +122,8 @@ export default async function RestaurantsPage() {
             return (
               <section key={type}>
                 {/* Titre de section */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.headerGradient} flex items-center justify-center`}>
-                    {config.icon}
-                  </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-1 h-8 rounded-full bg-gradient-to-b ${config.headerGradient}`} />
                   <h2 className="text-2xl font-bold text-gray-800">{config.label}</h2>
                   <span className="text-sm text-gray-400 font-normal">{spots.length} établissement{spots.length > 1 ? 's' : ''}</span>
                 </div>

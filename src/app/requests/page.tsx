@@ -220,10 +220,8 @@ export default async function RequestsPage() {
 
             return (
               <div key={key} className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${labelColor} flex items-center justify-center text-white shadow-lg`}>
-                    <LabelIcon className="w-6 h-6" />
-                  </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-1 h-10 rounded-full bg-gradient-to-b ${labelColor}`} />
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">
                       {labelTitle}

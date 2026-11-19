@@ -195,13 +195,8 @@ export default async function ActivitiesPage() {
                   {Object.entries(dayActivities).map(([categoryId, { category, activities }]: [string, any]) => (
                     <div key={categoryId} className="mb-6 last:mb-0">
                       {/* En-tête de catégorie */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className={`
-                          w-8 h-8 rounded-full flex items-center justify-center text-sm
-                          ${category.bg} ${category.text}
-                        `}>
-                          <span>{category.icon}</span>
-                        </div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-1 h-6 rounded-full bg-gradient-to-b ${category.color}`} />
                         <h3 className="font-semibold text-gray-700">
                           {category.name}
                         </h3>
