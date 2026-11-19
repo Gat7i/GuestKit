@@ -45,31 +45,14 @@ export async function deleteEntityImage(
   const supabase = createAdminClient()
   const fkColumn = BRIDGE_FK[bridgeTable]
 
-  // 1. Supprimer le lien
-  const { error: linkError } = await supabase
+  // Supprimer uniquement le lien — suffisant pour faire disparaître l'image du front
+  const { error } = await supabase
     .from(bridgeTable)
     .delete()
     .eq(fkColumn, entityId)
     .eq('image_id', imageId)
-  if (linkError) throw new Error(linkError.message)
 
-  // 2. Supprimer l'image si plus aucun lien ne pointe dessus
-  const { count } = await supabase
-    .from('images')
-    .select('id', { count: 'exact', head: true })
-    // Vérifie si l'image est encore utilisée dans d'autres tables
-    // On utilise une approche simple : tenter la suppression et gérer l'erreur FK
-
-  const { error: imgError } = await supabase
-    .from('images')
-    .delete()
-    .eq('id', imageId)
-
-  // Si FK constraint (image encore liée ailleurs), on l'ignore silencieusement
-  // La suppression du lien suffit pour l'affichage
-  if (imgError && !imgError.message.includes('foreign key')) {
-    throw new Error(imgError.message)
-  }
+  if (error) throw new Error(error.message)
 }
 
 export async function setEntityImageAsPrincipal(
