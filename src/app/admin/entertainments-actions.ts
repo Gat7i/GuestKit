@@ -40,12 +40,24 @@ export async function updateEntertainment(id: number, hotelId: number, data: {
 
 export async function deleteEntertainment(id: number, hotelId: number) {
   const supabase = createAdminClient()
+
+  // Supprimer les dépendances en cascade
+  await supabase.from('daily_schedules').delete().eq('entertainment_id', id)
+  await supabase.from('night_schedules').delete().eq('entertainment_id', id)
+  await supabase.from('entertainment_images').delete().eq('entertainment_id', id)
+
   const { error } = await supabase
     .from('entertainments')
     .delete()
     .eq('id', id)
     .eq('hotel_id', hotelId)
-  if (error) throw new Error(error.message)
+
+  if (error) {
+    if (error.message.includes('foreign key') || error.code === '23503') {
+      throw new Error('Impossible de supprimer : des données liées existent encore. Supprimez d\'abord les images et les horaires associés.')
+    }
+    throw new Error(error.message)
+  }
 }
 
 // ---- Horaires activités (daily_schedules) ----
@@ -122,10 +134,20 @@ export async function updateFoodSpot(id: number, hotelId: number, data: {
 
 export async function deleteFoodSpot(id: number, hotelId: number) {
   const supabase = createAdminClient()
+
+  // Supprimer les images liées en cascade
+  await supabase.from('food_spot_images').delete().eq('food_spot_id', id)
+
   const { error } = await supabase
     .from('food_spots')
     .delete()
     .eq('id', id)
     .eq('hotel_id', hotelId)
-  if (error) throw new Error(error.message)
+
+  if (error) {
+    if (error.message.includes('foreign key') || error.code === '23503') {
+      throw new Error('Impossible de supprimer : des données liées existent encore. Supprimez d\'abord les images associées.')
+    }
+    throw new Error(error.message)
+  }
 }
