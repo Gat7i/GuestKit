@@ -151,3 +151,59 @@ export async function deleteFoodSpot(id: number, hotelId: number) {
     throw new Error(error.message)
   }
 }
+
+// ---- Suggestions / Découvertes ----
+
+export async function createSuggestion(data: {
+  hotel_id: number
+  title: string
+  description?: string
+  category_id?: number | null
+  location_type?: string
+  is_hotel_internal?: boolean
+  address?: string | null
+  phone?: string | null
+}) {
+  const supabase = createAdminClient()
+  const { data: row, error } = await supabase.from('suggestions').insert(data).select().single()
+  if (error) throw new Error(error.message)
+  return row
+}
+
+export async function updateSuggestion(id: number, hotelId: number, data: {
+  title?: string
+  description?: string
+  category_id?: number | null
+  location_type?: string
+  is_hotel_internal?: boolean
+  address?: string | null
+  phone?: string | null
+}) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('suggestions')
+    .update(data)
+    .eq('id', id)
+    .eq('hotel_id', hotelId)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSuggestion(id: number, hotelId: number) {
+  const supabase = createAdminClient()
+
+  // Supprimer les images liées en cascade
+  await supabase.from('suggestion_images').delete().eq('suggestion_id', id)
+
+  const { error } = await supabase
+    .from('suggestions')
+    .delete()
+    .eq('id', id)
+    .eq('hotel_id', hotelId)
+
+  if (error) {
+    if (error.message.includes('foreign key') || error.code === '23503') {
+      throw new Error('Impossible de supprimer : des données liées existent encore.')
+    }
+    throw new Error(error.message)
+  }
+}

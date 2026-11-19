@@ -8,6 +8,11 @@ import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
 import Link from 'next/link'
+import {
+  createSuggestion as createSuggestionAction,
+  updateSuggestion as updateSuggestionAction,
+  deleteSuggestion as deleteSuggestionAction,
+} from '@/app/admin/entertainments-actions'
 
 export default function AdminSuggestionsPage() {
   const [hotel, setHotel] = useState<any>(null)
@@ -140,22 +145,16 @@ export default function AdminSuggestionsPage() {
     if (!selectedHotelId) return
     setSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('suggestions')
-        .insert({
-          hotel_id: selectedHotelId,
-          title: formData.title,
-          description: formData.description,
-          category_id: parseInt(formData.category_id),
-          location_type: formData.location_type,
-          is_hotel_internal: formData.location_type === 'internal',
-          address: formData.address || null,
-          phone: formData.phone || null
-        })
-        .select()
-        .single()
-
-      if (error) throw error
+      const data = await createSuggestionAction({
+        hotel_id: selectedHotelId,
+        title: formData.title,
+        description: formData.description,
+        category_id: parseInt(formData.category_id),
+        location_type: formData.location_type,
+        is_hotel_internal: formData.location_type === 'internal',
+        address: formData.address || null,
+        phone: formData.phone || null,
+      })
 
       toast('Suggestion créée avec succès')
       setEditing(false)
@@ -175,21 +174,15 @@ export default function AdminSuggestionsPage() {
     if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('suggestions')
-        .update({
-          title: formData.title,
-          description: formData.description,
-          category_id: parseInt(formData.category_id),
-          location_type: formData.location_type,
-          is_hotel_internal: formData.location_type === 'internal',
-          address: formData.address || null,
-          phone: formData.phone || null
-        })
-        .eq('id', selectedSuggestion.id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
+      await updateSuggestionAction(selectedSuggestion.id, selectedHotelId, {
+        title: formData.title,
+        description: formData.description,
+        category_id: parseInt(formData.category_id),
+        location_type: formData.location_type,
+        is_hotel_internal: formData.location_type === 'internal',
+        address: formData.address || null,
+        phone: formData.phone || null,
+      })
 
       toast('Suggestion mise à jour')
       setEditing(false)
@@ -212,14 +205,7 @@ export default function AdminSuggestionsPage() {
     setDeletingId(id)
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase
-        .from('suggestions')
-        .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await deleteSuggestionAction(id, selectedHotelId)
       toast('Suggestion supprimée')
       await loadData(selectedHotelId)
       if (selectedSuggestion?.id === id) { setSelectedSuggestion(null); resetForm() }
