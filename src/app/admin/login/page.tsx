@@ -36,7 +36,7 @@ const handleLogin = async (e: React.FormEvent) => {
         .single()
 
       if (profileError || !profile) {
-        throw new Error('Profil non trouvé')
+        throw new Error('Identifiants invalides')
       }
 
       // 3. Récupérer le rôle séparément
@@ -47,13 +47,13 @@ const handleLogin = async (e: React.FormEvent) => {
         .single()
 
       if (roleError || !roleData) {
-        throw new Error('Rôle non trouvé')
+        throw new Error('Identifiants invalides')
       }
 
       // 4. Vérifier si c'est un admin
       const adminRoles = ['super_admin', 'hotel_admin', 'staff']
       if (!adminRoles.includes(roleData.name)) {
-        throw new Error('Accès non autorisé')
+        throw new Error('Identifiants invalides')
       }
 
       // 5. Récupérer l'hôtel associé au profil (si existe)

@@ -90,6 +90,7 @@ export default function RequestActions({
         .from('customer_requests')
         .update({ rating, feedback: feedback.trim() || null })
         .eq('id', requestId)
+        .eq('customer_id', customerUuid)
       if (error) throw error
       setRatingSubmitted(true)
       showToast('success', 'Merci pour votre avis !')

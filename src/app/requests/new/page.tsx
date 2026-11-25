@@ -109,6 +109,20 @@ function NewRequestForm() {
 
     setSaving(true)
     try {
+      // Re-vérifier que le séjour est toujours actif au moment de la soumission
+      const { data: stayCheck } = await supabase
+        .from('stays')
+        .select('id')
+        .eq('id', activeStay.id)
+        .eq('primary_customer_id', customer.customer_uuid)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (!stayCheck) {
+        showToast('error', 'Votre séjour n\'est plus actif')
+        return
+      }
+
       const { data, error } = await supabase
         .from('customer_requests')
         .insert({
@@ -116,8 +130,8 @@ function NewRequestForm() {
           stay_id: activeStay.id,
           customer_id: customer.customer_uuid,
           request_type_id: requestType.id,
-          title: formData.title,
-          description: formData.description,
+          title: formData.title.trim().slice(0, 200),
+          description: formData.description.trim().slice(0, 2000) || null,
           priority: 'normal',
           status: 'pending',
           requested_time: new Date().toISOString()

@@ -45,7 +45,7 @@ export async function deleteEntertainment(id: number, hotelId: number) {
   await requireStaff()
   const supabase = createAdminClient()
 
-  // Supprimer les dépendances en cascade
+  // Supprimer les dépendances en cascade (séquentiel — shortcut: pas de transaction, si step 4 échoue les enfants sont déjà supprimés, ajouter ON DELETE CASCADE en DB pour corriger)
   await supabase.from('daily_schedules').delete().eq('entertainment_id', id)
   await supabase.from('night_schedules').delete().eq('entertainment_id', id)
   await supabase.from('entertainment_images').delete().eq('entertainment_id', id)
