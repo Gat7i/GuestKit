@@ -4,6 +4,29 @@ Application SaaS de gestion de l'expérience client hôtelière.
 Stack : Next.js 16.1.6 App Router, Supabase, Cloudinary, TailwindCSS 4, Vercel.
 Langue de travail : **français**.
 
+Repo GitHub : `Gat7i/GuestKit` (branche `main`)
+Projet Vercel : `fethi-amine-mamis-projects/guestkit-app`
+
+---
+
+## Déploiement actuel — Les Orangers (demo)
+
+L'app hôtel Les Orangers est déployée sur `www.guestskit.com/lesorangers` grâce au `basePath: '/lesorangers'` dans `next.config.ts`.
+
+- `www.guestskit.com/` → page "en construction" (rendue par le middleware, inline HTML)
+- `www.guestskit.com/lesorangers` → app hôtel Les Orangers
+
+**Règle middleware importante :** le middleware Next.js reçoit le pathname **sans** le basePath. Pour distinguer les requêtes racine (`/`) des requêtes dans l'app (`/lesorangers/*`), on utilise `new URL(request.url).pathname` (URL brute) et non `request.nextUrl.pathname`.
+
+**Supabase Auth — URLs configurées :**
+- Site URL : `https://www.guestskit.com/lesorangers`
+- Redirect URL : `https://www.guestskit.com/lesorangers/auth/callback`
+
+**OAuth :**
+- Login client (`/lesorangers/login`) : Google uniquement (Facebook supprimé)
+- Login admin (`/lesorangers/admin/login`) : Google + email/mot de passe
+- Callback admin Google : `redirectTo` contient `?from=admin` → `auth/callback` redirige vers `/lesorangers/admin`
+
 ---
 
 ## Architecture — Single-tenant
@@ -169,6 +192,18 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 NEXT_PUBLIC_HOTEL_ID               ← ID de l'hôtel dans la table hotels (ex: 1)
 NEXT_PUBLIC_SITE_URL               ← URL du site pour le sitemap (optionnel, Vercel l'auto-détecte)
 ```
+
+---
+
+## Sécurité — corrections appliquées (nov. 2025)
+
+- **IDOR rating** : `.eq('customer_id', customerUuid)` ajouté sur le update rating dans `RequestActions.tsx`
+- **Énumération login admin** : tous les cas d'erreur auth retournent `"Identifiants invalides"` (plus de messages distincts profil/rôle)
+- **Race condition séjour** : re-vérification `stay.status = 'active'` côté serveur au moment de la soumission d'une demande
+- **Limites input** : title tronqué à 200 chars, description à 2000 chars à la soumission
+
+**À faire (dette technique) :**
+- `ON DELETE CASCADE` en DB sur `entertainments` → `daily_schedules`, `night_schedules`, `entertainment_images` (actuellement cascade manuelle sans transaction dans `entertainments-actions.ts`)
 
 ---
 
