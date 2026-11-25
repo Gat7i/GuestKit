@@ -30,15 +30,6 @@ const UNDER_CONSTRUCTION_HTML = `<!DOCTYPE html>
 </html>`
 
 export async function middleware(request: NextRequest) {
-  // Page "en construction" pour tout ce qui est hors du basePath /lesorangers
-  // request.nextUrl.pathname a le basePath strippé, donc on utilise l'URL brute
-  const rawPathname = new URL(request.url).pathname
-  if (!rawPathname.startsWith('/lesorangers')) {
-    return new NextResponse(UNDER_CONSTRUCTION_HTML, {
-      headers: { 'content-type': 'text/html; charset=utf-8' },
-    })
-  }
-
   const response = NextResponse.next({
     request: { headers: request.headers },
   })

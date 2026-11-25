@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: '/lesorangers',
   reactCompiler: true,
   images: {
     remotePatterns: [
