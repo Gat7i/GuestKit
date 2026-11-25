@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { requireStaff } from '@/lib/auth/require-staff'
 
 type BridgeTable = 'entertainment_images' | 'food_spot_images' | 'suggestion_images'
 
@@ -17,6 +18,7 @@ export async function uploadEntityImage(
   altText: string,
   isFirst: boolean
 ) {
+  await requireStaff()
   const supabase = createAdminClient()
   const fkColumn = BRIDGE_FK[bridgeTable]
 
@@ -42,6 +44,7 @@ export async function deleteEntityImage(
   entityId: number,
   imageId: number
 ) {
+  await requireStaff()
   const supabase = createAdminClient()
   const fkColumn = BRIDGE_FK[bridgeTable]
 
@@ -60,6 +63,7 @@ export async function setEntityImageAsPrincipal(
   entityId: number,
   imageId: number
 ) {
+  await requireStaff()
   const supabase = createAdminClient()
   const fkColumn = BRIDGE_FK[bridgeTable]
 

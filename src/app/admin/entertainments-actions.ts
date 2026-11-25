@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { requireStaff } from '@/lib/auth/require-staff'
 
 // ---- Activités & Spectacles (entertainments) ----
 
@@ -13,6 +14,7 @@ export async function createEntertainment(data: {
   is_daily_activity: boolean
   is_night_show: boolean
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: row, error } = await supabase
     .from('entertainments')
@@ -29,6 +31,7 @@ export async function updateEntertainment(id: number, hotelId: number, data: {
   category_id?: number | null
   location_id?: number | null
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('entertainments')
@@ -39,6 +42,7 @@ export async function updateEntertainment(id: number, hotelId: number, data: {
 }
 
 export async function deleteEntertainment(id: number, hotelId: number) {
+  await requireStaff()
   const supabase = createAdminClient()
 
   // Supprimer les dépendances en cascade
@@ -68,12 +72,14 @@ export async function createDailySchedule(data: {
   start_time: string
   duration_minutes?: number
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase.from('daily_schedules').insert(data)
   if (error) throw new Error(error.message)
 }
 
 export async function deleteDailySchedule(id: number) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase.from('daily_schedules').delete().eq('id', id)
   if (error) throw new Error(error.message)
@@ -88,12 +94,14 @@ export async function createNightSchedule(data: {
   duration_minutes?: number
   target_audience?: string | null
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase.from('night_schedules').insert(data)
   if (error) throw new Error(error.message)
 }
 
 export async function deleteNightSchedule(id: number) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase.from('night_schedules').delete().eq('id', id)
   if (error) throw new Error(error.message)
@@ -110,6 +118,7 @@ export async function createFoodSpot(data: {
   location?: string
   menu_pdf_url?: string
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: row, error } = await supabase.from('food_spots').insert(data).select().single()
   if (error) throw new Error(error.message)
@@ -123,6 +132,7 @@ export async function updateFoodSpot(id: number, hotelId: number, data: {
   location?: string
   menu_pdf_url?: string
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('food_spots')
@@ -133,6 +143,7 @@ export async function updateFoodSpot(id: number, hotelId: number, data: {
 }
 
 export async function deleteFoodSpot(id: number, hotelId: number) {
+  await requireStaff()
   const supabase = createAdminClient()
 
   // Supprimer les images liées en cascade
@@ -164,6 +175,7 @@ export async function createSuggestion(data: {
   address?: string | null
   phone?: string | null
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: row, error } = await supabase.from('suggestions').insert(data).select().single()
   if (error) throw new Error(error.message)
@@ -179,6 +191,7 @@ export async function updateSuggestion(id: number, hotelId: number, data: {
   address?: string | null
   phone?: string | null
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('suggestions')
@@ -189,6 +202,7 @@ export async function updateSuggestion(id: number, hotelId: number, data: {
 }
 
 export async function deleteSuggestion(id: number, hotelId: number) {
+  await requireStaff()
   const supabase = createAdminClient()
 
   // Supprimer les images liées en cascade

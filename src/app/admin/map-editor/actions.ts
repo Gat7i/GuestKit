@@ -1,7 +1,9 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { requireStaff } from '@/lib/auth/require-staff'
 
 export async function saveMapPointPosition(pointId: number, x: number, y: number, hotelId: number) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: point } = await supabase.from('map_points').select('plan_id').eq('id', pointId).single()
   if (!point) throw new Error('Point introuvable')
@@ -16,6 +18,7 @@ export async function addMapPoint(data: {
   hotel_id: number; plan_id: number; poi_type_id: number
   name: string; coordinates_x: number; coordinates_y: number; sort_order: number
 }) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: plan } = await supabase.from('plans').select('hotel_id').eq('id', data.plan_id).single()
   if (plan?.hotel_id !== data.hotel_id) throw new Error('Action non autorisée')
@@ -26,6 +29,7 @@ export async function addMapPoint(data: {
 }
 
 export async function deleteMapPoint(pointId: number, hotelId: number) {
+  await requireStaff()
   const supabase = createAdminClient()
   const { data: hotelPlans } = await supabase.from('plans').select('id').eq('hotel_id', hotelId)
   if (!hotelPlans?.length) throw new Error('Aucun plan pour cet hôtel')
