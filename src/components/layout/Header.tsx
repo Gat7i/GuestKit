@@ -39,6 +39,7 @@ const DotsIcon = () => (
 export default function Header() {
   const [isPlusOpen, setIsPlusOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const pathname = usePathname()
   const supabase = createClient()
   const { hotel, user, customer, currentStay, loading } = useHotelData()
@@ -206,8 +207,8 @@ export default function Header() {
                   </button>
                   <div className="relative group">
                     <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">
-                      {customer?.avatar_url ? (
-                        <Image src={customer.avatar_url} alt={customer.full_name || ''} width={32} height={32} className="rounded-full object-cover" />
+                      {customer?.avatar_url && !avatarError ? (
+                        <img src={customer.avatar_url} alt={customer.full_name || ''} width={32} height={32} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" onError={() => setAvatarError(true)} />
                       ) : (
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
                           {(customer?.full_name || user?.email || 'U')[0].toUpperCase()}
