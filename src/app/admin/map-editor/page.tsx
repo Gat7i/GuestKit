@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
+import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { saveMapPointPosition, addMapPoint, deleteMapPoint } from './actions'
 
 export default function MapEditorPage() {
@@ -19,8 +20,7 @@ export default function MapEditorPage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: hotelData } = await supabase
-        .from('hotels').select('*').limit(1).single()
+      const hotelData = await getCurrentHotelClient()
       if (hotelData) {
         setHotel(hotelData)
         setSelectedHotelId(hotelData.id)
