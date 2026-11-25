@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server-client'
 import Link from 'next/link'
+import Image from 'next/image'
 import ImageCarousel from '@/components/home/ImageCarousel'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { Icon } from '@/components/ui/Icons'
@@ -114,8 +115,9 @@ export default async function HomePage() {
                     className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-300">
                     <div className="relative h-52 bg-gray-800 overflow-hidden">
                       {mainImage ? (
-                        <img src={mainImage.url} alt={show.title}
-                          className="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition duration-500" />
+                        <Image src={mainImage.url} alt={show.title} fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition duration-500" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-900 to-indigo-900 flex items-center justify-center">
                           <Icon.Show className="w-12 h-12 text-white/20" />
@@ -172,8 +174,9 @@ export default async function HomePage() {
                     className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
                     <div className="relative h-44 bg-gray-100 overflow-hidden">
                       {mainImage ? (
-                        <img src={mainImage.url} alt={activity.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                        <Image src={mainImage.url} alt={activity.title} fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition duration-500" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
                           <Icon.Activity className="w-10 h-10 text-blue-200" />
@@ -230,8 +233,9 @@ export default async function HomePage() {
                     className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
                     <div className="h-48 bg-gray-100 relative overflow-hidden">
                       {mainImage ? (
-                        <img src={mainImage.image.url} alt={restaurant.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                        <Image src={mainImage.image.url} alt={restaurant.name} fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition duration-500" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
                           <Icon.Utensils className="w-10 h-10 text-amber-300" />
@@ -278,8 +282,9 @@ export default async function HomePage() {
                     className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
                     <div className="relative h-44 bg-gray-100 overflow-hidden">
                       {mainImage ? (
-                        <img src={mainImage.url} alt={suggestion.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                        <Image src={mainImage.url} alt={suggestion.title} fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition duration-500" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
                           <Icon.Globe className="w-10 h-10 text-purple-200" />

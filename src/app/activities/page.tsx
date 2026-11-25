@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server-client'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Icon } from '@/components/ui/Icons'
 
 // Jours de la semaine en français
@@ -221,12 +222,14 @@ export default async function ActivitiesPage() {
                                 className="flex flex-col md:flex-row gap-4 p-4 hover:bg-gray-50 rounded-lg transition group border border-gray-100 hover:border-blue-200"
                               >
                                 {/* Image de l'activité */}
-                                <div className="md:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                <div className="relative md:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                   {mainImage ? (
-                                    <img 
-                                      src={mainImage.image.url} 
+                                    <Image
+                                      src={mainImage.image.url}
                                       alt={item.title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                      fill
+                                      sizes="(max-width: 768px) 100vw, 128px"
+                                      className="object-cover group-hover:scale-105 transition duration-300"
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">

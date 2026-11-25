@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useHotelData } from '@/hooks/useHotelData'
@@ -123,7 +124,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="h-16 w-40 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition overflow-hidden relative">
                 {hotel?.logo_url ? (
-                  <img src={hotel.logo_url} alt={hotel?.name ?? ''} className="h-full w-full object-contain" />
+                  <Image src={hotel.logo_url} alt={hotel?.name ?? ''} fill sizes="160px" className="object-contain" />
                 ) : (
                   <span className="text-5xl">🏨</span>
                 )}
@@ -206,7 +207,7 @@ export default function Header() {
                   <div className="relative group">
                     <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">
                       {customer?.avatar_url ? (
-                        <img src={customer.avatar_url} alt={customer.full_name || ''} className="w-8 h-8 rounded-full" />
+                        <Image src={customer.avatar_url} alt={customer.full_name || ''} width={32} height={32} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
                           {(customer?.full_name || user?.email || 'U')[0].toUpperCase()}
