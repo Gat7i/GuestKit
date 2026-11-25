@@ -1,6 +1,7 @@
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { createClient } from '@/lib/supabase/server-client'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Icon } from '@/components/ui/Icons'
 
 const MONTHS_FR = [
@@ -118,8 +119,9 @@ export default async function ShowsPage() {
                 const dayName = DAYS_SHORT_FR[showDate.getDay()]
 
                 return (
-                  <div
+                  <Link
                     key={show.id}
+                    href={`/shows/${show.id}`}
                     className="group bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 flex flex-col"
                   >
                     {/* Image */}
@@ -191,7 +193,7 @@ export default async function ShowsPage() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>
@@ -211,7 +213,7 @@ export default async function ShowsPage() {
                 {pastShows.map((show) => {
                   const mainImage = show.images?.find((img: any) => img.is_principal)?.image || show.images?.[0]?.image
                   return (
-                    <div key={show.id} className="bg-gray-800/30 rounded-xl overflow-hidden border border-gray-700 flex gap-3 p-3">
+                    <Link key={show.id} href={`/shows/${show.id}`} className="bg-gray-800/30 rounded-xl overflow-hidden border border-gray-700 flex gap-3 p-3 hover:border-gray-500 transition">
                       {mainImage && (
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                           <Image src={mainImage.url} alt={show.title} fill sizes="64px" className="object-cover" />
@@ -223,7 +225,7 @@ export default async function ShowsPage() {
                           {new Date(show.lastSchedule.show_date).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>
