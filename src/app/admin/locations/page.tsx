@@ -99,17 +99,21 @@ export default function AdminLocationsPage() {
     if (!form.name.trim()) { toast('Le nom est obligatoire', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('locations')
         .update({ name: form.name.trim(), location_type: form.location_type, description: form.description || null })
         .eq('id', selectedLocation.id)
         .eq('hotel_id', selectedHotelId)
+        .select()
+        .single()
       if (error) throw error
       toast('Emplacement mis à jour')
       setEditing(false)
+      setSelectedLocation(data)
       await loadLocations(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la mise à jour', 'error')
+    } catch (err: any) {
+      console.error('updateLocation:', err)
+      toast(err?.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
