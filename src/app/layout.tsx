@@ -5,6 +5,7 @@ import './globals.css'
 import Header from '@/components/layout/Header'  // ← CLIENT
 import Footer from '@/components/layout/Footer'  // ← CLIENT
 import CookieBanner from '@/components/layout/CookieBanner'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,6 +42,7 @@ export default function RootLayout({
         </main>
         <Footer />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}
         <CookieBanner />
+        <Analytics />
       </body>
     </html>
   )
