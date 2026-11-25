@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité — The Orangers Beach Resort',
   description: 'Comment nous collectons, utilisons et protégeons vos données personnelles.',
 }
 
-export default function PolitiqueConfidentialitePage() {
+export default async function PolitiqueConfidentialitePage() {
+  const hotel = await getCurrentHotelServer()
+  const contactEmail = hotel?.email || hotel?.name
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -27,8 +31,13 @@ export default function PolitiqueConfidentialitePage() {
               Le responsable du traitement des données personnelles collectées via cette application est :
             </p>
             <p className="mt-3 font-medium text-gray-800">
-              The Orangers Beach Resort &amp; Bungalows<br />
-              Hammamet, Tunisie
+              {hotel?.name || 'The Orangers Beach Resort & Bungalows'}<br />
+              {hotel?.address && <>{hotel.address}<br /></>}
+              {contactEmail && (
+                <a href={`mailto:${contactEmail}`} className="text-blue-600 hover:underline font-normal">
+                  {contactEmail}
+                </a>
+              )}
             </p>
           </Section>
 
@@ -105,8 +114,14 @@ export default function PolitiqueConfidentialitePage() {
           <Section title="9. Contact">
             <p>
               Pour toute question relative à vos données personnelles, adressez-vous à la réception
-              de l'hôtel ou consultez notre{' '}
-              <Link href="/cgu" className="text-blue-600 hover:underline">politique d'utilisation</Link>.
+              de l'hôtel{contactEmail && (
+                <> ou écrivez-nous à{' '}
+                  <a href={`mailto:${contactEmail}`} className="text-blue-600 hover:underline">
+                    {contactEmail}
+                  </a>
+                </>
+              )}. Consultez également nos{' '}
+              <Link href="/cgu" className="text-blue-600 hover:underline">conditions générales d'utilisation</Link>.
             </p>
           </Section>
 
