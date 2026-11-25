@@ -11,6 +11,19 @@ export const metadata: Metadata = {
   title: 'The Orangers Beach Resort & Bungalows',
   description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows — Hammamet, Tunisie',
   icons: { icon: '/favicon.ico' },
+  openGraph: {
+    title: 'The Orangers Beach Resort & Bungalows',
+    description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows — Hammamet, Tunisie',
+    locale: 'fr_FR',
+    type: 'website',
+    images: [{ url: '/icon-512.png', width: 512, height: 512, alt: 'The Orangers Beach Resort & Bungalows' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'The Orangers Beach Resort & Bungalows',
+    description: 'Votre compagnon de séjour à The Orangers Beach Resort & Bungalows — Hammamet, Tunisie',
+    images: ['/icon-512.png'],
+  },
 }
 
 export default function RootLayout({
