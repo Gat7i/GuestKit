@@ -103,7 +103,6 @@ export default function AdminLocationsPage() {
         .from('locations')
         .update({ name: form.name.trim(), location_type: form.location_type, description: form.description || null })
         .eq('id', selectedLocation.id)
-        .eq('hotel_id', selectedHotelId)
         .select()
         .single()
       if (error) throw error
