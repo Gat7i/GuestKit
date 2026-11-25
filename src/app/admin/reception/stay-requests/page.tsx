@@ -6,6 +6,7 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { activateStay } from '@/app/admin/reception/actions'
 
 type StayRequest = {
   id: number
@@ -184,18 +185,7 @@ export default function StayRequestsPage() {
     try {
       console.log('📝 Assignation chambre:', { requestId, roomId })
       
-      const { error } = await supabase
-        .from('stays')
-        .update({
-          room_id: roomId,
-          status: 'active',
-          actual_check_in: new Date().toISOString()
-        })
-        .eq('id', requestId)
-
-      if (error) throw error
-
-      console.log('✅ Séjour activé avec succès')
+      await activateStay(requestId, roomId)
       toast('Séjour activé avec succès')
       setSelectedRequest(null)
       

@@ -6,7 +6,7 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { updateHotelLogo } from './actions'
+import { updateHotelLogo, createHotel, updateHotel } from './actions'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -269,41 +269,22 @@ export default function AdminHotelPage() {
   // ============================================
   // CRÉER UN NOUVEL HÔTEL
   // ============================================
-  async function createHotel() {
+  async function handleCreateHotel() {
     if (!formData.name.trim() || !formData.slug.trim()) { toast('Veuillez remplir le nom et le slug de l\'hôtel', 'warning'); return }
     setSaving(true)
     try {
-      const { data: existing } = await supabase
-        .from('hotels')
-        .select('id')
-        .eq('slug', formData.slug.toLowerCase().replace(/\s+/g, '-'))
-        .maybeSingle()
+      const slug = formData.slug.toLowerCase().replace(/\s+/g, '-')
+      const { data: existing } = await supabase.from('hotels').select('id').eq('slug', slug).maybeSingle()
+      if (existing) { toast('Ce slug est déjà utilisé. Veuillez en choisir un autre.', 'warning'); return }
 
-      if (existing) {
-        toast('Ce slug est déjà utilisé. Veuillez en choisir un autre.', 'warning')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('hotels')
-        .insert({
-          name: formData.name,
-          slug: formData.slug.toLowerCase().replace(/\s+/g, '-'),
-          description: formData.description,
-          address: formData.address,
-          phone: formData.phone,
-          email: formData.email,
-          website: formData.website,
-          check_in_time: formData.check_in_time,
-          check_out_time: formData.check_out_time,
-          primary_color: formData.primary_color,
-          secondary_color: formData.secondary_color,
-          logo_url: formData.logo_url
-        })
-        .select()
-        .single()
-
-      if (error) throw error
+      const data = await createHotel({
+        name: formData.name, slug,
+        description: formData.description, address: formData.address,
+        phone: formData.phone, email: formData.email, website: formData.website,
+        check_in_time: formData.check_in_time, check_out_time: formData.check_out_time,
+        primary_color: formData.primary_color, secondary_color: formData.secondary_color,
+        logo_url: formData.logo_url
+      })
 
       toast('Hôtel créé avec succès')
       setCreating(false)
@@ -311,9 +292,8 @@ export default function AdminHotelPage() {
       setSelectedHotelId(data.id)
       await loadHotelData(data.id)
       await loadHotelImages(data.id)
-    } catch (error) {
-      console.error('Erreur création:', error)
-      toast('Erreur lors de la création', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -322,38 +302,25 @@ export default function AdminHotelPage() {
   // ============================================
   // MISE À JOUR DE L'HÔTEL
   // ============================================
-  async function updateHotel() {
+  async function handleUpdateHotel() {
     if (!selectedHotelId) return
     if (!formData.name.trim() || !formData.slug.trim()) { toast('Veuillez remplir le nom et le slug de l\'hôtel', 'warning'); return }
     setSaving(true)
     try {
-
-      const { error } = await supabase
-        .from('hotels')
-        .update({
-          name: formData.name,
-          slug: formData.slug.toLowerCase().replace(/\s+/g, '-'),
-          description: formData.description,
-          address: formData.address,
-          phone: formData.phone,
-          email: formData.email,
-          website: formData.website,
-          check_in_time: formData.check_in_time,
-          check_out_time: formData.check_out_time,
-          primary_color: formData.primary_color,
-          secondary_color: formData.secondary_color,
-          logo_url: formData.logo_url
-        })
-        .eq('id', selectedHotelId)
-
-      if (error) throw error
-
+      await updateHotel(selectedHotelId, {
+        name: formData.name,
+        slug: formData.slug.toLowerCase().replace(/\s+/g, '-'),
+        description: formData.description, address: formData.address,
+        phone: formData.phone, email: formData.email, website: formData.website,
+        check_in_time: formData.check_in_time, check_out_time: formData.check_out_time,
+        primary_color: formData.primary_color, secondary_color: formData.secondary_color,
+        logo_url: formData.logo_url
+      })
       toast('Informations mises à jour avec succès')
       setEditing(false)
       await loadHotelData(selectedHotelId)
-    } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      toast('Erreur lors de la mise à jour', 'error')
+    } catch (error: any) {
+      toast(error.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
     }
@@ -454,7 +421,7 @@ export default function AdminHotelPage() {
             {(editing || creating) && (
               <>
                 <button
-                  onClick={creating ? createHotel : updateHotel}
+                  onClick={creating ? handleCreateHotel : handleUpdateHotel}
                   disabled={saving}
                   className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2 disabled:opacity-50"
                 >

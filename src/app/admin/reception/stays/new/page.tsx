@@ -6,6 +6,7 @@ import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { createStay, setCustomerActive } from '@/app/admin/reception/actions'
 
 type Customer = {
   customer_uuid: string
@@ -112,7 +113,7 @@ function NewStayForm() {
     setRooms(data || [])
   }
 
-  async function createStay(e: React.FormEvent) {
+  async function handleCreateStay(e: React.FormEvent) {
     e.preventDefault()
     if (!hotel) return
     if (!formData.primary_customer_id) {
@@ -122,54 +123,36 @@ function NewStayForm() {
 
     setSaving(true)
     try {
-      // Générer une référence unique
       const bookingRef = `BK-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase()
+      const { data: { user } } = await supabase.auth.getUser()
 
-      // 1. Créer le séjour principal
-      const { data: stay, error: stayError } = await supabase
-        .from('stays')
-        .insert({
-          hotel_id: hotel.id,
-          primary_customer_id: formData.primary_customer_id,
-          room_id: parseInt(formData.room_id),
-          booking_reference: bookingRef,
-          check_in_date: formData.check_in_date,
-          check_out_date: formData.check_out_date,
-          adults_count: formData.adults_count,
-          children_count: formData.children_count,
-          special_requests: formData.special_requests,
-          total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null,
-          status: 'upcoming',
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .select()
-        .single()
+      // 1. Créer le séjour (server action — bypass RLS)
+      const stay = await createStay({
+        hotel_id: hotel.id,
+        primary_customer_id: formData.primary_customer_id,
+        room_id: parseInt(formData.room_id),
+        booking_reference: bookingRef,
+        check_in_date: formData.check_in_date,
+        check_out_date: formData.check_out_date,
+        adults_count: formData.adults_count,
+        children_count: formData.children_count,
+        special_requests: formData.special_requests,
+        total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null,
+        status: 'upcoming',
+        created_by: user?.id,
+      })
 
-      if (stayError) throw stayError
-
-      // 2. Ajouter les autres clients sélectionnés comme compagnons
+      // 2. Compagnons — table sans RLS, client browser OK
       const otherCustomers = selectedCustomers.filter(c => c.customer_uuid !== formData.primary_customer_id)
-      
       if (otherCustomers.length > 0) {
-        const companionsToInsert = otherCustomers.map(c => ({
-          stay_id: stay.id,
-          full_name: c.full_name || c.email
-        }))
-
-        const { error: companionsError } = await supabase
-          .from('companions')
-          .insert(companionsToInsert)
-
+        const { error: companionsError } = await supabase.from('companions').insert(
+          otherCustomers.map(c => ({ stay_id: stay.id, full_name: c.full_name || c.email }))
+        )
         if (companionsError) throw companionsError
       }
 
-      // 3. Mettre à jour le client principal
-      await supabase
-        .from('customers')
-        .update({ 
-          is_active: true 
-        })
-        .eq('customer_uuid', formData.primary_customer_id)
+      // 3. Activer le client principal (server action — bypass RLS customers)
+      await setCustomerActive(formData.primary_customer_id)
 
       toast('Séjour créé avec succès')
       router.push(`/admin/reception/stays/${stay.id}`)
@@ -237,7 +220,7 @@ function NewStayForm() {
           </div>
         )}
 
-        <form onSubmit={createStay} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+        <form onSubmit={handleCreateStay} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           {/* Client principal */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client-browser'
+import { updateRequestStatus } from '@/app/admin/requests/actions'
 
 type Request = {
   id: number
@@ -69,23 +69,20 @@ export default function RequestsTable({ requests, category }: RequestsTableProps
   const [loadingId, setLoadingId] = useState<number | null>(null)
   const [localRequests, setLocalRequests] = useState<Request[]>(requests)
   const router = useRouter()
-  const supabase = createClient()
 
   const getRoomNumber = (req: Request) => req.customer?.stays?.[0]?.room?.room_number || '?'
   const getCustomerName = (req: Request) => req.customer?.full_name || 'Client inconnu'
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     setLoadingId(id)
-    const { error } = await supabase
-      .from('customer_requests')
-      .update({ status: newStatus, ...(newStatus === 'completed' ? { completed_time: new Date().toISOString() } : {}) })
-      .eq('id', id)
-
-    if (!error) {
+    try {
+      await updateRequestStatus(id, newStatus)
       setLocalRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: newStatus as Request['status'] } : r)
       )
       router.refresh()
+    } catch {
+      // erreur silencieuse — l'UI ne change pas
     }
     setLoadingId(null)
   }

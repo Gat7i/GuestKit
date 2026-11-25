@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client-browser'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import { checkInStay, checkOutStay } from '@/app/admin/reception/actions'
 import Link from 'next/link'
 
 type StayActionsProps = {
@@ -21,25 +21,14 @@ export default function StayActions({ stay }: StayActionsProps) {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const { toast, toasts } = useToast()
   const router = useRouter()
-  const supabase = createClient()
 
   const handleCheckIn = async () => {
     setIsCheckingIn(true)
     try {
-      const { error } = await supabase
-        .from('stays')
-        .update({
-          status: 'active',
-          actual_check_in: new Date().toISOString()
-        })
-        .eq('id', stay.id)
-
-      if (error) throw error
-
+      await checkInStay(stay.id)
       toast('Arrivée enregistrée')
       router.refresh()
     } catch (error) {
-      console.error('Erreur check-in:', error)
       toast('Erreur lors de l\'enregistrement', 'error')
     } finally {
       setIsCheckingIn(false)
@@ -49,20 +38,10 @@ export default function StayActions({ stay }: StayActionsProps) {
   const handleCheckOut = async () => {
     setIsCheckingOut(true)
     try {
-      const { error } = await supabase
-        .from('stays')
-        .update({
-          status: 'checked_out',
-          actual_check_out: new Date().toISOString()
-        })
-        .eq('id', stay.id)
-
-      if (error) throw error
-
+      await checkOutStay(stay.id)
       toast('Départ enregistré')
       router.refresh()
     } catch (error) {
-      console.error('Erreur check-out:', error)
       toast('Erreur lors de l\'enregistrement', 'error')
     } finally {
       setIsCheckingOut(false)

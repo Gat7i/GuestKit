@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client-browser'
+import { updateRequestStatus, updateRequestPriority, sendRequestMessage } from '@/app/admin/requests/actions'
 
 interface Props {
   requestId: number
@@ -26,37 +27,25 @@ export default function AdminRequestActions({ requestId, status, category }: Pro
 
   const handleStatusChange = async (newStatus: string) => {
     setUpdating(true)
-    const { error } = await supabase
-      .from('customer_requests')
-      .update({
-        status: newStatus,
-        ...(newStatus === 'in_progress' ? {} : {}),
-        ...(newStatus === 'completed' ? { completed_time: new Date().toISOString() } : {}),
-      })
-      .eq('id', requestId)
-
-    if (error) {
-      showFeedback('error', 'Erreur lors de la mise à jour')
-    } else {
+    try {
+      await updateRequestStatus(requestId, newStatus)
       showFeedback('success', 'Statut mis à jour')
       router.refresh()
+    } catch {
+      showFeedback('error', 'Erreur lors de la mise à jour')
     }
     setUpdating(false)
   }
 
   const handlePriorityChange = async (newPriority: string) => {
     setUpdating(true)
-    const { error } = await supabase
-      .from('customer_requests')
-      .update({ priority: newPriority })
-      .eq('id', requestId)
-
-    if (error) {
-      showFeedback('error', 'Erreur lors de la mise à jour')
-    } else {
+    try {
+      await updateRequestPriority(requestId, newPriority)
       showFeedback('success', 'Priorité mise à jour')
       setPriority(newPriority)
       router.refresh()
+    } catch {
+      showFeedback('error', 'Erreur lors de la mise à jour')
     }
     setUpdating(false)
   }
@@ -68,31 +57,18 @@ export default function AdminRequestActions({ requestId, status, category }: Pro
 
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('id', user?.id)
-      .single()
-
+      .from('profiles').select('first_name, last_name').eq('id', user?.id).single()
     const senderName = profile
       ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Équipe hôtel'
       : 'Équipe hôtel'
 
-    const { error } = await supabase
-      .from('request_messages')
-      .insert({
-        request_id: requestId,
-        sender_type: 'staff',
-        sender_name: senderName,
-        message: message.trim(),
-        is_internal: false,
-      })
-
-    if (error) {
-      showFeedback('error', 'Erreur lors de l\'envoi')
-    } else {
+    try {
+      await sendRequestMessage({ request_id: requestId, sender_name: senderName, message: message.trim() })
       setMessage('')
       showFeedback('success', 'Message envoyé')
       router.refresh()
+    } catch {
+      showFeedback('error', 'Erreur lors de l\'envoi')
     }
     setSending(false)
   }
