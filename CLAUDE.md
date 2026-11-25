@@ -80,9 +80,12 @@ src/lib/supabase/         Clients Supabase (browser / server / admin)
 | `contacts` | Aucune (service role only) |
 
 **Tables SANS RLS** (browser client OK pour les écritures admin) :
-`locations`, `poi_types`, `hotel_images`, `companions`, `images`,
+`poi_types`, `hotel_images`, `companions`, `images`,
 `entertainment_images`, `food_spot_images`, `suggestion_images`,
 `plans`, `map_points`, `rooms`, `categories`
+
+**Tables avec RLS SELECT-only** (écritures admin → server action obligatoire) :
+`locations` — SELECT public, pas de policy write → `src/app/admin/locations/actions.ts`
 
 **Fichiers de server actions :**
 - `src/app/admin/entertainments-actions.ts` — entertainments, food_spots, suggestions (CRUD complet)
