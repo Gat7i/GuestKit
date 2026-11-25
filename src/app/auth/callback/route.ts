@@ -49,5 +49,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/lesorangers/profile`)
+  const from = requestUrl.searchParams.get('from')
+  const dest = from === 'admin' ? '/lesorangers/admin' : '/lesorangers/profile'
+  return NextResponse.redirect(`${requestUrl.origin}${dest}`)
 }
