@@ -1,0 +1,128 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: "Conditions générales d'utilisation — The Orangers Beach Resort",
+  description: "Conditions d'utilisation de l'application GuestKit pour les clients de l'hôtel.",
+}
+
+export default function CguPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-8 transition">
+          ← Retour à l'accueil
+        </Link>
+
+        <div className="bg-white rounded-2xl shadow-sm p-8 sm:p-12 space-y-8">
+
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Conditions générales d'utilisation</h1>
+            <p className="text-sm text-gray-500">Dernière mise à jour : novembre 2025</p>
+          </div>
+
+          <Section title="1. Objet">
+            <p>
+              Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation
+              de l'application GuestKit, mise à disposition des clients de{' '}
+              <strong>The Orangers Beach Resort &amp; Bungalows</strong> (Hammamet, Tunisie) pendant
+              la durée de leur séjour.
+            </p>
+          </Section>
+
+          <Section title="2. Accès à l'application">
+            <p>
+              L'application est accessible exclusivement aux clients de l'hôtel disposant d'un compte
+              créé avec leur adresse e-mail. L'accès est activé à l'enregistrement (check-in) et
+              désactivé après le départ (check-out).
+            </p>
+            <p>
+              Chaque client est responsable de la confidentialité de ses identifiants de connexion.
+            </p>
+          </Section>
+
+          <Section title="3. Services proposés">
+            <p>L'application GuestKit permet aux clients de :</p>
+            <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
+              <li>Consulter les informations de l'hôtel (restaurants, activités, spectacles, carte)</li>
+              <li>Effectuer des demandes de service (room service, conciergerie, etc.)</li>
+              <li>Suivre l'état de leurs demandes en temps réel</li>
+              <li>Communiquer avec l'équipe de l'hôtel</li>
+              <li>Explorer les suggestions de découvertes locales</li>
+            </ul>
+          </Section>
+
+          <Section title="4. Comportement de l'utilisateur">
+            <p>L'utilisateur s'engage à :</p>
+            <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
+              <li>Fournir des informations exactes lors de la création de son compte</li>
+              <li>Ne pas utiliser l'application à des fins illicites ou abusives</li>
+              <li>Ne pas tenter d'accéder aux données d'autres clients</li>
+              <li>Formuler des demandes de service raisonnables et en rapport avec son séjour</li>
+            </ul>
+          </Section>
+
+          <Section title="5. Disponibilité du service">
+            <p>
+              L'hôtel s'efforce d'assurer la disponibilité de l'application 24h/24, 7j/7. Des
+              interruptions temporaires peuvent survenir pour maintenance ou en cas d'incident technique.
+              L'hôtel ne peut être tenu responsable des conséquences d'une indisponibilité momentanée.
+            </p>
+          </Section>
+
+          <Section title="6. Propriété intellectuelle">
+            <p>
+              L'ensemble du contenu de l'application (textes, photos, logos, interface) est la propriété
+              exclusive de The Orangers Beach Resort &amp; Bungalows ou de ses partenaires.
+              Toute reproduction sans autorisation est interdite.
+            </p>
+          </Section>
+
+          <Section title="7. Données personnelles">
+            <p>
+              La collecte et le traitement de vos données personnelles sont détaillés dans notre{' '}
+              <Link href="/politique-confidentialite" className="text-blue-600 hover:underline">
+                politique de confidentialité
+              </Link>
+              , conforme au Règlement Général sur la Protection des Données (RGPD).
+            </p>
+          </Section>
+
+          <Section title="8. Limitation de responsabilité">
+            <p>
+              L'application est un outil de communication et d'information. L'hôtel ne peut garantir
+              que toutes les demandes de service soient traitées dans un délai précis, notamment en
+              cas de forte affluence. Les informations affichées (horaires, menus, activités) peuvent
+              être modifiées sans préavis.
+            </p>
+          </Section>
+
+          <Section title="9. Droit applicable">
+            <p>
+              Les présentes CGU sont soumises au droit tunisien. En cas de litige, et à défaut de
+              résolution amiable, les tribunaux compétents de Nabeul (Tunisie) seront saisis.
+            </p>
+          </Section>
+
+          <Section title="10. Contact">
+            <p>
+              Pour toute question, contactez la réception de l'hôtel ou écrivez-nous via votre
+              espace personnel dans l'application.
+            </p>
+          </Section>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="text-lg font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-100">{title}</h2>
+      <div className="text-gray-600 leading-relaxed space-y-2">{children}</div>
+    </section>
+  )
+}

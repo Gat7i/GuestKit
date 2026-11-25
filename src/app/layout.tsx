@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'  // ← CLIENT
 import Footer from '@/components/layout/Footer'  // ← CLIENT
+import CookieBanner from '@/components/layout/CookieBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,6 +40,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}
+        <CookieBanner />
       </body>
     </html>
   )
