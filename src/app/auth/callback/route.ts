@@ -49,5 +49,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/profile`)
+  return NextResponse.redirect(`${requestUrl.origin}/lesorangers/profile`)
 }
