@@ -131,7 +131,7 @@ export default function ActiveGuestsPage() {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>🏨</span> Clients présents dans l'hôtel
@@ -147,7 +147,7 @@ export default function ActiveGuestsPage() {
           </div>
           <Link
             href="/admin/reception"
-            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition shadow-md"
+            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition shadow-md self-start md:self-auto"
           >
             ← Retour
           </Link>

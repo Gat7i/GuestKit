@@ -135,7 +135,7 @@ export default function CheckInPage() {
       <ToastContainer toasts={toasts} />
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>✅</span> Nouveaux clients à enregistrer
@@ -149,7 +149,7 @@ export default function CheckInPage() {
               Sélectionnez les clients pour leur assigner un séjour
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={handleAssignStays}
               disabled={selectedCustomers.length === 0}
