@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
+import { createLocation as createLocationAction, updateLocation as updateLocationAction, deleteLocation as deleteLocationAction } from './actions'
 
 type Location = {
   id: number
@@ -76,19 +77,14 @@ export default function AdminLocationsPage() {
     if (!selectedHotelId) return
     setSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('locations')
-        .insert({ hotel_id: selectedHotelId, name: form.name.trim(), location_type: form.location_type, description: form.description || null })
-        .select()
-        .single()
-      if (error) throw error
+      const row = await createLocationAction({ hotel_id: selectedHotelId, name: form.name.trim(), location_type: form.location_type, description: form.description || null })
       toast('Emplacement créé')
       setEditing(false)
-      setSelectedLocation(data)
+      setSelectedLocation(row)
       resetForm()
       await loadLocations(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la création', 'error')
+    } catch (err: any) {
+      toast(err?.message || 'Erreur lors de la création', 'error')
     } finally {
       setSaving(false)
     }
@@ -100,17 +96,12 @@ export default function AdminLocationsPage() {
     setSaving(true)
     try {
       const updated = { name: form.name.trim(), location_type: form.location_type, description: form.description || null }
-      const { error } = await supabase
-        .from('locations')
-        .update(updated)
-        .eq('id', selectedLocation.id)
-      if (error) throw error
+      await updateLocationAction(selectedLocation.id, updated)
       toast('Emplacement mis à jour')
       setEditing(false)
       setSelectedLocation({ ...selectedLocation, ...updated })
       await loadLocations(selectedHotelId)
     } catch (err: any) {
-      console.error('updateLocation:', err)
       toast(err?.message || 'Erreur lors de la mise à jour', 'error')
     } finally {
       setSaving(false)
@@ -123,16 +114,14 @@ export default function AdminLocationsPage() {
       setTimeout(() => setConfirmDeleteId(null), 3000)
       return
     }
-    if (!selectedHotelId) return
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase.from('locations').delete().eq('id', id).eq('hotel_id', selectedHotelId)
-      if (error) throw error
+      await deleteLocationAction(id)
       toast('Emplacement supprimé')
       if (selectedLocation?.id === id) { setSelectedLocation(null); resetForm() }
-      await loadLocations(selectedHotelId)
-    } catch {
-      toast('Erreur lors de la suppression', 'error')
+      if (selectedHotelId) await loadLocations(selectedHotelId)
+    } catch (err: any) {
+      toast(err?.message || 'Erreur lors de la suppression', 'error')
     }
   }
 
