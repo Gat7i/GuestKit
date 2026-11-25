@@ -45,3 +45,7 @@ next-env.d.ts
 
 # MCP config (contains secrets)
 .mcp.json
+
+# Outils locaux
+.claude/
+_backup_single_hotel/

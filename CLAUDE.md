@@ -1,7 +1,7 @@
 # GuestKit — CLAUDE.md
 
 Application SaaS de gestion de l'expérience client hôtelière.
-Stack : Next.js 15 App Router, Supabase, Cloudinary, TailwindCSS 4, Vercel.
+Stack : Next.js 16.1.6 App Router, Supabase, Cloudinary, TailwindCSS 4, Vercel.
 Langue de travail : **français**.
 
 ---
@@ -30,7 +30,10 @@ La plupart des tables ont le RLS activé avec uniquement une politique SELECT pu
 Fichiers de server actions :
 - `src/app/admin/entertainments-actions.ts` — entertainments, food_spots, suggestions
 - `src/app/admin/image-actions.ts` — gestion images (bridge tables)
-- `src/app/admin/hotel/actions.ts` — logo hôtel
+- `src/app/admin/hotel/actions.ts` — logo, createHotel, updateHotel
+- `src/app/admin/map-editor/actions.ts` — saveMapPointPosition, addMapPoint, deleteMapPoint
+- `src/app/admin/reception/actions.ts` — activateStay, checkInStay, checkOutStay, createStay, setCustomerActive
+- `src/app/admin/requests/actions.ts` — updateRequestStatus, updateRequestPriority, sendRequestMessage
 
 ---
 
