@@ -437,7 +437,7 @@ export default function AdminHotelPage() {
         </div>
 
         {/* Contenu principal */}
-        {selectedHotelId || creating ? (
+        {(selectedHotelId || creating) && (
           <>
             {/* Aperçu de l'hôtel (carte) - uniquement en mode visualisation */}
             {!editing && !creating && hotel && (

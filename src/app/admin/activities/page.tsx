@@ -349,7 +349,7 @@ export default function AdminActivitiesPage() {
         </div>
 
         {/* Contenu principal */}
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <div className="grid grid-cols-12 gap-6">
             {/* Colonne 1 : Liste des activités */}
             <div className="col-span-3 bg-white rounded-xl shadow-sm p-4">

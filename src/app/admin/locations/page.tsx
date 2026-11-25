@@ -196,7 +196,7 @@ export default function AdminLocationsPage() {
           )}
         </div>
 
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <div className="grid grid-cols-12 gap-6">
 
             {/* Liste */}

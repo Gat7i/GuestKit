@@ -300,7 +300,7 @@ export default function AdminContactsPage() {
         </div>
 
         {/* Contenu principal */}
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <div className="grid grid-cols-12 gap-6">
             
             {/* ===== COLONNE 1 : LISTE DES CONTACTS PAR DÉPARTEMENT ===== */}

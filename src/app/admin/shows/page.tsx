@@ -281,7 +281,7 @@ export default function AdminShowsPage() {
           </div>
         </div>
 
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <>
             {/* Tabs */}
             <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">

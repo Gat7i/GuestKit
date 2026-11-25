@@ -173,7 +173,7 @@ export default function AdminRestaurantsPage() {
           </div>
         </div>
 
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <div className="space-y-4">
 
             {/* Tabs par type */}

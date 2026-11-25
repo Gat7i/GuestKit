@@ -372,7 +372,7 @@ export default function AdminCategoriesPage() {
         </div>
 
         {/* Contenu principal */}
-        {selectedHotelId ? (
+        {selectedHotelId && (
           <>
             {/* Filtres */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
