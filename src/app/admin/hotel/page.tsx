@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
-import HotelSelector from '@/components/admin/HotelSelector'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { updateHotelLogo, createHotel, updateHotel } from './actions'
@@ -13,7 +12,6 @@ import Image from 'next/image'
 export default function AdminHotelPage() {
   const [currentHotel, setCurrentHotel] = useState<any>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [hotel, setHotel] = useState<any>(null)
   const [hotelImages, setHotelImages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,13 +47,11 @@ export default function AdminHotelPage() {
       try {
         const hotelData = await getCurrentHotelClient()
         setCurrentHotel(hotelData)
-        
+
         if (!hotelData) {
-          setIsSuperAdmin(true)
           setSelectedHotelId(null)
           setLoading(false)
         } else {
-          setIsSuperAdmin(false)
           setSelectedHotelId(hotelData.id)
           await loadHotelData(hotelData.id)
           await loadHotelImages(hotelData.id)
@@ -387,28 +383,17 @@ export default function AdminHotelPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <span>🏨</span> Configuration de l'hôtel
-              {currentHotel && !isSuperAdmin && (
+              {currentHotel && (
                 <span className="text-lg font-normal text-gray-500 ml-2">
                   - {currentHotel.name}
                 </span>
               )}
             </h1>
             <p className="text-gray-600">
-              {isSuperAdmin 
-                ? 'Mode Super Admin : sélectionnez un hôtel ou créez-en un nouveau'
-                : 'Gérez les informations générales et l\'apparence de votre établissement'}
+              Gérez les informations générales et l'apparence de votre établissement
             </p>
           </div>
           <div className="flex gap-3">
-            {isSuperAdmin && !creating && !editing && (
-              <button
-                onClick={resetFormForNew}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
-              >
-                <span>➕</span>
-                Nouvel hôtel
-              </button>
-            )}
             {selectedHotelId && !editing && !creating && (
               <button
                 onClick={() => setEditing(true)}
@@ -450,19 +435,6 @@ export default function AdminHotelPage() {
             )}
           </div>
         </div>
-
-        {/* Sélecteur d'hôtel pour super_admin */}
-        {isSuperAdmin && !creating && (
-          <HotelSelector
-            onSelect={(hotelId) => {
-              setSelectedHotelId(hotelId)
-              setCreating(false)
-              setEditing(false)
-            }}
-            selectedId={selectedHotelId}
-            className="mb-6"
-          />
-        )}
 
         {/* Contenu principal */}
         {selectedHotelId || creating ? (
@@ -1055,19 +1027,6 @@ export default function AdminHotelPage() {
               </div>
             )}
           </>
-        ) : (
-          isSuperAdmin && (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center border-2 border-dashed border-amber-200">
-              <div className="text-7xl mb-4">🏨</div>
-              <h3 className="text-xl font-medium text-amber-800 mb-2">
-                Aucun hôtel sélectionné
-              </h3>
-              <p className="text-amber-600">
-                Veuillez sélectionner un hôtel dans la liste ci-dessus pour configurer ses paramètres,
-                ou cliquez sur "Nouvel hôtel" pour en créer un.
-              </p>
-            </div>
-          )
         )}
       </div>
     </div>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
-import HotelSelector from '@/components/admin/HotelSelector'
 import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
@@ -19,7 +18,6 @@ import {
 export default function AdminActivitiesPage() {
   const [hotel, setHotel] = useState<any>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
   const [selectedActivity, setSelectedActivity] = useState<any>(null)
   const [categories, setCategories] = useState<any[]>([])
@@ -61,13 +59,11 @@ export default function AdminActivitiesPage() {
       try {
         const hotelData = await getCurrentHotelClient()
         setHotel(hotelData)
-        
+
         if (!hotelData) {
-          setIsSuperAdmin(true)
           setSelectedHotelId(null)
           setLoading(false)
         } else {
-          setIsSuperAdmin(false)
           setSelectedHotelId(hotelData.id)
           await loadData(hotelData.id)
         }
@@ -331,16 +327,14 @@ export default function AdminActivitiesPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
               <Icon.Activity className="w-8 h-8 text-blue-600" />
               Gestion des activités
-              {hotel && !isSuperAdmin && (
+              {hotel && (
                 <span className="text-lg font-normal text-gray-500 ml-2">
                   - {hotel.name}
                 </span>
               )}
             </h1>
             <p className="text-gray-600">
-              {isSuperAdmin 
-                ? 'Mode Super Admin : sélectionnez un hôtel pour gérer ses activités'
-                : 'Gérez les activités journalières et animations'}
+              Gérez les activités journalières et animations
             </p>
           </div>
           {selectedHotelId && (
@@ -353,15 +347,6 @@ export default function AdminActivitiesPage() {
             </button>
           )}
         </div>
-
-        {/* Sélecteur d'hôtel pour super_admin */}
-        {isSuperAdmin && (
-          <HotelSelector
-            onSelect={(hotelId) => setSelectedHotelId(hotelId)}
-            selectedId={selectedHotelId}
-            className="mb-6"
-          />
-        )}
 
         {/* Contenu principal */}
         {selectedHotelId ? (
@@ -709,18 +694,6 @@ export default function AdminActivitiesPage() {
               )}
             </div>
           </div>
-        ) : (
-          isSuperAdmin && (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center border-2 border-dashed border-amber-200">
-              <Icon.Hotel className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-amber-800 mb-2">
-                Aucun hôtel sélectionné
-              </h3>
-              <p className="text-amber-600">
-                Veuillez sélectionner un hôtel pour gérer ses activités.
-              </p>
-            </div>
-          )
         )}
       </div>
     </div>

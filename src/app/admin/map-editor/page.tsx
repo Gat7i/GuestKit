@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
-import HotelSelector from '@/components/admin/HotelSelector'
 import { saveMapPointPosition, addMapPoint, deleteMapPoint } from './actions'
 
 export default function MapEditorPage() {
   const [hotel, setHotel] = useState<any>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [plans, setPlans] = useState<any[]>([])
   const [selectedPlan, setSelectedPlan] = useState<any>(null)
   const [points, setPoints] = useState<any[]>([])
@@ -21,33 +19,16 @@ export default function MapEditorPage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data: profile } = await supabase
-        .from('profiles').select('role').eq('id', user.id).single()
-      const isSuper = profile?.role === 'super_admin'
-      setIsSuperAdmin(isSuper)
-      if (!isSuper) {
-        const { data: hotelData } = await supabase
-          .from('hotels').select('*').limit(1).single()
-        if (hotelData) {
-          setHotel(hotelData)
-          setSelectedHotelId(hotelData.id)
-          await loadData(hotelData.id)
-        }
+      const { data: hotelData } = await supabase
+        .from('hotels').select('*').limit(1).single()
+      if (hotelData) {
+        setHotel(hotelData)
+        setSelectedHotelId(hotelData.id)
+        await loadData(hotelData.id)
       }
     }
     init()
   }, [])
-
-  async function handleHotelChange(hotelId: number, hotelData: any) {
-    setSelectedHotelId(hotelId)
-    setHotel(hotelData)
-    setSelectedPlan(null)
-    setPoints([])
-    setSelectedPoint(null)
-    await loadData(hotelId)
-  }
 
   async function loadData(hotelId: number) {
     setLoading(true)
@@ -144,7 +125,7 @@ export default function MapEditorPage() {
     }
   }
 
-  if (loading && !plans.length && !isSuperAdmin) {
+  if (loading && !plans.length && !selectedHotelId) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -167,19 +148,7 @@ export default function MapEditorPage() {
             </h1>
             <p className="text-gray-600">Positionnez vos points d'intérêt sur chaque étage</p>
           </div>
-          {isSuperAdmin && (
-            <HotelSelector
-              selectedHotelId={selectedHotelId}
-              onHotelChange={handleHotelChange}
-            />
-          )}
         </div>
-
-        {!selectedHotelId && isSuperAdmin && (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm text-gray-500">
-            Sélectionnez un hôtel pour afficher les plans
-          </div>
-        )}
 
         {selectedHotelId && (
           <>

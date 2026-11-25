@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
-import HotelSelector from '@/components/admin/HotelSelector'
 import AdminImageGallery from '@/components/admin/AdminImageGallery'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
 import { Icon } from '@/components/ui/Icons'
@@ -24,7 +23,6 @@ type Restaurant = {
 export default function AdminRestaurantsPage() {
   const [hotel, setHotel] = useState<any>(null)
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,10 +54,8 @@ export default function AdminRestaurantsPage() {
         const hotelData = await getCurrentHotelClient()
         setHotel(hotelData)
         if (!hotelData) {
-          setIsSuperAdmin(true)
           setLoading(false)
         } else {
-          setIsSuperAdmin(false)
           setSelectedHotelId(hotelData.id)
           await loadRestaurants(hotelData.id)
         }
@@ -167,19 +163,15 @@ export default function AdminRestaurantsPage() {
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Icon.Utensils className="w-6 h-6 text-amber-600" />
               Restaurants & Bars
-              {hotel && !isSuperAdmin && (
+              {hotel && (
                 <span className="text-base font-normal text-gray-500 ml-2">— {hotel.name}</span>
               )}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {isSuperAdmin ? 'Mode Super Admin — sélectionnez un hôtel' : 'Gérez les restaurants, horaires et photos'}
+              Gérez les restaurants, horaires et photos
             </p>
           </div>
         </div>
-
-        {isSuperAdmin && (
-          <HotelSelector onSelect={(id) => setSelectedHotelId(id)} selectedId={selectedHotelId} className="mb-6" />
-        )}
 
         {selectedHotelId ? (
           <div className="space-y-4">
@@ -427,13 +419,6 @@ export default function AdminRestaurantsPage() {
             </div>
           </div>
           </div>
-        ) : (
-          isSuperAdmin && (
-            <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-16 text-center">
-              <Icon.Hotel className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Sélectionnez un hôtel pour gérer ses restaurants.</p>
-            </div>
-          )
         )}
       </div>
     </div>
