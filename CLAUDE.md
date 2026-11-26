@@ -156,11 +156,77 @@ Utiliser `next/image` (`import Image from 'next/image'`) pour toutes les images 
 
 ---
 
-## Design (pages clients)
+## Charte graphique — Les Orangers
 
-Style "éditorial" : **trait vertical coloré** (`w-1 h-8 rounded-full`) à la place des icônes carrées pour les en-têtes de section. Appliqué sur : restaurants, activities, suggestions, requests, map.
+### Palette de couleurs
 
-Page shows (`src/app/shows/page.tsx`) : fond sombre (`bg-gray-900`), ambiance nocturne — ne pas changer le thème.
+| Rôle | Nom | Hex | Usage |
+|------|-----|-----|-------|
+| Primaire / CTA | Coral | `#E05947` | Boutons principaux, liens actifs, badges statut, FAB |
+| Secondaire / Neutre | Taupe | `#746865` | Textes secondaires, icônes neutres, badges Housekeeping |
+| Accent / Prestige | Gold | `#C49A5A` | Étoiles de notation, Room Service, éléments premium |
+| Fond global | Cream | `#FFFAF8` | Background des pages clients |
+| En-têtes sombres | Deep brown | `#1C1211` | Headers éditoriaux (hero sections) |
+| Bordures | Sand | `#E8DEDA` | Séparateurs, contours de cards, icônes non-hover |
+| Fond hover / muted | Blush | `#FFF5F3` | Hover de cards, blocs info maintenance/coral |
+| Fond neutre | Mist | `#F5EFED` | Conteneurs d'icônes, hover neutre, blocs info taupe |
+
+### Typographie
+
+- **Titres h1** : Cormorant Garamond (chargée via CSS `@import` dans `globals.css` — pas `next/font` à cause d'un bug Turbopack TLS en local)
+- **Corps / UI** : police système (Inter / sans-serif par défaut Tailwind)
+- **Labels or en header sombre** : `text-xs uppercase tracking-widest` en `#C49A5A`
+- **Titres en header sombre** : `text-3xl` ou `text-4xl` Cormorant, blanc
+
+### Composants de mise en page
+
+#### Header éditorial (hero sombre)
+```
+bg: #1C1211
+structure: label gold uppercase + h1 Cormorant blanc + sous-titre taupe
+padding: pt-16 pb-10 (mobile) / pt-20 pb-14 (desktop)
+```
+
+#### Trait vertical de section
+```
+w-1 h-8 rounded-full    →  couleur coral #E05947 (sections principales)
+w-1 h-5 rounded-full    →  couleur gold #C49A5A  (sous-sections, messages)
+```
+Remplace les icônes carrées en tête de section. Appliqué sur : restaurants, activités, suggestions, demandes, contacts.
+
+#### Cards
+- Fond blanc, bordure `#E8DEDA`, `rounded-2xl`
+- Hover : `hover:bg-[#FFF5F3]` (coral) ou `hover:bg-[#F5EFED]` (neutre)
+- Titre hover : `group-hover:text-[#E05947]`
+- Conteneur icône : `w-9 h-9 rounded-lg bg-[#F5EFED]` (liste) / `w-12 h-12 rounded-xl bg-[#F5EFED]` (détail)
+
+#### Boutons (définis dans `globals.css @layer components`)
+- `btn-primary` — fond coral `#E05947`, texte blanc
+- `btn-ghost` — transparent, bordure `#E8DEDA`, texte `#746865`
+- `btn-danger` — fond rouge destructif
+
+### Règles par page
+
+| Page | Particularité |
+|------|--------------|
+| `/shows` | Fond `bg-gray-900`, ambiance nocturne — **ne jamais changer** |
+| `/contacts` | Cards urgences fond `#1C1211` + phone en grand blanc ; infos pratiques dark banner 3 colonnes |
+| `/restaurants` | Trait couleur variable selon `spot_type` : coral (restaurant), taupe (bar), gold (café) |
+| `/requests` | Pas d'emojis — icônes SVG uniquement dans conteneurs `#F5EFED` |
+| `/admin/*` | Palette taupe/neutre — pas de coral (réservé clients) |
+
+### Icônes
+
+Composant : `src/components/ui/Icons.tsx` — `Icon.X` avec `className?: string` uniquement (**pas de prop `style`**).  
+Coloration : classes Tailwind arbitraires `text-[#E05947]`, `text-[#C49A5A]`, `text-[#746865]`, `text-[#E8DEDA]`.
+
+### Identité visuelle Les Orangers
+
+- **Nom** : Les Orangers
+- **Positionnement** : hôtel de prestige, style éditorial — sobre, élégant, sans emojis
+- **Ton** : professionnel, chaleureux, français
+- **Logo** : URL dans `hotels.logo_url` (Cloudinary)
+- **Couleur primaire DB** : `hotels.primary_color` = `#E05947` (coral)
 
 ---
 
