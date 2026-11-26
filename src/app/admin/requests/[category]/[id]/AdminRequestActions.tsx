@@ -1,114 +1,141 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client-browser'
-import { updateRequestStatus, updateRequestPriority, sendRequestMessage } from '@/app/admin/requests/actions'
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  sendRequestMessage,
+  updateRequestPriority,
+  updateRequestStatus,
+} from "@/app/admin/requests/actions";
+import { createClient } from "@/lib/supabase/client-browser";
 
 interface Props {
-  requestId: number
-  status: string
-  category: string
+  requestId: number;
+  status: string;
+  category: string;
 }
 
-export default function AdminRequestActions({ requestId, status, category }: Props) {
-  const [message, setMessage] = useState('')
-  const [priority, setPriority] = useState<string>('')
-  const [sending, setSending] = useState(false)
-  const [updating, setUpdating] = useState(false)
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const router = useRouter()
-  const supabase = createClient()
+export default function AdminRequestActions({
+  requestId,
+  status,
+  category,
+}: Props) {
+  const [message, setMessage] = useState("");
+  const [priority, setPriority] = useState<string>("");
+  const [sending, setSending] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
 
-  const showFeedback = (type: 'success' | 'error', text: string) => {
-    setFeedback({ type, text })
-    setTimeout(() => setFeedback(null), 3000)
-  }
+  const showFeedback = (type: "success" | "error", text: string) => {
+    setFeedback({ type, text });
+    setTimeout(() => setFeedback(null), 3000);
+  };
 
   const handleStatusChange = async (newStatus: string) => {
-    setUpdating(true)
+    setUpdating(true);
     try {
-      await updateRequestStatus(requestId, newStatus)
-      showFeedback('success', 'Statut mis à jour')
-      router.refresh()
+      await updateRequestStatus(requestId, newStatus);
+      showFeedback("success", "Statut mis à jour");
+      router.refresh();
     } catch {
-      showFeedback('error', 'Erreur lors de la mise à jour')
+      showFeedback("error", "Erreur lors de la mise à jour");
     }
-    setUpdating(false)
-  }
+    setUpdating(false);
+  };
 
   const handlePriorityChange = async (newPriority: string) => {
-    setUpdating(true)
+    setUpdating(true);
     try {
-      await updateRequestPriority(requestId, newPriority)
-      showFeedback('success', 'Priorité mise à jour')
-      setPriority(newPriority)
-      router.refresh()
+      await updateRequestPriority(requestId, newPriority);
+      showFeedback("success", "Priorité mise à jour");
+      setPriority(newPriority);
+      router.refresh();
     } catch {
-      showFeedback('error', 'Erreur lors de la mise à jour')
+      showFeedback("error", "Erreur lors de la mise à jour");
     }
-    setUpdating(false)
-  }
+    setUpdating(false);
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!message.trim()) return
-    setSending(true)
+    e.preventDefault();
+    if (!message.trim()) return;
+    setSending(true);
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { data: profile } = await supabase
-      .from('profiles').select('first_name, last_name').eq('id', user?.id).single()
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", user?.id)
+      .single();
     const senderName = profile
-      ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Équipe hôtel'
-      : 'Équipe hôtel'
+      ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+        "Équipe hôtel"
+      : "Équipe hôtel";
 
     try {
-      await sendRequestMessage({ request_id: requestId, sender_name: senderName, message: message.trim() })
-      setMessage('')
-      showFeedback('success', 'Message envoyé')
-      router.refresh()
+      await sendRequestMessage({
+        request_id: requestId,
+        sender_name: senderName,
+        message: message.trim(),
+      });
+      setMessage("");
+      showFeedback("success", "Message envoyé");
+      router.refresh();
     } catch {
-      showFeedback('error', 'Erreur lors de l\'envoi')
+      showFeedback("error", "Erreur lors de l'envoi");
     }
-    setSending(false)
-  }
+    setSending(false);
+  };
 
   return (
     <div className="space-y-4">
       {/* Feedback */}
       {feedback && (
-        <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
-          feedback.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-        }`}>
+        <div
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            feedback.type === "success"
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-700"
+          }`}
+        >
           {feedback.text}
         </div>
       )}
 
       {/* Changer le statut */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Changer le statut</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          Changer le statut
+        </p>
         <div className="flex flex-wrap gap-2">
-          {status === 'pending' && (
+          {status === "pending" && (
             <button
-              onClick={() => handleStatusChange('in_progress')}
+              onClick={() => handleStatusChange("in_progress")}
               disabled={updating}
               className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition disabled:opacity-50"
             >
               ▶ Prendre en charge
             </button>
           )}
-          {status === 'in_progress' && (
+          {status === "in_progress" && (
             <button
-              onClick={() => handleStatusChange('completed')}
+              onClick={() => handleStatusChange("completed")}
               disabled={updating}
               className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition disabled:opacity-50"
             >
               ✓ Marquer terminée
             </button>
           )}
-          {status !== 'cancelled' && status !== 'completed' && (
+          {status !== "cancelled" && status !== "completed" && (
             <button
-              onClick={() => handleStatusChange('cancelled')}
+              onClick={() => handleStatusChange("cancelled")}
               disabled={updating}
               className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-lg transition disabled:opacity-50"
             >
@@ -120,20 +147,24 @@ export default function AdminRequestActions({ requestId, status, category }: Pro
 
       {/* Changer la priorité */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Priorité</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          Priorité
+        </p>
         <div className="flex gap-2">
-          {(['normal', 'high', 'urgent'] as const).map(p => (
+          {(["normal", "high", "urgent"] as const).map((p) => (
             <button
               key={p}
               onClick={() => handlePriorityChange(p)}
               disabled={updating}
               className={`px-3 py-1.5 text-xs rounded-lg transition disabled:opacity-50 ${
-                p === 'normal' ? 'bg-blue-100 hover:bg-blue-200 text-blue-700' :
-                p === 'high'   ? 'bg-orange-100 hover:bg-orange-200 text-orange-700' :
-                                 'bg-red-100 hover:bg-red-200 text-red-700'
+                p === "normal"
+                  ? "bg-blue-100 hover:bg-blue-200 text-blue-700"
+                  : p === "high"
+                    ? "bg-orange-100 hover:bg-orange-200 text-orange-700"
+                    : "bg-red-100 hover:bg-red-200 text-red-700"
               }`}
             >
-              {p === 'normal' ? 'Normale' : p === 'high' ? 'Haute' : 'Urgente'}
+              {p === "normal" ? "Normale" : p === "high" ? "Haute" : "Urgente"}
             </button>
           ))}
         </div>
@@ -141,11 +172,13 @@ export default function AdminRequestActions({ requestId, status, category }: Pro
 
       {/* Envoyer un message au client */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Répondre au client</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          Répondre au client
+        </p>
         <form onSubmit={handleSendMessage} className="space-y-2">
           <textarea
             value={message}
-            onChange={e => setMessage(e.target.value)}
+            onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Votre message au client..."
             className="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
@@ -155,10 +188,10 @@ export default function AdminRequestActions({ requestId, status, category }: Pro
             disabled={sending || !message.trim()}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
           >
-            {sending ? 'Envoi...' : 'Envoyer le message'}
+            {sending ? "Envoi..." : "Envoyer le message"}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }

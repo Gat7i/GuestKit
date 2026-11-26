@@ -1,123 +1,126 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import { useToast, ToastContainer } from '@/components/admin/Toast'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ToastContainer, useToast } from "@/components/admin/Toast";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client-browser";
 
 type Customer = {
-  customer_uuid: string
-  email: string
-  full_name: string | null
-  avatar_url: string | null
-  provider: string | null
-  created_at: string
-  last_sign_in_at: string | null
-}
+  customer_uuid: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  provider: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+};
 
 export default function CheckInPage() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const { toast, toasts } = useToast()
-  const router = useRouter()
-  const supabase = createClient()
+  const [hotel, setHotel] = useState<any>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { toast, toasts } = useToast();
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const init = async () => {
       try {
-        console.log('🔍 Chargement de hotel')
-        const hotelData = await getCurrentHotelClient()
-        console.log('1111111')
-        setHotel(hotelData)
-        console.log('2222222',hotelData)
+        console.log("🔍 Chargement de hotel");
+        const hotelData = await getCurrentHotelClient();
+        console.log("1111111");
+        setHotel(hotelData);
+        console.log("2222222", hotelData);
         if (hotelData) {
-            console.log('hotel id :',hotelData.id)
-          await loadCustomers(hotelData.id)
+          console.log("hotel id :", hotelData.id);
+          await loadCustomers(hotelData.id);
         } else {
-          setLoading(false) // ← Important si pas d'hôtel
+          setLoading(false); // ← Important si pas d'hôtel
         }
       } catch (error) {
-        console.error('Erreur init:', error)
-        setLoading(false) // ← Important en cas d'erreur
+        console.error("Erreur init:", error);
+        setLoading(false); // ← Important en cas d'erreur
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   async function loadCustomers(hotelId: number) {
     try {
-      console.log('🔍 Chargement des clients pour hotelId:', hotelId)
-      
+      console.log("🔍 Chargement des clients pour hotelId:", hotelId);
+
       // 1. Récupérer tous les clients de l'hôtel
       const { data: allCustomers, error: customersError } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('hotel_id', hotelId)
-        .order('created_at', { ascending: false })
+        .from("customers")
+        .select("*")
+        .eq("hotel_id", hotelId)
+        .order("created_at", { ascending: false });
 
-      if (customersError) throw customersError
-      console.log('📊 Tous les clients:', allCustomers?.length || 0)
+      if (customersError) throw customersError;
+      console.log("📊 Tous les clients:", allCustomers?.length || 0);
 
       // 2. Récupérer tous les IDs des clients avec un séjour actif
       const { data: activeStays, error: staysError } = await supabase
-        .from('stays')
-        .select('primary_customer_id')
-        .eq('hotel_id', hotelId)
-        .eq('status', 'active')
+        .from("stays")
+        .select("primary_customer_id")
+        .eq("hotel_id", hotelId)
+        .eq("status", "active");
 
-      if (staysError) throw staysError
+      if (staysError) throw staysError;
 
       // 3. Créer un Set des IDs avec séjour actif
-      const activeCustomerIds = new Set(activeStays?.map(s => s.primary_customer_id) || [])
+      const activeCustomerIds = new Set(
+        activeStays?.map((s) => s.primary_customer_id) || [],
+      );
 
       // 4. Filtrer les clients qui n'ont PAS de séjour actif
       const filtered = (allCustomers || []).filter(
-        customer => !activeCustomerIds.has(customer.customer_uuid)
-      )
+        (customer) => !activeCustomerIds.has(customer.customer_uuid),
+      );
 
-      console.log('✅ Clients sans séjour actif:', filtered.length)
-      setCustomers(filtered)
+      console.log("✅ Clients sans séjour actif:", filtered.length);
+      setCustomers(filtered);
     } catch (error) {
-      console.error('Erreur chargement clients:', error)
+      console.error("Erreur chargement clients:", error);
     } finally {
-      setLoading(false) // ← TOUJOURS appelé
+      setLoading(false); // ← TOUJOURS appelé
     }
   }
 
   const toggleSelectAll = () => {
     if (selectedCustomers.length === filteredCustomers.length) {
-      setSelectedCustomers([])
+      setSelectedCustomers([]);
     } else {
-      setSelectedCustomers(filteredCustomers.map(c => c.customer_uuid))
+      setSelectedCustomers(filteredCustomers.map((c) => c.customer_uuid));
     }
-  }
+  };
 
   const toggleSelect = (customerId: string) => {
-    setSelectedCustomers(prev =>
+    setSelectedCustomers((prev) =>
       prev.includes(customerId)
-        ? prev.filter(id => id !== customerId)
-        : [...prev, customerId]
-    )
-  }
+        ? prev.filter((id) => id !== customerId)
+        : [...prev, customerId],
+    );
+  };
 
   const handleAssignStays = () => {
     if (selectedCustomers.length === 0) {
-      toast('Veuillez sélectionner au moins un client', 'warning')
-      return
+      toast("Veuillez sélectionner au moins un client", "warning");
+      return;
     }
-    const customerIds = selectedCustomers.join(',')
-    router.push(`/admin/reception/stays/new?customers=${customerIds}`)
-  }
+    const customerIds = selectedCustomers.join(",");
+    router.push(`/admin/reception/stays/new?customers=${customerIds}`);
+  };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   if (loading) {
     return (
@@ -127,7 +130,7 @@ export default function CheckInPage() {
           <p className="text-gray-600">Chargement des nouveaux clients...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -187,7 +190,10 @@ export default function CheckInPage() {
                   <th className="px-6 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                      checked={
+                        selectedCustomers.length === filteredCustomers.length &&
+                        filteredCustomers.length > 0
+                      }
                       onChange={toggleSelectAll}
                       className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                     />
@@ -209,17 +215,25 @@ export default function CheckInPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
                       Aucun nouveau client en attente
                     </td>
                   </tr>
                 ) : (
                   filteredCustomers.map((customer) => (
-                    <tr key={customer.customer_uuid} className="hover:bg-gray-50 transition">
+                    <tr
+                      key={customer.customer_uuid}
+                      className="hover:bg-gray-50 transition"
+                    >
                       <td className="px-6 py-4">
                         <input
                           type="checkbox"
-                          checked={selectedCustomers.includes(customer.customer_uuid)}
+                          checked={selectedCustomers.includes(
+                            customer.customer_uuid,
+                          )}
                           onChange={() => toggleSelect(customer.customer_uuid)}
                           className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                         />
@@ -229,37 +243,45 @@ export default function CheckInPage() {
                           {customer.avatar_url ? (
                             <img
                               src={customer.avatar_url}
-                              alt={customer.full_name || ''}
+                              alt={customer.full_name || ""}
                               className="w-10 h-10 rounded-full"
                             />
                           ) : (
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                               <span className="text-lg text-blue-600">
-                                {(customer.full_name || customer.email)[0].toUpperCase()}
+                                {(customer.full_name ||
+                                  customer.email)[0].toUpperCase()}
                               </span>
                             </div>
                           )}
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {customer.full_name || 'Non renseigné'}
+                              {customer.full_name || "Non renseigné"}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {customer.provider === 'email' ? '📧 Email' : `🔗 ${customer.provider}`}
+                              {customer.provider === "email"
+                                ? "📧 Email"
+                                : `🔗 ${customer.provider}`}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{customer.email}</div>
+                        <div className="text-sm text-gray-900">
+                          {customer.email}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(customer.created_at).toLocaleDateString('fr-FR')}
+                        {new Date(customer.created_at).toLocaleDateString(
+                          "fr-FR",
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {customer.last_sign_in_at 
-                          ? new Date(customer.last_sign_in_at).toLocaleDateString('fr-FR')
-                          : 'Jamais'
-                        }
+                        {customer.last_sign_in_at
+                          ? new Date(
+                              customer.last_sign_in_at,
+                            ).toLocaleDateString("fr-FR")
+                          : "Jamais"}
                       </td>
                     </tr>
                   ))
@@ -270,5 +292,5 @@ export default function CheckInPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

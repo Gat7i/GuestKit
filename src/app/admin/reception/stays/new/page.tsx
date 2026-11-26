@@ -1,130 +1,146 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useRef, Suspense } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { createStay, setCustomerActive } from '@/app/admin/reception/actions'
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { createStay, setCustomerActive } from "@/app/admin/reception/actions";
+import { ToastContainer, useToast } from "@/components/admin/Toast";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client-browser";
 
 type Customer = {
-  customer_uuid: string
-  email: string
-  full_name: string | null
-  phone: string | null
-}
+  customer_uuid: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+};
 
 export default function NewStayPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center"><p className="text-gray-600">Chargement...</p></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      }
+    >
       <NewStayForm />
     </Suspense>
-  )
+  );
 }
 
 function NewStayForm() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([])
-  const [rooms, setRooms] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const { toast, toasts } = useToast()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const customerIds = searchParams.get('customers')?.split(',') || []
-  const supabase = createClient()
-  
+  const [hotel, setHotel] = useState<any>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([]);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const { toast, toasts } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const customerIds = searchParams.get("customers")?.split(",") || [];
+  const supabase = createClient();
+
   // Utiliser un ref pour éviter les mises à jour en boucle
-  const initialized = useRef(false)
+  const initialized = useRef(false);
 
   const [formData, setFormData] = useState({
-    primary_customer_id: '',
-    room_id: '',
-    check_in_date: new Date().toISOString().split('T')[0],
-    check_out_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    primary_customer_id: "",
+    room_id: "",
+    check_in_date: new Date().toISOString().split("T")[0],
+    check_out_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
     adults_count: 1,
     children_count: 0,
-    special_requests: '',
-    total_amount: ''
-  })
+    special_requests: "",
+    total_amount: "",
+  });
 
   useEffect(() => {
     const init = async () => {
       try {
-        const hotelData = await getCurrentHotelClient()
-        setHotel(hotelData)
-        
+        const hotelData = await getCurrentHotelClient();
+        setHotel(hotelData);
+
         if (hotelData) {
           await Promise.all([
             loadCustomers(hotelData.id),
-            loadRooms(hotelData.id)
-          ])
+            loadRooms(hotelData.id),
+          ]);
         }
       } catch (error) {
-        console.error('Erreur initialisation:', error)
+        console.error("Erreur initialisation:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   // Charger les clients sélectionnés UNE SEULE fois quand customers est prêt
   useEffect(() => {
     // Éviter de re-exécuter si déjà initialisé
-    if (initialized.current) return
-    if (customers.length === 0) return
-    if (customerIds.length === 0) return
+    if (initialized.current) return;
+    if (customers.length === 0) return;
+    if (customerIds.length === 0) return;
 
-    console.log('🎯 Initialisation des clients sélectionnés')
-    
-    const selected = customers.filter(c => customerIds.includes(c.customer_uuid))
-    setSelectedCustomers(selected)
-    
+    console.log("🎯 Initialisation des clients sélectionnés");
+
+    const selected = customers.filter((c) =>
+      customerIds.includes(c.customer_uuid),
+    );
+    setSelectedCustomers(selected);
+
     // Si un seul client, le sélectionner par défaut comme client principal
     if (selected.length === 1) {
-      setFormData(prev => ({ ...prev, primary_customer_id: selected[0].customer_uuid }))
+      setFormData((prev) => ({
+        ...prev,
+        primary_customer_id: selected[0].customer_uuid,
+      }));
     }
-    
+
     // Marquer comme initialisé
-    initialized.current = true
-  }, [customers, customerIds])
+    initialized.current = true;
+  }, [customers, customerIds]);
 
   async function loadCustomers(hotelId: number) {
     const { data } = await supabase
-      .from('customers')
-      .select('customer_uuid, email, full_name, phone')
-      .eq('hotel_id', hotelId)
-      .order('full_name', { ascending: true })
+      .from("customers")
+      .select("customer_uuid, email, full_name, phone")
+      .eq("hotel_id", hotelId)
+      .order("full_name", { ascending: true });
 
-    setCustomers(data || [])
+    setCustomers(data || []);
   }
 
   async function loadRooms(hotelId: number) {
     const { data } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('hotel_id', hotelId)
-      .eq('is_active', true)
-      .order('room_number')
+      .from("rooms")
+      .select("*")
+      .eq("hotel_id", hotelId)
+      .eq("is_active", true)
+      .order("room_number");
 
-    setRooms(data || [])
+    setRooms(data || []);
   }
 
   async function handleCreateStay(e: React.FormEvent) {
-    e.preventDefault()
-    if (!hotel) return
+    e.preventDefault();
+    if (!hotel) return;
     if (!formData.primary_customer_id) {
-      toast('Veuillez sélectionner un client principal', 'warning')
-      return
+      toast("Veuillez sélectionner un client principal", "warning");
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
-      const bookingRef = `BK-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase()
-      const { data: { user } } = await supabase.auth.getUser()
+      const bookingRef =
+        `BK-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       // 1. Créer le séjour (server action — bypass RLS)
       const stay = await createStay({
@@ -137,31 +153,40 @@ function NewStayForm() {
         adults_count: formData.adults_count,
         children_count: formData.children_count,
         special_requests: formData.special_requests,
-        total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null,
-        status: 'upcoming',
+        total_amount: formData.total_amount
+          ? parseFloat(formData.total_amount)
+          : null,
+        status: "upcoming",
         created_by: user?.id,
-      })
+      });
 
       // 2. Compagnons — table sans RLS, client browser OK
-      const otherCustomers = selectedCustomers.filter(c => c.customer_uuid !== formData.primary_customer_id)
+      const otherCustomers = selectedCustomers.filter(
+        (c) => c.customer_uuid !== formData.primary_customer_id,
+      );
       if (otherCustomers.length > 0) {
-        const { error: companionsError } = await supabase.from('companions').insert(
-          otherCustomers.map(c => ({ stay_id: stay.id, full_name: c.full_name || c.email }))
-        )
-        if (companionsError) throw companionsError
+        const { error: companionsError } = await supabase
+          .from("companions")
+          .insert(
+            otherCustomers.map((c) => ({
+              stay_id: stay.id,
+              full_name: c.full_name || c.email,
+            })),
+          );
+        if (companionsError) throw companionsError;
       }
 
       // 3. Activer le client principal (server action — bypass RLS customers)
-      await setCustomerActive(formData.primary_customer_id)
+      await setCustomerActive(formData.primary_customer_id);
 
-      toast('Séjour créé avec succès')
-      router.push(`/admin/reception/stays/${stay.id}`)
-      router.refresh()
+      toast("Séjour créé avec succès");
+      router.push(`/admin/reception/stays/${stay.id}`);
+      router.refresh();
     } catch (error) {
-      console.error('Erreur création séjour:', error)
-      toast('Erreur lors de la création', 'error')
+      console.error("Erreur création séjour:", error);
+      toast("Erreur lors de la création", "error");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -173,7 +198,7 @@ function NewStayForm() {
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -199,12 +224,17 @@ function NewStayForm() {
             </h2>
             <div className="space-y-2">
               {selectedCustomers.map((customer, index) => (
-                <div key={customer.customer_uuid} className="flex items-center justify-between bg-white p-2 rounded-lg">
+                <div
+                  key={customer.customer_uuid}
+                  className="flex items-center justify-between bg-white p-2 rounded-lg"
+                >
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-600 font-medium">{index + 1}.</span>
+                    <span className="text-blue-600 font-medium">
+                      {index + 1}.
+                    </span>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {customer.full_name || 'Nom non renseigné'}
+                        {customer.full_name || "Nom non renseigné"}
                       </p>
                       <p className="text-xs text-gray-500">{customer.email}</p>
                     </div>
@@ -220,7 +250,10 @@ function NewStayForm() {
           </div>
         )}
 
-        <form onSubmit={handleCreateStay} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+        <form
+          onSubmit={handleCreateStay}
+          className="bg-white rounded-xl shadow-sm p-6 space-y-6"
+        >
           {/* Client principal */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -228,20 +261,32 @@ function NewStayForm() {
             </label>
             <select
               value={formData.primary_customer_id}
-              onChange={(e) => setFormData({ ...formData, primary_customer_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  primary_customer_id: e.target.value,
+                })
+              }
               className="w-full rounded-lg border-gray-300 shadow-sm"
               required
             >
               <option value="">Sélectionner le client principal...</option>
               {selectedCustomers.map((customer) => (
-                <option key={customer.customer_uuid} value={customer.customer_uuid}>
-                  {customer.full_name || customer.email} {customer === selectedCustomers[0] ? '(principal par défaut)' : ''}
+                <option
+                  key={customer.customer_uuid}
+                  value={customer.customer_uuid}
+                >
+                  {customer.full_name || customer.email}{" "}
+                  {customer === selectedCustomers[0]
+                    ? "(principal par défaut)"
+                    : ""}
                 </option>
               ))}
             </select>
             {selectedCustomers.length === 0 && (
               <p className="text-sm text-amber-600 mt-2">
-                ⚠️ Aucun client sélectionné. Veuillez d'abord sélectionner des clients dans la page check-in.
+                ⚠️ Aucun client sélectionné. Veuillez d'abord sélectionner des
+                clients dans la page check-in.
               </p>
             )}
           </div>
@@ -253,14 +298,17 @@ function NewStayForm() {
             </label>
             <select
               value={formData.room_id}
-              onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, room_id: e.target.value })
+              }
               className="w-full rounded-lg border-gray-300 shadow-sm"
               required
             >
               <option value="">Sélectionner une chambre...</option>
               {rooms.map((room) => (
                 <option key={room.id} value={room.id}>
-                  Chambre {room.room_number} • {room.room_type} • {room.max_occupancy} pers. • {room.base_price}€/nuit
+                  Chambre {room.room_number} • {room.room_type} •{" "}
+                  {room.max_occupancy} pers. • {room.base_price}€/nuit
                 </option>
               ))}
             </select>
@@ -275,7 +323,9 @@ function NewStayForm() {
               <input
                 type="date"
                 value={formData.check_in_date}
-                onChange={(e) => setFormData({ ...formData, check_in_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, check_in_date: e.target.value })
+                }
                 className="w-full rounded-lg border-gray-300 shadow-sm"
                 required
               />
@@ -287,7 +337,9 @@ function NewStayForm() {
               <input
                 type="date"
                 value={formData.check_out_date}
-                onChange={(e) => setFormData({ ...formData, check_out_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, check_out_date: e.target.value })
+                }
                 className="w-full rounded-lg border-gray-300 shadow-sm"
                 required
               />
@@ -305,7 +357,12 @@ function NewStayForm() {
                 min="1"
                 max="10"
                 value={formData.adults_count}
-                onChange={(e) => setFormData({ ...formData, adults_count: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    adults_count: parseInt(e.target.value),
+                  })
+                }
                 className="w-full rounded-lg border-gray-300 shadow-sm"
               />
             </div>
@@ -318,7 +375,12 @@ function NewStayForm() {
                 min="0"
                 max="10"
                 value={formData.children_count}
-                onChange={(e) => setFormData({ ...formData, children_count: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    children_count: parseInt(e.target.value),
+                  })
+                }
                 className="w-full rounded-lg border-gray-300 shadow-sm"
               />
             </div>
@@ -334,7 +396,9 @@ function NewStayForm() {
               step="0.01"
               min="0"
               value={formData.total_amount}
-              onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, total_amount: e.target.value })
+              }
               className="w-full rounded-lg border-gray-300 shadow-sm"
               placeholder="Optionnel"
             />
@@ -347,7 +411,9 @@ function NewStayForm() {
             </label>
             <textarea
               value={formData.special_requests}
-              onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, special_requests: e.target.value })
+              }
               rows={3}
               className="w-full rounded-lg border-gray-300 shadow-sm"
               placeholder="Allergies, demandes particulières..."
@@ -361,7 +427,7 @@ function NewStayForm() {
               disabled={saving || selectedCustomers.length === 0}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50"
             >
-              {saving ? 'Création...' : 'Créer le séjour'}
+              {saving ? "Création..." : "Créer le séjour"}
             </button>
             <Link
               href="/admin/reception/check-in"
@@ -373,5 +439,5 @@ function NewStayForm() {
         </form>
       </div>
     </div>
-  )
+  );
 }

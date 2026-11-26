@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
 
 export default function RestaurantNotFound() {
   return (
@@ -10,7 +10,8 @@ export default function RestaurantNotFound() {
           Restaurant introuvable
         </h1>
         <p className="text-gray-600 mb-8">
-          Le restaurant que vous recherchez n'existe pas ou a été retiré de notre carte.
+          Le restaurant que vous recherchez n'existe pas ou a été retiré de
+          notre carte.
         </p>
         <Link
           href="/restaurants"
@@ -21,5 +22,5 @@ export default function RestaurantNotFound() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

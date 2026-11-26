@@ -1,120 +1,126 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client-browser";
 
 interface ImageUploaderProps {
-  hotelId: number
-  foodSpotId?: number
-  suggestionId?: number
-  activityId?: number
-  onImageUploaded?: () => void
+  hotelId: number;
+  foodSpotId?: number;
+  suggestionId?: number;
+  activityId?: number;
+  onImageUploaded?: () => void;
 }
 
-export default function ImageUploader({ 
-  hotelId, 
-  foodSpotId, 
+export default function ImageUploader({
+  hotelId,
+  foodSpotId,
   suggestionId,
   activityId,
-  onImageUploaded 
+  onImageUploaded,
 }: ImageUploaderProps) {
-  const [uploading, setUploading] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
-  const supabase = createClient()
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const supabase = createClient();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // Preview
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onloadend = () => {
-      setPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
 
-    setUploading(true)
+    setUploading(true);
     try {
       // 1. Upload vers Cloudinary
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
-      
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
+      );
+
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
-          method: 'POST',
-          body: formData
-        }
-      )
-      
-      const data = await res.json()
-      
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const data = await res.json();
+
       // 2. Sauvegarder l'image dans la table images
       const { data: imageData, error: imageError } = await supabase
-        .from('images')
+        .from("images")
         .insert({
           url: data.secure_url,
-          alt_text: file.name.split('.')[0]
+          alt_text: file.name.split(".")[0],
         })
         .select()
-        .single()
+        .single();
 
-      if (imageError) throw imageError
+      if (imageError) throw imageError;
 
       // 3. Lier l'image à l'entité correspondante
       if (foodSpotId) {
         const { error: linkError } = await supabase
-          .from('food_spot_images')
+          .from("food_spot_images")
           .insert({
             food_spot_id: foodSpotId,
             image_id: imageData.id,
-            is_principal: false
-          })
-        if (linkError) throw linkError
+            is_principal: false,
+          });
+        if (linkError) throw linkError;
       }
-      
+
       if (suggestionId) {
         const { error: linkError } = await supabase
-          .from('suggestion_images')
+          .from("suggestion_images")
           .insert({
             suggestion_id: suggestionId,
             image_id: imageData.id,
-            is_principal: false
-          })
-        if (linkError) throw linkError
+            is_principal: false,
+          });
+        if (linkError) throw linkError;
       }
 
       if (activityId) {
         const { error: linkError } = await supabase
-          .from('entertainment_images')
+          .from("entertainment_images")
           .insert({
             entertainment_id: activityId,
             image_id: imageData.id,
-            is_principal: false
-          })
-        if (linkError) throw linkError
+            is_principal: false,
+          });
+        if (linkError) throw linkError;
       }
 
-      alert('✅ Image ajoutée avec succès!')
-      if (onImageUploaded) onImageUploaded()
-      
+      alert("✅ Image ajoutée avec succès!");
+      if (onImageUploaded) onImageUploaded();
     } catch (error) {
-      console.error('Erreur upload:', error)
-      alert('❌ Erreur lors de l\'upload')
+      console.error("Erreur upload:", error);
+      alert("❌ Erreur lors de l'upload");
     } finally {
-      setUploading(false)
-      setPreview(null)
-      e.target.value = ''
+      setUploading(false);
+      setPreview(null);
+      e.target.value = "";
     }
-  }
+  };
 
   return (
     <div className="mt-4">
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition">
         {preview ? (
           <div className="space-y-2">
-            <img src={preview} alt="Aperçu de l'image à uploader" className="max-h-32 mx-auto rounded" />
+            <img
+              src={preview}
+              alt="Aperçu de l'image à uploader"
+              className="max-h-32 mx-auto rounded"
+            />
             <p className="text-sm text-gray-600">Upload en cours...</p>
           </div>
         ) : (
@@ -129,7 +135,7 @@ export default function ImageUploader({
             <div className="space-y-2">
               <div className="text-3xl text-gray-400">📸</div>
               <div className="text-sm font-medium text-blue-600">
-                {uploading ? 'Upload...' : 'Cliquez pour ajouter une image'}
+                {uploading ? "Upload..." : "Cliquez pour ajouter une image"}
               </div>
               <div className="text-xs text-gray-500">
                 PNG, JPG, GIF • Max 10MB
@@ -139,5 +145,5 @@ export default function ImageUploader({
         )}
       </div>
     </div>
-  )
+  );
 }

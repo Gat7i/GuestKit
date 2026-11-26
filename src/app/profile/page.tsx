@@ -1,34 +1,36 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Icon } from "@/components/ui/Icons";
 
 export default async function ProfilePage() {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return cookieStore.get(name)?.value;
         },
         set() {},
         remove() {},
       },
-    }
-  )
+    },
+  );
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // ✅ CORRECTION 1: Utiliser user_id au lieu de id
   const { data: customer, error: customerError } = await supabase
-    .from('customers')
+    .from("customers")
     .select(`
       customer_uuid,
       full_name,
@@ -46,31 +48,27 @@ export default async function ProfilePage() {
         )
       )
     `)
-    .eq('user_id', user.id)
-    .maybeSingle()
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (customerError) {
-    console.error('Erreur chargement client:', customerError)
+    console.error("Erreur chargement client:", customerError);
   }
 
   // ✅ Filtrer les séjours actifs
-  const activeStays = customer?.stays?.filter((stay: any) => 
-    stay.status === 'active'
-  ) || []
+  const activeStays =
+    customer?.stays?.filter((stay: any) => stay.status === "active") || [];
 
-  const pastStays = customer?.stays?.filter((stay: any) => 
-    stay.status !== 'active'
-  ) || []
+  const pastStays =
+    customer?.stays?.filter((stay: any) => stay.status !== "active") || [];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Profil */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Mon profil
-          </h1>
-          
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Mon profil</h1>
+
           <div className="flex items-center gap-4 mb-6">
             {user.user_metadata?.avatar_url ? (
               <img
@@ -85,10 +83,13 @@ export default async function ProfilePage() {
             )}
             <div>
               <p className="text-lg font-semibold text-gray-900">
-                {customer?.full_name || user.user_metadata?.full_name || user.email}
+                {customer?.full_name ||
+                  user.user_metadata?.full_name ||
+                  user.email}
               </p>
               <p className="text-sm text-gray-500">
-                {user.email} • Connecté avec {user.app_metadata?.provider || 'email'}
+                {user.email} • Connecté avec{" "}
+                {user.app_metadata?.provider || "email"}
               </p>
             </div>
           </div>
@@ -111,18 +112,27 @@ export default async function ProfilePage() {
                       <div>
                         <p className="font-medium text-gray-900 flex items-center gap-1.5">
                           <Icon.Key className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          Chambre {stay.room?.room_number || '?'} • {stay.room?.room_type || ''}
+                          Chambre {stay.room?.room_number || "?"} •{" "}
+                          {stay.room?.room_type || ""}
                         </p>
                         <p className="text-sm text-gray-600 mt-1 flex items-center gap-1.5">
                           <Icon.Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          Du {new Date(stay.check_in_date).toLocaleDateString('fr-FR')}
-                          au {new Date(stay.check_out_date).toLocaleDateString('fr-FR')}
+                          Du{" "}
+                          {new Date(stay.check_in_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
+                          au{" "}
+                          {new Date(stay.check_out_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           Réf: {stay.booking_reference}
                         </p>
                       </div>
-                      <span className="text-green-600 font-medium">Voir détails →</span>
+                      <span className="text-green-600 font-medium">
+                        Voir détails →
+                      </span>
                     </div>
                   </Link>
                 ))}
@@ -137,7 +147,8 @@ export default async function ProfilePage() {
                     Vous n'avez pas de séjour actif
                   </p>
                   <p className="text-sm text-amber-600">
-                    Présentez-vous à la réception pour enregistrer votre arrivée.
+                    Présentez-vous à la réception pour enregistrer votre
+                    arrivée.
                   </p>
                 </div>
               </div>
@@ -160,10 +171,16 @@ export default async function ProfilePage() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-900">
-                          Chambre {stay.room?.room_number || '?'}
+                          Chambre {stay.room?.room_number || "?"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(stay.check_in_date).toLocaleDateString('fr-FR')} → {new Date(stay.check_out_date).toLocaleDateString('fr-FR')}
+                          {new Date(stay.check_in_date).toLocaleDateString(
+                            "fr-FR",
+                          )}{" "}
+                          →{" "}
+                          {new Date(stay.check_out_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </p>
                       </div>
                       <span className="text-gray-400 text-sm">Voir</span>
@@ -186,5 +203,5 @@ export default async function ProfilePage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

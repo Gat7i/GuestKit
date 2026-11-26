@@ -1,21 +1,31 @@
-import { getCurrentHotelServer } from '@/lib/hotel-server'
-import { createClient } from '@/lib/supabase/server-client'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Image from "next/image";
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelServer } from "@/lib/hotel-server";
+import { createClient } from "@/lib/supabase/server-client";
 
 const MONTHS_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-]
-const DAYS_SHORT_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+const DAYS_SHORT_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 export default async function ShowsPage() {
-  const hotel = await getCurrentHotelServer()
-  const supabase = await createClient()
+  const hotel = await getCurrentHotelServer();
+  const supabase = await createClient();
 
   const { data: shows, error } = await supabase
-    .from('entertainments')
+    .from("entertainments")
     .select(`
       *,
       location:locations(name),
@@ -31,42 +41,55 @@ export default async function ShowsPage() {
         target_audience
       )
     `)
-    .eq('hotel_id', hotel?.id)
-    .eq('is_night_show', true)
-    .eq('is_daily_activity', false)
-    .order('title')
+    .eq("hotel_id", hotel?.id)
+    .eq("is_night_show", true)
+    .eq("is_daily_activity", false)
+    .order("title");
 
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <p className="text-red-400">Impossible de charger les spectacles</p>
       </div>
-    )
+    );
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const showsWithSchedules = (shows || [])
-    .filter(s => s.schedules?.length > 0)
-    .map(s => ({ ...s, schedules: s.schedules.sort((a: any, b: any) => new Date(a.show_date).getTime() - new Date(b.show_date).getTime()) }))
+    .filter((s) => s.schedules?.length > 0)
+    .map((s) => ({
+      ...s,
+      schedules: s.schedules.sort(
+        (a: any, b: any) =>
+          new Date(a.show_date).getTime() - new Date(b.show_date).getTime(),
+      ),
+    }));
 
-  const upcomingShows: any[] = []
-  const pastShows: any[] = []
+  const upcomingShows: any[] = [];
+  const pastShows: any[] = [];
 
-  showsWithSchedules.forEach(show => {
-    const next = show.schedules.find((sc: any) => new Date(sc.show_date) >= today)
-    if (next) upcomingShows.push({ ...show, nextSchedule: next })
-    else pastShows.push({ ...show, lastSchedule: show.schedules[show.schedules.length - 1] })
-  })
+  showsWithSchedules.forEach((show) => {
+    const next = show.schedules.find(
+      (sc: any) => new Date(sc.show_date) >= today,
+    );
+    if (next) upcomingShows.push({ ...show, nextSchedule: next });
+    else
+      pastShows.push({
+        ...show,
+        lastSchedule: show.schedules[show.schedules.length - 1],
+      });
+  });
 
-  upcomingShows.sort((a, b) =>
-    new Date(a.nextSchedule.show_date).getTime() - new Date(b.nextSchedule.show_date).getTime()
-  )
+  upcomingShows.sort(
+    (a, b) =>
+      new Date(a.nextSchedule.show_date).getTime() -
+      new Date(b.nextSchedule.show_date).getTime(),
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
-
       {/* En-tête */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
@@ -83,19 +106,23 @@ export default async function ShowsPage() {
             Vivez la magie des <span className="text-purple-400">soirées</span>
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Cabarets, concerts, shows magiques... Découvrez notre programmation nocturne
+            Cabarets, concerts, shows magiques... Découvrez notre programmation
+            nocturne
           </p>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-12">
-
         {/* Aucun spectacle */}
         {upcomingShows.length === 0 && (
           <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-12 text-center border border-gray-700">
             <Icon.Show className="w-16 h-16 text-gray-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-3">Aucun spectacle programmé pour le moment</h2>
-            <p className="text-gray-400 text-lg mb-6">Notre équipe prépare de nouvelles soirées exceptionnelles</p>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Aucun spectacle programmé pour le moment
+            </h2>
+            <p className="text-gray-400 text-lg mb-6">
+              Notre équipe prépare de nouvelles soirées exceptionnelles
+            </p>
             <div className="inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-6 py-3 rounded-full">
               Revenez nous voir bientôt
             </div>
@@ -106,17 +133,18 @@ export default async function ShowsPage() {
         {upcomingShows.length > 0 && (
           <div className="mb-16">
             <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-              <span className="bg-purple-600 w-1 h-8 rounded-full" />
-              À venir
+              <span className="bg-purple-600 w-1 h-8 rounded-full" />À venir
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingShows.map((show) => {
-                const mainImage = show.images?.find((img: any) => img.is_principal)?.image || show.images?.[0]?.image
-                const showDate = new Date(show.nextSchedule.show_date)
-                const day = showDate.getDate()
-                const month = MONTHS_FR[showDate.getMonth()].slice(0, 3)
-                const dayName = DAYS_SHORT_FR[showDate.getDay()]
+                const mainImage =
+                  show.images?.find((img: any) => img.is_principal)?.image ||
+                  show.images?.[0]?.image;
+                const showDate = new Date(show.nextSchedule.show_date);
+                const day = showDate.getDate();
+                const month = MONTHS_FR[showDate.getMonth()].slice(0, 3);
+                const dayName = DAYS_SHORT_FR[showDate.getDay()];
 
                 return (
                   <Link
@@ -144,7 +172,9 @@ export default async function ShowsPage() {
 
                       {/* Badge date */}
                       <div className="absolute top-3 left-3 bg-purple-700/90 backdrop-blur text-white rounded-xl px-3 py-2 text-center min-w-[52px]">
-                        <p className="text-xs font-medium uppercase tracking-wider opacity-80">{dayName}</p>
+                        <p className="text-xs font-medium uppercase tracking-wider opacity-80">
+                          {dayName}
+                        </p>
                         <p className="text-2xl font-bold leading-none">{day}</p>
                         <p className="text-xs font-medium mt-0.5">{month}</p>
                       </div>
@@ -188,13 +218,14 @@ export default async function ShowsPage() {
                         )}
                         {show.schedules.length > 1 && (
                           <span className="text-xs text-purple-400 bg-purple-400/10 px-2.5 py-1 rounded-full">
-                            +{show.schedules.length - 1} date{show.schedules.length > 2 ? 's' : ''}
+                            +{show.schedules.length - 1} date
+                            {show.schedules.length > 2 ? "s" : ""}
                           </span>
                         )}
                       </div>
                     </div>
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
@@ -207,26 +238,44 @@ export default async function ShowsPage() {
               <summary className="text-gray-400 cursor-pointer hover:text-white transition flex items-center gap-2 text-sm select-none">
                 <Icon.Show className="w-4 h-4" />
                 Spectacles passés ({pastShows.length})
-                <span className="group-open:rotate-90 transition inline-block">▶</span>
+                <span className="group-open:rotate-90 transition inline-block">
+                  ▶
+                </span>
               </summary>
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pastShows.map((show) => {
-                  const mainImage = show.images?.find((img: any) => img.is_principal)?.image || show.images?.[0]?.image
+                  const mainImage =
+                    show.images?.find((img: any) => img.is_principal)?.image ||
+                    show.images?.[0]?.image;
                   return (
-                    <Link key={show.id} href={`/shows/${show.id}`} className="bg-gray-800/30 rounded-xl overflow-hidden border border-gray-700 flex gap-3 p-3 hover:border-gray-500 transition">
+                    <Link
+                      key={show.id}
+                      href={`/shows/${show.id}`}
+                      className="bg-gray-800/30 rounded-xl overflow-hidden border border-gray-700 flex gap-3 p-3 hover:border-gray-500 transition"
+                    >
                       {mainImage && (
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                          <Image src={mainImage.url} alt={show.title} fill sizes="64px" className="object-cover" />
+                          <Image
+                            src={mainImage.url}
+                            alt={show.title}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
+                          />
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-medium text-white text-sm truncate">{show.title}</p>
+                        <p className="font-medium text-white text-sm truncate">
+                          {show.title}
+                        </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {new Date(show.lastSchedule.show_date).toLocaleDateString('fr-FR')}
+                          {new Date(
+                            show.lastSchedule.show_date,
+                          ).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                     </Link>
-                  )
+                  );
                 })}
               </div>
             </details>
@@ -236,9 +285,12 @@ export default async function ShowsPage() {
         {/* Encart réservation */}
         <div className="mt-16 bg-purple-900/30 backdrop-blur border border-purple-700/50 rounded-xl p-6 text-center">
           <Icon.Star className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-white mb-2">Réservation recommandée</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            Réservation recommandée
+          </h3>
           <p className="text-gray-300 text-sm max-w-2xl mx-auto">
-            Les places pour nos spectacles sont limitées. Rendez-vous à la réception ou contactez notre équipe d'animation.
+            Les places pour nos spectacles sont limitées. Rendez-vous à la
+            réception ou contactez notre équipe d'animation.
           </p>
           {hotel?.phone && (
             <div className="mt-4 inline-flex items-center gap-2 text-purple-400 bg-purple-400/10 px-4 py-2 rounded-full text-sm">
@@ -247,8 +299,7 @@ export default async function ShowsPage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
-  )
+  );
 }

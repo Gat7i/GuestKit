@@ -1,133 +1,133 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import { useToast, ToastContainer } from '@/components/admin/Toast'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { activateStay } from '@/app/admin/reception/actions'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { activateStay } from "@/app/admin/reception/actions";
+import { ToastContainer, useToast } from "@/components/admin/Toast";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client-browser";
 
 type StayRequest = {
-  id: number
-  hotel_id: number
-  booking_reference: string
-  check_in_date: string
-  check_out_date: string
-  adults_count: number
-  children_count: number
-  status: 'upcoming'
-  special_requests: string | null
-  created_at: string
+  id: number;
+  hotel_id: number;
+  booking_reference: string;
+  check_in_date: string;
+  check_out_date: string;
+  adults_count: number;
+  children_count: number;
+  status: "upcoming";
+  special_requests: string | null;
+  created_at: string;
   customer: {
-    customer_uuid: string
-    full_name: string | null
-    email: string
-    phone: string | null
-  } | null
+    customer_uuid: string;
+    full_name: string | null;
+    email: string;
+    phone: string | null;
+  } | null;
   room: {
-    room_number: string
-  } | null
+    room_number: string;
+  } | null;
   hotel?: {
-    name: string
-    slug: string
-  }
-}
+    name: string;
+    slug: string;
+  };
+};
 
 export default function StayRequestsPage() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [requests, setRequests] = useState<StayRequest[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedRequest, setSelectedRequest] = useState<StayRequest | null>(null)
-  const [rooms, setRooms] = useState<any[]>([])
-  const [assigning, setAssigning] = useState(false)
-  const { toast, toasts } = useToast()
-  const [error, setError] = useState<string | null>(null)
-  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [hotels, setHotels] = useState<any[]>([])
-  const router = useRouter()
-  const supabase = createClient()
+  const [hotel, setHotel] = useState<any>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [requests, setRequests] = useState<StayRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<StayRequest | null>(
+    null,
+  );
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [assigning, setAssigning] = useState(false);
+  const { toast, toasts } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+  const [hotels, setHotels] = useState<any[]>([]);
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const init = async () => {
       try {
-        console.log('🔍 Initialisation stay-requests...')
-        
+        console.log("🔍 Initialisation stay-requests...");
+
         // 1. Récupérer la session utilisateur
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session) {
-          router.push('/admin/login')
-          return
+          router.push("/admin/login");
+          return;
         }
 
         // 2. Récupérer le profil pour savoir si c'est un super_admin
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('role_id, hotel_id')
-          .eq('id', session.user.id)
-          .single()
+          .from("profiles")
+          .select("role_id, hotel_id")
+          .eq("id", session.user.id)
+          .single();
 
-        console.log('👤 Profil utilisateur:', profile)
+        console.log("👤 Profil utilisateur:", profile);
 
         // 3. Récupérer l'hôtel (peut être null pour super_admin)
-        const hotelData = await getCurrentHotelClient()
-        console.log('🏨 Hôtel récupéré:', hotelData)
-        
-        setHotel(hotelData)
-        setIsSuperAdmin(!hotelData) // Si pas d'hôtel, c'est un super_admin
+        const hotelData = await getCurrentHotelClient();
+        console.log("🏨 Hôtel récupéré:", hotelData);
+
+        setHotel(hotelData);
+        setIsSuperAdmin(!hotelData); // Si pas d'hôtel, c'est un super_admin
 
         // 4. Si super_admin, charger la liste de tous les hôtels
         if (!hotelData) {
           const { data: hotelsData } = await supabase
-            .from('hotels')
-            .select('id, name, slug')
-            .order('name')
-          
-          setHotels(hotelsData || [])
-          console.log('🏨 Tous les hôtels:', hotelsData)
+            .from("hotels")
+            .select("id, name, slug")
+            .order("name");
+
+          setHotels(hotelsData || []);
+          console.log("🏨 Tous les hôtels:", hotelsData);
         }
 
         // 5. Charger les données
-        await loadData(hotelData)
-        
+        await loadData(hotelData);
       } catch (error) {
-        console.error('❌ Erreur initialisation:', error)
-        setError('Erreur lors de l\'initialisation')
+        console.error("❌ Erreur initialisation:", error);
+        setError("Erreur lors de l'initialisation");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   // Recharger quand l'hôtel sélectionné change (pour super_admin)
   useEffect(() => {
     if (isSuperAdmin && selectedHotelId) {
-      loadRequests(selectedHotelId)
-      loadRooms(selectedHotelId)
+      loadRequests(selectedHotelId);
+      loadRooms(selectedHotelId);
     }
-  }, [selectedHotelId])
+  }, [selectedHotelId]);
 
   async function loadData(hotelData: any) {
     if (hotelData) {
       // Admin normal - charge son hôtel
-      await Promise.all([
-        loadRequests(hotelData.id),
-        loadRooms(hotelData.id)
-      ])
+      await Promise.all([loadRequests(hotelData.id), loadRooms(hotelData.id)]);
     } else {
       // Super admin - ne charge rien tant qu'un hôtel n'est pas sélectionné
-      console.log('👑 Mode super admin - en attente de sélection')
+      console.log("👑 Mode super admin - en attente de sélection");
     }
   }
 
   async function loadRequests(hotelId: number) {
     try {
-      console.log('📊 Chargement des demandes pour hotelId:', hotelId)
-      
+      console.log("📊 Chargement des demandes pour hotelId:", hotelId);
+
       const { data, error } = await supabase
-        .from('stays')
+        .from("stays")
         .select(`
           *,
           customer:customers(
@@ -138,70 +138,70 @@ export default function StayRequestsPage() {
           ),
           room:rooms(room_number)
         `)
-        .eq('hotel_id', hotelId)
-        .eq('status', 'upcoming')
-        .order('created_at', { ascending: false })
+        .eq("hotel_id", hotelId)
+        .eq("status", "upcoming")
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('❌ Erreur SQL:', error)
-        throw error
+        console.error("❌ Erreur SQL:", error);
+        throw error;
       }
 
-      console.log('📦 Demandes trouvées:', data?.length || 0)
-      setRequests(data || [])
+      console.log("📦 Demandes trouvées:", data?.length || 0);
+      setRequests(data || []);
     } catch (error) {
-      console.error('❌ Erreur chargement demandes:', error)
-      setError('Erreur lors du chargement des demandes')
+      console.error("❌ Erreur chargement demandes:", error);
+      setError("Erreur lors du chargement des demandes");
     }
   }
 
   async function loadRooms(hotelId: number) {
     try {
-      console.log('🛏️ Chargement des chambres pour hotelId:', hotelId)
-      
+      console.log("🛏️ Chargement des chambres pour hotelId:", hotelId);
+
       const { data, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .eq('hotel_id', hotelId)
-        .eq('is_active', true)
-        .order('room_number')
-      
-      if (error) throw error
-      
-      console.log('🛏️ Chambres chargées:', data?.length || 0)
-      setRooms(data || [])
+        .from("rooms")
+        .select("*")
+        .eq("hotel_id", hotelId)
+        .eq("is_active", true)
+        .order("room_number");
+
+      if (error) throw error;
+
+      console.log("🛏️ Chambres chargées:", data?.length || 0);
+      setRooms(data || []);
     } catch (error) {
-      console.error('❌ Erreur chargement chambres:', error)
+      console.error("❌ Erreur chargement chambres:", error);
     }
   }
 
   async function assignRoom(requestId: number, roomId: number) {
     if (!roomId) {
-      toast('Veuillez sélectionner une chambre', 'warning')
-      return
+      toast("Veuillez sélectionner une chambre", "warning");
+      return;
     }
 
-    setAssigning(true)
+    setAssigning(true);
     try {
-      console.log('📝 Assignation chambre:', { requestId, roomId })
-      
-      await activateStay(requestId, roomId)
-      toast('Séjour activé avec succès')
-      setSelectedRequest(null)
-      
+      console.log("📝 Assignation chambre:", { requestId, roomId });
+
+      await activateStay(requestId, roomId);
+      toast("Séjour activé avec succès");
+      setSelectedRequest(null);
+
       // Recharger selon le contexte
       if (isSuperAdmin && selectedHotelId) {
-        await loadRequests(selectedHotelId)
+        await loadRequests(selectedHotelId);
       } else if (hotel) {
-        await loadRequests(hotel.id)
+        await loadRequests(hotel.id);
       }
-      
-      router.refresh()
+
+      router.refresh();
     } catch (error) {
-      console.error('❌ Erreur activation:', error)
-      toast('Erreur lors de l\'activation', 'error')
+      console.error("❌ Erreur activation:", error);
+      toast("Erreur lors de l'activation", "error");
     } finally {
-      setAssigning(false)
+      setAssigning(false);
     }
   }
 
@@ -214,7 +214,7 @@ export default function StayRequestsPage() {
           <p className="text-gray-600">Chargement des demandes...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -234,7 +234,7 @@ export default function StayRequestsPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -246,10 +246,7 @@ export default function StayRequestsPage() {
             Demandes de séjour
           </h1>
           <p className="text-gray-600">
-            {isSuperAdmin 
-              ? 'Mode Super Admin - Tous les hôtels' 
-              : hotel?.name
-            }
+            {isSuperAdmin ? "Mode Super Admin - Tous les hôtels" : hotel?.name}
           </p>
         </div>
 
@@ -260,8 +257,12 @@ export default function StayRequestsPage() {
               Sélectionnez un hôtel
             </label>
             <select
-              onChange={(e) => setSelectedHotelId(e.target.value ? parseInt(e.target.value) : null)}
-              value={selectedHotelId || ''}
+              onChange={(e) =>
+                setSelectedHotelId(
+                  e.target.value ? parseInt(e.target.value) : null,
+                )
+              }
+              value={selectedHotelId || ""}
               className="w-full md:w-96 rounded-lg border-amber-300 shadow-sm focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">-- Choisir un hôtel --</option>
@@ -282,7 +283,8 @@ export default function StayRequestsPage() {
               Sélectionnez un hôtel
             </h3>
             <p className="text-amber-600">
-              Veuillez choisir un hôtel dans la liste ci-dessus pour voir ses demandes.
+              Veuillez choisir un hôtel dans la liste ci-dessus pour voir ses
+              demandes.
             </p>
           </div>
         )}
@@ -331,18 +333,28 @@ export default function StayRequestsPage() {
                           </span>
                         </div>
                         <h2 className="text-xl font-bold text-gray-900 mb-1">
-                          {request.customer?.full_name || 'Client sans nom'}
+                          {request.customer?.full_name || "Client sans nom"}
                         </h2>
-                        <p className="text-gray-600">{request.customer?.email || 'Email non disponible'}</p>
+                        <p className="text-gray-600">
+                          {request.customer?.email || "Email non disponible"}
+                        </p>
                         {request.customer?.phone && (
-                          <p className="text-sm text-gray-500 mt-1">📞 {request.customer.phone}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            📞 {request.customer.phone}
+                          </p>
                         )}
                       </div>
                       <button
-                        onClick={() => setSelectedRequest(selectedRequest?.id === request.id ? null : request)}
+                        onClick={() =>
+                          setSelectedRequest(
+                            selectedRequest?.id === request.id ? null : request,
+                          )
+                        }
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
                       >
-                        {selectedRequest?.id === request.id ? 'Annuler' : 'Assigner une chambre'}
+                        {selectedRequest?.id === request.id
+                          ? "Annuler"
+                          : "Assigner une chambre"}
                       </button>
                     </div>
 
@@ -350,20 +362,26 @@ export default function StayRequestsPage() {
                       <div>
                         <p className="text-gray-500">Arrivée</p>
                         <p className="font-medium text-gray-900">
-                          {new Date(request.check_in_date).toLocaleDateString('fr-FR')}
+                          {new Date(request.check_in_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-500">Départ</p>
                         <p className="font-medium text-gray-900">
-                          {new Date(request.check_out_date).toLocaleDateString('fr-FR')}
+                          {new Date(request.check_out_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-500">Personnes</p>
                         <p className="font-medium text-gray-900">
-                          {request.adults_count} adulte{request.adults_count > 1 ? 's' : ''}
-                          {request.children_count > 0 && `, ${request.children_count} enfant${request.children_count > 1 ? 's' : ''}`}
+                          {request.adults_count} adulte
+                          {request.adults_count > 1 ? "s" : ""}
+                          {request.children_count > 0 &&
+                            `, ${request.children_count} enfant${request.children_count > 1 ? "s" : ""}`}
                         </p>
                       </div>
                     </div>
@@ -387,22 +405,27 @@ export default function StayRequestsPage() {
                             className="flex-1 rounded-lg border-gray-300 shadow-sm"
                             defaultValue=""
                           >
-                            <option value="">Sélectionner une chambre...</option>
+                            <option value="">
+                              Sélectionner une chambre...
+                            </option>
                             {rooms.map((room) => (
                               <option key={room.id} value={room.id}>
-                                Chambre {room.room_number} • {room.room_type} • {room.max_occupancy} pers.
+                                Chambre {room.room_number} • {room.room_type} •{" "}
+                                {room.max_occupancy} pers.
                               </option>
                             ))}
                           </select>
                           <button
                             onClick={() => {
-                              const select = document.getElementById(`room-${request.id}`) as HTMLSelectElement
-                              assignRoom(request.id, parseInt(select.value))
+                              const select = document.getElementById(
+                                `room-${request.id}`,
+                              ) as HTMLSelectElement;
+                              assignRoom(request.id, parseInt(select.value));
                             }}
                             disabled={assigning}
                             className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
                           >
-                            {assigning ? 'Traitement...' : 'Activer le séjour'}
+                            {assigning ? "Traitement..." : "Activer le séjour"}
                           </button>
                         </div>
                       </div>
@@ -415,5 +438,5 @@ export default function StayRequestsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

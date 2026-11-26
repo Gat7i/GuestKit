@@ -1,55 +1,66 @@
 // src/app/activities/page.tsx
-import { createClient } from '@/lib/supabase/server-client'
-import { getCurrentHotelServer } from '@/lib/hotel-server'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Icon } from '@/components/ui/Icons'
+
+import Image from "next/image";
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelServer } from "@/lib/hotel-server";
+import { createClient } from "@/lib/supabase/server-client";
 
 // Jours de la semaine en français
-const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+const DAYS_FR = [
+  "Dimanche",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+];
 
 export default async function ActivitiesPage() {
-  const supabase = await createClient()
-  
+  const supabase = await createClient();
+
   // 1. Récupérer l'hôtel courant (basé sur le sous-domaine)
-  const hotel = await getCurrentHotelServer()
-  
+  const hotel = await getCurrentHotelServer();
+
   if (!hotel) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl text-red-600">Hôtel non trouvé</h2>
-          <p className="text-gray-600 mt-2">Impossible de charger les activités</p>
+          <p className="text-gray-600 mt-2">
+            Impossible de charger les activités
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   // 2. Récupérer les catégories d'activités de l'hôtel
   const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('hotel_id', hotel.id)
-    .eq('category_type', 'activity')
-    .eq('is_active', true)
-    .order('sort_order')
+    .from("categories")
+    .select("*")
+    .eq("hotel_id", hotel.id)
+    .eq("category_type", "activity")
+    .eq("is_active", true)
+    .order("sort_order");
 
   // 3. Construire un map des catégories pour un accès facile
-  const categoriesMap = new Map()
+  const categoriesMap = new Map();
   categories?.forEach((cat: any) => {
     categoriesMap.set(cat.id, {
       id: cat.id,
       name: cat.name,
-      icon: cat.icon || '🎯',
-      color: cat.color || 'from-blue-500 to-blue-600',
-      bg: cat.bg_color || 'bg-blue-50',
-      text: cat.text_color || 'text-blue-700'
-    })
-  })
+      icon: cat.icon || "🎯",
+      color: cat.color || "from-blue-500 to-blue-600",
+      bg: cat.bg_color || "bg-blue-50",
+      text: cat.text_color || "text-blue-700",
+    });
+  });
 
   // 4. Récupérer toutes les activités avec leurs catégories, images et horaires
   const { data: activities, error } = await supabase
-    .from('entertainments')
+    .from("entertainments")
     .select(`
       *,
       location:locations(name),
@@ -69,80 +80,91 @@ export default async function ActivitiesPage() {
         )
       )
     `)
-    .eq('hotel_id', hotel.id)
-    .eq('is_daily_activity', true)
-    .eq('is_night_show', false)
-    .order('title')
+    .eq("hotel_id", hotel.id)
+    .eq("is_daily_activity", true)
+    .eq("is_night_show", false)
+    .order("title");
 
   // 5. Récupérer le jour actuel
-  const today = new Date().getDay()
+  const today = new Date().getDay();
 
   // 6. Organiser les activités par jour et par catégorie
-  const activitiesByDayAndCategory = activities?.reduce((acc: any, activity: any) => {
-    activity.schedules?.forEach((schedule: any) => {
-      const day = schedule.day_of_week
-      const categoryId = activity.category_id || 'uncategorized'
-      const category = activity.category || { 
-        name: 'Autres', 
-        icon: '🎯', 
-        color: 'from-gray-500 to-gray-600',
-        bg: 'bg-gray-50',
-        text: 'text-gray-700'
-      }
-      
-      if (!acc[day]) acc[day] = {}
-      if (!acc[day][categoryId]) {
-        acc[day][categoryId] = {
-          category,
-          activities: []
+  const activitiesByDayAndCategory = activities?.reduce(
+    (acc: any, activity: any) => {
+      activity.schedules?.forEach((schedule: any) => {
+        const day = schedule.day_of_week;
+        const categoryId = activity.category_id || "uncategorized";
+        const category = activity.category || {
+          name: "Autres",
+          icon: "🎯",
+          color: "from-gray-500 to-gray-600",
+          bg: "bg-gray-50",
+          text: "text-gray-700",
+        };
+
+        if (!acc[day]) acc[day] = {};
+        if (!acc[day][categoryId]) {
+          acc[day][categoryId] = {
+            category,
+            activities: [],
+          };
         }
-      }
-      
-      acc[day][categoryId].activities.push({
-        ...activity,
-        schedule
-      })
-    })
-    return acc
-  }, {})
+
+        acc[day][categoryId].activities.push({
+          ...activity,
+          schedule,
+        });
+      });
+      return acc;
+    },
+    {},
+  );
 
   // 7. Gestion des erreurs
   if (error) {
-    console.error('Erreur Supabase:', error)
+    console.error("Erreur Supabase:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl text-red-600">Erreur de chargement</h2>
-          <p className="text-gray-600 mt-2">Impossible de charger les activités</p>
+          <p className="text-gray-600 mt-2">
+            Impossible de charger les activités
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   // Fonction pour obtenir l'image principale d'une activité
   const getMainImage = (activity: any) => {
     if (!activity.images || activity.images.length === 0) {
-      return null
+      return null;
     }
-    const mainImage = activity.images.find((img: any) => img.is_principal)
-    return mainImage || activity.images[0]
-  }
+    const mainImage = activity.images.find((img: any) => img.is_principal);
+    return mainImage || activity.images[0];
+  };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF8' }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#FFFAF8" }}>
       {/* En-tête éditorial */}
-      <div style={{ backgroundColor: '#1C1211' }}>
+      <div style={{ backgroundColor: "#1C1211" }}>
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-20">
-          <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: '#C49A5A' }}>
+          <p
+            className="text-xs uppercase tracking-widest font-medium mb-4"
+            style={{ color: "#C49A5A" }}
+          >
             {hotel.name}
           </p>
           <h1
             className="text-4xl md:text-5xl font-light mb-3 leading-tight"
-            style={{ fontFamily: "'Cormorant', Georgia, serif", color: '#FFFAF8' }}
+            style={{
+              fontFamily: "'Cormorant', Georgia, serif",
+              color: "#FFFAF8",
+            }}
           >
             Programme d'animations
           </h1>
-          <p className="text-sm" style={{ color: '#746865' }}>
+          <p className="text-sm" style={{ color: "#746865" }}>
             Toutes les activités proposées chaque jour par notre équipe
           </p>
         </div>
@@ -151,12 +173,18 @@ export default async function ActivitiesPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Message si aucune activité */}
         {(!activities || activities.length === 0) && (
-          <div className="bg-white rounded-xl p-8 text-center" style={{ border: '1px solid #E8DEDA' }}>
+          <div
+            className="bg-white rounded-xl p-8 text-center"
+            style={{ border: "1px solid #E8DEDA" }}
+          >
             <Icon.Activity className="w-16 h-16 mx-auto mb-4 text-[#E8DEDA]" />
-            <h2 className="text-xl font-semibold mb-2" style={{ color: '#1C1211' }}>
+            <h2
+              className="text-xl font-semibold mb-2"
+              style={{ color: "#1C1211" }}
+            >
               Aucune activité programmée pour le moment
             </h2>
-            <p style={{ color: '#746865' }}>
+            <p style={{ color: "#746865" }}>
               Revenez bientôt pour découvrir notre programme d'animations !
             </p>
           </div>
@@ -164,9 +192,9 @@ export default async function ActivitiesPage() {
 
         {/* Liste des activités par jour */}
         <div className="space-y-8">
-          {[0,1,2,3,4,5,6].map((day) => {
-            const dayActivities = activitiesByDayAndCategory?.[day]
-            if (!dayActivities) return null
+          {[0, 1, 2, 3, 4, 5, 6].map((day) => {
+            const dayActivities = activitiesByDayAndCategory?.[day];
+            if (!dayActivities) return null;
 
             return (
               <section
@@ -177,17 +205,24 @@ export default async function ActivitiesPage() {
                 {/* En-tête du jour */}
                 <div
                   className="px-6 py-4 border-b"
-                  style={day === today
-                    ? { backgroundColor: '#FFF5F3', borderColor: '#E8DEDA' }
-                    : { backgroundColor: '#F5EFED', borderColor: '#E8DEDA' }
+                  style={
+                    day === today
+                      ? { backgroundColor: "#FFF5F3", borderColor: "#E8DEDA" }
+                      : { backgroundColor: "#F5EFED", borderColor: "#E8DEDA" }
                   }
                 >
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold" style={{ color: '#1C1211' }}>
+                    <h2
+                      className="text-xl font-bold"
+                      style={{ color: "#1C1211" }}
+                    >
                       {DAYS_FR[day]}
                     </h2>
                     {day === today && (
-                      <span className="text-white px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#E05947' }}>
+                      <span
+                        className="text-white px-3 py-1 rounded-full text-xs font-medium"
+                        style={{ backgroundColor: "#E05947" }}
+                      >
                         Aujourd'hui
                       </span>
                     )}
@@ -196,106 +231,131 @@ export default async function ActivitiesPage() {
 
                 {/* Activités par catégorie pour ce jour */}
                 <div className="p-6">
-                  {Object.entries(dayActivities).map(([categoryId, { category, activities }]: [string, any]) => (
-                    <div key={categoryId} className="mb-6 last:mb-0">
-                      {/* En-tête de catégorie */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-1 h-6 rounded-full bg-gradient-to-b ${category.color}`} />
-                        <h3 className="font-semibold text-gray-700">
-                          {category.name}
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          {activities.length} activité{activities.length > 1 ? 's' : ''}
-                        </span>
-                      </div>
+                  {Object.entries(dayActivities).map(
+                    ([categoryId, { category, activities }]: [string, any]) => (
+                      <div key={categoryId} className="mb-6 last:mb-0">
+                        {/* En-tête de catégorie */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className={`w-1 h-6 rounded-full bg-gradient-to-b ${category.color}`}
+                          />
+                          <h3 className="font-semibold text-gray-700">
+                            {category.name}
+                          </h3>
+                          <span className="text-xs text-gray-500">
+                            {activities.length} activité
+                            {activities.length > 1 ? "s" : ""}
+                          </span>
+                        </div>
 
-                      {/* Liste des activités de cette catégorie */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {activities
-                          .sort((a: any, b: any) => 
-                            a.schedule.start_time.localeCompare(b.schedule.start_time)
-                          )
-                          .map((item: any, index: number) => {
-                            const mainImage = getMainImage(item)
-                            
-                            return (
-                              <Link
-                                key={`${item.id}-${index}`}
-                                href={`/activities/${item.id}`}
-                                className="flex flex-col md:flex-row gap-4 p-4 rounded-lg transition group hover:bg-[#FFF5F3]"
-                                style={{ border: '1px solid #E8DEDA' }}
-                              >
-                                {/* Image de l'activité */}
-                                <div className="relative md:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                  {mainImage ? (
-                                    <Image
-                                      src={mainImage.image.url}
-                                      alt={item.title}
-                                      fill
-                                      sizes="(max-width: 768px) 100vw, 128px"
-                                      className="object-cover group-hover:scale-105 transition duration-300"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#F5EFED' }}>
-                                      <Icon.Activity className="w-8 h-8 text-[#E8DEDA]" />
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Contenu */}
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between mb-1">
-                                    <h4 className="font-medium transition group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
-                                      {item.title}
-                                    </h4>
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#F5EFED', color: '#1C1211' }}>
-                                      {item.schedule.start_time.slice(0,5)}
-                                    </span>
-                                  </div>
-                                  
-                                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                                    {item.description}
-                                  </p>
-                                  
-                                  <div className="flex flex-wrap gap-3 text-xs">
-                                    {item.location && (
-                                      <span className="flex items-center gap-1 text-gray-600">
-                                        <Icon.Pin className="w-3 h-3 flex-shrink-0" />
-                                        {item.location.name}
-                                      </span>
-                                    )}
-                                    <span className="flex items-center gap-1 text-gray-600">
-                                      <Icon.Clock className="w-3 h-3 flex-shrink-0" />
-                                      {item.schedule.duration_minutes} min
-                                    </span>
-                                  </div>
-                                </div>
-                              </Link>
+                        {/* Liste des activités de cette catégorie */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {activities
+                            .sort((a: any, b: any) =>
+                              a.schedule.start_time.localeCompare(
+                                b.schedule.start_time,
+                              ),
                             )
-                          })}
+                            .map((item: any, index: number) => {
+                              const mainImage = getMainImage(item);
+
+                              return (
+                                <Link
+                                  key={`${item.id}-${index}`}
+                                  href={`/activities/${item.id}`}
+                                  className="flex flex-col md:flex-row gap-4 p-4 rounded-lg transition group hover:bg-[#FFF5F3]"
+                                  style={{ border: "1px solid #E8DEDA" }}
+                                >
+                                  {/* Image de l'activité */}
+                                  <div className="relative md:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                    {mainImage ? (
+                                      <Image
+                                        src={mainImage.image.url}
+                                        alt={item.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 128px"
+                                        className="object-cover group-hover:scale-105 transition duration-300"
+                                      />
+                                    ) : (
+                                      <div
+                                        className="w-full h-full flex items-center justify-center"
+                                        style={{ backgroundColor: "#F5EFED" }}
+                                      >
+                                        <Icon.Activity className="w-8 h-8 text-[#E8DEDA]" />
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Contenu */}
+                                  <div className="flex-1">
+                                    <div className="flex items-start justify-between mb-1">
+                                      <h4
+                                        className="font-medium transition group-hover:text-[#E05947]"
+                                        style={{ color: "#1C1211" }}
+                                      >
+                                        {item.title}
+                                      </h4>
+                                      <span
+                                        className="px-2 py-0.5 rounded-full text-xs font-medium"
+                                        style={{
+                                          backgroundColor: "#F5EFED",
+                                          color: "#1C1211",
+                                        }}
+                                      >
+                                        {item.schedule.start_time.slice(0, 5)}
+                                      </span>
+                                    </div>
+
+                                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                      {item.description}
+                                    </p>
+
+                                    <div className="flex flex-wrap gap-3 text-xs">
+                                      {item.location && (
+                                        <span className="flex items-center gap-1 text-gray-600">
+                                          <Icon.Pin className="w-3 h-3 flex-shrink-0" />
+                                          {item.location.name}
+                                        </span>
+                                      )}
+                                      <span className="flex items-center gap-1 text-gray-600">
+                                        <Icon.Clock className="w-3 h-3 flex-shrink-0" />
+                                        {item.schedule.duration_minutes} min
+                                      </span>
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </section>
-            )
+            );
           })}
         </div>
 
         {/* Note d'information */}
-        <div className="mt-8 rounded-lg p-4 text-sm" style={{ backgroundColor: '#FFF5F3', border: '1px solid #E8DEDA' }}>
+        <div
+          className="mt-8 rounded-lg p-4 text-sm"
+          style={{ backgroundColor: "#FFF5F3", border: "1px solid #E8DEDA" }}
+        >
           <div className="flex items-start gap-3">
             <Icon.Bell className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#E05947]" />
             <div>
-              <p className="font-medium mb-1" style={{ color: '#1C1211' }}>Inscription aux activités</p>
-              <p style={{ color: '#746865' }}>
-                Pour participer aux activités, rendez-vous à la réception ou contactez notre équipe d'animation.
-                Les places sont limitées, nous vous recommandons de vous inscrire à l'avance.
+              <p className="font-medium mb-1" style={{ color: "#1C1211" }}>
+                Inscription aux activités
+              </p>
+              <p style={{ color: "#746865" }}>
+                Pour participer aux activités, rendez-vous à la réception ou
+                contactez notre équipe d'animation. Les places sont limitées,
+                nous vous recommandons de vous inscrire à l'avance.
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

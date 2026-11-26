@@ -1,86 +1,90 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Icon } from "@/components/ui/Icons";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ClientLoginPage() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('') // Pour l'inscription
-  const [isSignUp, setIsSignUp] = useState(false) // ← AJOUT ICI
-  const [hotelSlug, setHotelSlug] = useState<string | null>(null)
-  const router = useRouter()
-  const supabase = createClient()
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState(""); // Pour l'inscription
+  const [isSignUp, setIsSignUp] = useState(false); // ← AJOUT ICI
+  const [hotelSlug, setHotelSlug] = useState<string | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
 
   // Détecter le sous-domaine de l'hôtel
   useEffect(() => {
-    const hostname = window.location.hostname
-    const subdomain = hostname.split('.')[0]
-    
+    const hostname = window.location.hostname;
+    const subdomain = hostname.split(".")[0];
+
     // Si ce n'est pas localhost ou le domaine principal
-    if (subdomain !== 'guestskit' && subdomain !== 'localhost') {
-      setHotelSlug(subdomain)
-      localStorage.setItem('hotelSlug', subdomain)
+    if (subdomain !== "guestskit" && subdomain !== "localhost") {
+      setHotelSlug(subdomain);
+      localStorage.setItem("hotelSlug", subdomain);
     }
-  }, [])
+  }, []);
 
   // Vérifier si déjà connecté
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
-        router.push('/profile')
+        router.push("/profile");
       }
-    }
-    checkUser()
-  }, [router, supabase])
+    };
+    checkUser();
+  }, [router, supabase]);
 
   // Connexion avec Google
   const handleGoogleLogin = async () => {
-    setLoading(true)
-    setError('')
-    
+    setLoading(true);
+    setError("");
+
     try {
-      const slug = hotelSlug || localStorage.getItem('hotelSlug')
-      
+      const slug = hotelSlug || localStorage.getItem("hotelSlug");
+
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?hotel=${slug || ''}`,
+          redirectTo: `${window.location.origin}/auth/callback?hotel=${slug || ""}`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+            access_type: "offline",
+            prompt: "consent",
           },
-        }
-      })
-      
-      if (error) throw error
+        },
+      });
+
+      if (error) throw error;
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Connexion par email/mot de passe
   const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
     try {
-      const slug = hotelSlug || localStorage.getItem('hotelSlug')
-      
+      const slug = hotelSlug || localStorage.getItem("hotelSlug");
+
       if (isSignUp) {
         // Mode INSCRIPTION
         if (password.length < 6) {
-          throw new Error('Le mot de passe doit contenir au moins 6 caractères')
+          throw new Error(
+            "Le mot de passe doit contenir au moins 6 caractères",
+          );
         }
 
         const { data, error } = await supabase.auth.signUp({
@@ -88,40 +92,42 @@ export default function ClientLoginPage() {
           password,
           options: {
             data: {
-              full_name: fullName || email.split('@')[0],
-              provider: 'email'
+              full_name: fullName || email.split("@")[0],
+              provider: "email",
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback?hotel=${slug || ''}`,
-          }
-        })
-        
-        if (error) throw error
-        
+            emailRedirectTo: `${window.location.origin}/auth/callback?hotel=${slug || ""}`,
+          },
+        });
+
+        if (error) throw error;
+
         if (data.user) {
-          setSuccess('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.')
-          setIsSignUp(false)
-          setEmail('')
-          setPassword('')
-          setFullName('')
+          setSuccess(
+            "Inscription réussie ! Vérifiez votre email pour confirmer votre compte.",
+          );
+          setIsSignUp(false);
+          setEmail("");
+          setPassword("");
+          setFullName("");
         }
       } else {
         // Mode CONNEXION
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
-        })
-        
-        if (error) throw error
-        
-        router.push('/profile')
-        router.refresh()
+        });
+
+        if (error) throw error;
+
+        router.push("/profile");
+        router.refresh();
       }
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
@@ -131,12 +137,12 @@ export default function ClientLoginPage() {
             <Icon.Hotel className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">
-            {isSignUp ? 'Créer un compte' : 'Connexion client'}
+            {isSignUp ? "Créer un compte" : "Connexion client"}
           </h1>
           <p className="text-gray-600 text-sm mt-1">
-            {isSignUp 
-              ? 'Inscrivez-vous pour accéder à votre espace personnel'
-              : 'Accédez à votre espace personnel'}
+            {isSignUp
+              ? "Inscrivez-vous pour accéder à votre espace personnel"
+              : "Accédez à votre espace personnel"}
           </p>
         </div>
 
@@ -167,7 +173,6 @@ export default function ClientLoginPage() {
             </svg>
             Continuer avec Google
           </button>
-
         </div>
 
         <div className="relative mb-6">
@@ -176,7 +181,7 @@ export default function ClientLoginPage() {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-gray-500">
-              {isSignUp ? 'Ou inscrivez-vous avec' : 'Ou connectez-vous avec'}
+              {isSignUp ? "Ou inscrivez-vous avec" : "Ou connectez-vous avec"}
             </span>
           </div>
         </div>
@@ -224,9 +229,7 @@ export default function ClientLoginPage() {
               minLength={6}
             />
             {isSignUp && (
-              <p className="text-xs text-gray-500 mt-1">
-                Minimum 6 caractères
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Minimum 6 caractères</p>
             )}
           </div>
 
@@ -247,22 +250,32 @@ export default function ClientLoginPage() {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50"
           >
-            {loading ? 'Chargement...' : (isSignUp ? 'Créer un compte' : 'Se connecter')}
+            {loading
+              ? "Chargement..."
+              : isSignUp
+                ? "Créer un compte"
+                : "Se connecter"}
           </button>
         </form>
 
         <p className="mt-6 text-xs text-center text-gray-400">
           {isSignUp ? (
             <>
-              Déjà un compte ?{' '}
-              <button onClick={() => setIsSignUp(false)} className="underline hover:text-gray-600 transition">
+              Déjà un compte ?{" "}
+              <button
+                onClick={() => setIsSignUp(false)}
+                className="underline hover:text-gray-600 transition"
+              >
                 Se connecter
               </button>
             </>
           ) : (
             <>
-              Première visite ?{' '}
-              <button onClick={() => setIsSignUp(true)} className="underline hover:text-gray-600 transition">
+              Première visite ?{" "}
+              <button
+                onClick={() => setIsSignUp(true)}
+                className="underline hover:text-gray-600 transition"
+              >
                 Créer un accès
               </button>
             </>
@@ -270,5 +283,5 @@ export default function ClientLoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

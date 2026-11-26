@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client-browser";
 
 interface SuggestionImagesProps {
-  suggestionId: number
-  editable?: boolean
-  onImageUpdate?: () => void
+  suggestionId: number;
+  editable?: boolean;
+  onImageUpdate?: () => void;
 }
 
-export default function SuggestionImages({ 
-  suggestionId, 
+export default function SuggestionImages({
+  suggestionId,
   editable = false,
-  onImageUpdate 
+  onImageUpdate,
 }: SuggestionImagesProps) {
-  const [images, setImages] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [images, setImages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    loadImages()
-  }, [suggestionId])
+    loadImages();
+  }, [suggestionId]);
 
   async function loadImages() {
-    setLoading(true)
+    setLoading(true);
     try {
       const { data } = await supabase
-        .from('suggestion_images')
+        .from("suggestion_images")
         .select(`
           is_principal,
           image:image_id(
@@ -35,51 +35,51 @@ export default function SuggestionImages({
             alt_text
           )
         `)
-        .eq('suggestion_id', suggestionId)
-        .order('is_principal', { ascending: false })
+        .eq("suggestion_id", suggestionId)
+        .order("is_principal", { ascending: false });
 
-      setImages(data || [])
+      setImages(data || []);
     } catch (error) {
-      console.error('Erreur chargement images:', error)
+      console.error("Erreur chargement images:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function setAsPrincipal(imageId: number) {
     try {
       await supabase
-        .from('suggestion_images')
+        .from("suggestion_images")
         .update({ is_principal: false })
-        .eq('suggestion_id', suggestionId)
+        .eq("suggestion_id", suggestionId);
 
       await supabase
-        .from('suggestion_images')
+        .from("suggestion_images")
         .update({ is_principal: true })
-        .eq('suggestion_id', suggestionId)
-        .eq('image_id', imageId)
+        .eq("suggestion_id", suggestionId)
+        .eq("image_id", imageId);
 
-      await loadImages()
-      if (onImageUpdate) onImageUpdate()
+      await loadImages();
+      if (onImageUpdate) onImageUpdate();
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error("Erreur:", error);
     }
   }
 
   async function deleteImage(imageId: number) {
-    if (!confirm('Supprimer cette image ?')) return
+    if (!confirm("Supprimer cette image ?")) return;
 
     try {
       await supabase
-        .from('suggestion_images')
+        .from("suggestion_images")
         .delete()
-        .eq('suggestion_id', suggestionId)
-        .eq('image_id', imageId)
+        .eq("suggestion_id", suggestionId)
+        .eq("image_id", imageId);
 
-      await loadImages()
-      if (onImageUpdate) onImageUpdate()
+      await loadImages();
+      if (onImageUpdate) onImageUpdate();
     } catch (error) {
-      console.error('Erreur suppression:', error)
+      console.error("Erreur suppression:", error);
     }
   }
 
@@ -92,11 +92,11 @@ export default function SuggestionImages({
           <div className="w-16 h-16 bg-gray-200 rounded"></div>
         </div>
       </div>
-    )
+    );
   }
 
-  const principalImage = images.find(img => img.is_principal)
-  const otherImages = images.filter(img => !img.is_principal)
+  const principalImage = images.find((img) => img.is_principal);
+  const otherImages = images.filter((img) => !img.is_principal);
 
   return (
     <div className="space-y-4">
@@ -105,13 +105,13 @@ export default function SuggestionImages({
         <div className="relative group">
           <img
             src={principalImage.image.url}
-            alt={principalImage.image.alt_text || 'Image principale'}
+            alt={principalImage.image.alt_text || "Image principale"}
             className="w-full h-64 object-cover rounded-lg"
           />
           <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
             ⭐ Principale
           </div>
-          
+
           {editable && (
             <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
               <button
@@ -133,10 +133,10 @@ export default function SuggestionImages({
             <div key={img.image.id} className="relative group">
               <img
                 src={img.image.url}
-                alt={img.image.alt_text || 'Photo'}
+                alt={img.image.alt_text || "Photo"}
                 className="w-full h-20 object-cover rounded-lg"
               />
-              
+
               {editable && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-lg flex items-center justify-center gap-1">
                   <button
@@ -167,5 +167,5 @@ export default function SuggestionImages({
         </div>
       )}
     </div>
-  )
+  );
 }

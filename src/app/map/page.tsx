@@ -1,64 +1,67 @@
-import { getCurrentHotelServer } from '@/lib/hotel-server'
-import { createClient } from '@/lib/supabase/server-client'
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelServer } from "@/lib/hotel-server";
+import { createClient } from "@/lib/supabase/server-client";
 
 export default async function MapPage() {
-  const hotel = await getCurrentHotelServer()
-  const supabase = await createClient()
-  
+  const hotel = await getCurrentHotelServer();
+  const supabase = await createClient();
+
   // 1. Récupérer tous les types de points d'intérêt
   const { data: poiTypes } = await supabase
-    .from('poi_types')
-    .select('*')
-    .eq('hotel_id', hotel?.id)
-    .eq('is_active', true)
-    .order('sort_order')
+    .from("poi_types")
+    .select("*")
+    .eq("hotel_id", hotel?.id)
+    .eq("is_active", true)
+    .order("sort_order");
 
   // 2. Construire un map des POI types
-  const poiTypesMap = new Map()
-  poiTypes?.forEach(type => {
+  const poiTypesMap = new Map();
+  poiTypes?.forEach((type) => {
     poiTypesMap.set(type.type_key, {
       id: type.id,
       name: type.name,
-      icon: type.icon || '📍',
-      color: type.color || 'bg-gray-500',
-      text: type.text_color || 'text-gray-700',
-      bg: type.bg_color || 'bg-gray-50'
-    })
-  })
+      icon: type.icon || "📍",
+      color: type.color || "bg-gray-500",
+      text: type.text_color || "text-gray-700",
+      bg: type.bg_color || "bg-gray-50",
+    });
+  });
 
   // 3. Récupérer tous les plans/étages
   const { data: plans } = await supabase
-    .from('plans')
-    .select('*')
-    .eq('hotel_id', hotel?.id)
-    .eq('is_active', true)
-    .order('sort_order')
-    .order('floor_level')
+    .from("plans")
+    .select("*")
+    .eq("hotel_id", hotel?.id)
+    .eq("is_active", true)
+    .order("sort_order")
+    .order("floor_level");
 
   // 4. Récupérer tous les points d'intérêt
   const { data: points } = await supabase
-    .from('map_points')
+    .from("map_points")
     .select(`
       *,
       poi_type:poi_type_id(
         type_key, name, icon, color, text_color, bg_color
       )
     `)
-    .eq('hotel_id', hotel?.id)
-    .eq('is_active', true)
+    .eq("hotel_id", hotel?.id)
+    .eq("is_active", true);
 
   // 5. Grouper les points par plan
-  const pointsByPlan = points?.reduce((acc, point) => {
-    const planId = point.plan_id
-    if (!acc[planId]) acc[planId] = []
-    acc[planId].push(point)
-    return acc
-  }, {} as Record<number, any[]>)
+  const pointsByPlan = points?.reduce(
+    (acc, point) => {
+      const planId = point.plan_id;
+      if (!acc[planId]) acc[planId] = [];
+      acc[planId].push(point);
+      return acc;
+    },
+    {} as Record<number, any[]>,
+  );
 
   // 6. Étage actif par défaut (Rez-de-chaussée)
-  const defaultPlan = plans?.find(p => p.floor_level === 0) || plans?.[0]
+  const defaultPlan = plans?.find((p) => p.floor_level === 0) || plans?.[0];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,34 +83,37 @@ export default async function MapPage() {
           <div className="sticky top-4 z-30 bg-white/80 backdrop-blur-md rounded-xl shadow-sm p-2 mb-6 border border-gray-200">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300">
               {plans.map((plan) => {
-                const isActive = defaultPlan?.id === plan.id
-                const planPoints = pointsByPlan?.[plan.id] || []
-                
+                const isActive = defaultPlan?.id === plan.id;
+                const planPoints = pointsByPlan?.[plan.id] || [];
+
                 return (
                   <a
                     key={plan.id}
                     href={`#floor-${plan.floor_level}`}
                     className={`
                       flex-shrink-0 px-5 py-2.5 rounded-lg text-sm font-medium transition
-                      ${isActive
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ${
+                        isActive
+                          ? "bg-emerald-600 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }
                     `}
                   >
                     <span className="flex items-center gap-2">
                       {plan.name}
                       {planPoints.length > 0 && (
-                        <span className={`
+                        <span
+                          className={`
                           text-xs px-2 py-0.5 rounded-full
-                          ${isActive ? 'bg-white/20 text-white' : 'bg-gray-300 text-gray-700'}
-                        `}>
+                          ${isActive ? "bg-white/20 text-white" : "bg-gray-300 text-gray-700"}
+                        `}
+                        >
                           {planPoints.length}
                         </span>
                       )}
                     </span>
                   </a>
-                )
+                );
               })}
             </div>
           </div>
@@ -122,8 +128,13 @@ export default async function MapPage() {
             </h3>
             <div className="flex flex-wrap gap-3">
               {poiTypes.map((type) => (
-                <div key={type.id} className="flex items-center gap-1.5 text-xs bg-gray-50 px-3 py-1.5 rounded-full">
-                  <span className={`w-5 h-5 ${type.color} rounded-full flex items-center justify-center text-white text-[10px]`}>
+                <div
+                  key={type.id}
+                  className="flex items-center gap-1.5 text-xs bg-gray-50 px-3 py-1.5 rounded-full"
+                >
+                  <span
+                    className={`w-5 h-5 ${type.color} rounded-full flex items-center justify-center text-white text-[10px]`}
+                  >
                     {type.icon}
                   </span>
                   <span className="text-gray-700">{type.name}</span>
@@ -137,8 +148,8 @@ export default async function MapPage() {
         {plans && plans.length > 0 ? (
           <div className="space-y-8">
             {plans.map((plan) => {
-              const planPoints = pointsByPlan?.[plan.id] || []
-              
+              const planPoints = pointsByPlan?.[plan.id] || [];
+
               return (
                 <section
                   key={plan.id}
@@ -154,7 +165,8 @@ export default async function MapPage() {
                           {plan.name}
                         </h2>
                         <p className="text-xs text-gray-500">
-                          {planPoints.length} point{planPoints.length > 1 ? 's' : ''} d'intérêt
+                          {planPoints.length} point
+                          {planPoints.length > 1 ? "s" : ""} d'intérêt
                         </p>
                       </div>
                     </div>
@@ -167,63 +179,73 @@ export default async function MapPage() {
                   <div className="p-6 bg-gray-50">
                     <div className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
                       {/* Image avec object-contain pour voir l'image en entier */}
-                      <div className="relative flex items-center justify-center bg-gray-100" 
-                           style={{ minHeight: '500px', maxHeight: '70vh' }}>
+                      <div
+                        className="relative flex items-center justify-center bg-gray-100"
+                        style={{ minHeight: "500px", maxHeight: "70vh" }}
+                      >
                         <img
                           src={plan.image_url}
                           alt={`Plan ${plan.name}`}
                           className="w-full h-auto max-h-[70vh] object-contain"
-                          style={{ 
-                            maxWidth: '100%',
-                            display: 'block'
+                          style={{
+                            maxWidth: "100%",
+                            display: "block",
                           }}
                         />
-                        
+
                         {/* Overlay léger pour meilleure lisibilité */}
                         <div className="absolute inset-0 bg-black/5 pointer-events-none" />
 
                         {/* Points d'intérêt */}
                         {planPoints.map((point: any) => {
                           const poiType = point.poi_type || {
-                            icon: '📍',
-                            color: 'bg-gray-500',
-                            name: 'Point d\'intérêt'
-                          }
-                          
+                            icon: "📍",
+                            color: "bg-gray-500",
+                            name: "Point d'intérêt",
+                          };
+
                           return (
                             <button
                               key={point.id}
                               className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
                               style={{
                                 left: `${point.coordinates_x * 100}%`,
-                                top: `${point.coordinates_y * 100}%`
+                                top: `${point.coordinates_y * 100}%`,
                               }}
                             >
                               {/* Point principal */}
-                              <div className={`
+                              <div
+                                className={`
                                 ${poiType.color} w-10 h-10 md:w-12 md:h-12 
                                 rounded-full flex items-center justify-center text-white text-xl md:text-2xl
                                 shadow-lg border-2 border-white
                                 group-hover:scale-110 transition-transform duration-200
                                 cursor-pointer
                                 relative z-10
-                              `}>
+                              `}
+                              >
                                 {poiType.icon}
                               </div>
 
                               {/* Tooltip */}
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 
+                              <div
+                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 
                                             bg-gray-900 text-white text-sm rounded-lg px-3 py-2 
                                             whitespace-nowrap opacity-0 group-hover:opacity-100 
                                             transition-opacity duration-200 pointer-events-none
-                                            shadow-xl z-50 min-w-[150px]">
+                                            shadow-xl z-50 min-w-[150px]"
+                              >
                                 <div className="font-medium">{point.name}</div>
-                                <div className="text-xs text-gray-300 mt-0.5">{poiType.name}</div>
-                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1
-                                              border-4 border-transparent border-t-gray-900" />
+                                <div className="text-xs text-gray-300 mt-0.5">
+                                  {poiType.name}
+                                </div>
+                                <div
+                                  className="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1
+                                              border-4 border-transparent border-t-gray-900"
+                                />
                               </div>
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -239,17 +261,19 @@ export default async function MapPage() {
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {planPoints.map((point: any) => {
                           const poiType = point.poi_type || {
-                            icon: '📍',
-                            color: 'bg-gray-500',
-                            name: 'Point d\'intérêt'
-                          }
-                          
+                            icon: "📍",
+                            color: "bg-gray-500",
+                            name: "Point d'intérêt",
+                          };
+
                           return (
                             <div
                               key={point.id}
                               className="bg-white rounded-lg p-3 flex items-center gap-3 shadow-sm border border-gray-100 hover:border-emerald-200 transition"
                             >
-                              <div className={`w-8 h-8 ${poiType.color} rounded-full flex items-center justify-center text-white text-sm flex-shrink-0`}>
+                              <div
+                                className={`w-8 h-8 ${poiType.color} rounded-full flex items-center justify-center text-white text-sm flex-shrink-0`}
+                              >
                                 {poiType.icon}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -261,13 +285,13 @@ export default async function MapPage() {
                                 </div>
                               </div>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
                   )}
                 </section>
-              )
+              );
             })}
           </div>
         ) : (
@@ -287,10 +311,13 @@ export default async function MapPage() {
           <div className="flex items-start gap-3">
             <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-medium mb-1">Accès pour personnes à mobilité réduite</h3>
+              <h3 className="font-medium mb-1">
+                Accès pour personnes à mobilité réduite
+              </h3>
               <p className="text-blue-700">
-                L'ensemble de l'hôtel est accessible. Ascenseurs, rampes d'accès et toilettes adaptées 
-                sont disponibles à tous les étages. N'hésitez pas à contacter la réception pour toute assistance.
+                L'ensemble de l'hôtel est accessible. Ascenseurs, rampes d'accès
+                et toilettes adaptées sont disponibles à tous les étages.
+                N'hésitez pas à contacter la réception pour toute assistance.
               </p>
             </div>
           </div>
@@ -309,5 +336,5 @@ export default async function MapPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

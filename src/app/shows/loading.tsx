@@ -1,4 +1,4 @@
-import { PageHeaderSkeleton, ListSkeleton } from '@/components/ui/Skeleton'
+import { ListSkeleton, PageHeaderSkeleton } from "@/components/ui/Skeleton";
 
 export default function ShowsLoading() {
   return (
@@ -8,5 +8,5 @@ export default function ShowsLoading() {
         <ListSkeleton count={5} />
       </div>
     </div>
-  )
+  );
 }
