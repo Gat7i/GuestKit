@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
+import React from 'react'
 
-export const metadata: Metadata = {
-  title: 'Politique de confidentialité — The Orangers Beach Resort',
-  description: 'Comment nous collectons, utilisons et protégeons vos données personnelles.',
+export async function generateMetadata(): Promise<Metadata> {
+  const hotel = await getCurrentHotelServer()
+  return {
+    title: `Politique de confidentialité — ${hotel?.name || 'GuestsKit'}`,
+    description: 'Comment nous collectons, utilisons et protégeons vos données personnelles.',
+  }
 }
 
 export default async function PolitiqueConfidentialitePage() {
@@ -23,7 +27,7 @@ export default async function PolitiqueConfidentialitePage() {
 
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Politique de confidentialité</h1>
-            <p className="text-sm text-gray-500">Dernière mise à jour : novembre 2025</p>
+            <p className="text-sm text-gray-500">Dernière mise à jour : novembre 2026</p>
           </div>
 
           <Section title="1. Responsable du traitement">
@@ -31,7 +35,7 @@ export default async function PolitiqueConfidentialitePage() {
               Le responsable du traitement des données personnelles collectées via cette application est :
             </p>
             <p className="mt-3 font-medium text-gray-800">
-              {hotel?.name || 'The Orangers Beach Resort & Bungalows'}<br />
+              {hotel?.name || 'l\'hôtel'}<br />
               {hotel?.address && <>{hotel.address}<br /></>}
               {contactEmail && (
                 <a href={`mailto:${contactEmail}`} className="text-blue-600 hover:underline font-normal">
@@ -63,8 +67,10 @@ export default async function PolitiqueConfidentialitePage() {
 
           <Section title="4. Base légale">
             <p>
-              Le traitement est fondé sur l'exécution du contrat d'hébergement (article 6.1.b du RGPD)
-              et votre consentement explicite lors de la création de votre compte.
+              Le traitement est fondé sur l'exécution du contrat d'hébergement et votre
+              consentement explicite lors de la création de votre compte, conformément à
+              la loi organique tunisienne n° 2004-63 du 27 juillet 2004 relative à la
+              protection des données à caractère personnel.
             </p>
           </Section>
 
@@ -82,8 +88,9 @@ export default async function PolitiqueConfidentialitePage() {
               Elles sont uniquement partagées avec :
             </p>
             <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
-              <li><strong>Supabase</strong> (hébergement base de données et authentification — serveurs UE)</li>
-              <li><strong>Cloudinary</strong> (hébergement des photos que vous pourriez partager)</li>
+              <li><strong>GuestsKit</strong> (prestataire technique, éditeur de l'application)</li>
+              <li><strong>Supabase</strong> (base de données et authentification — serveurs us-east-2, États-Unis)</li>
+              <li><strong>Cloudinary</strong> (hébergement des photos)</li>
               <li><strong>Vercel</strong> (hébergement de l'application)</li>
             </ul>
           </Section>

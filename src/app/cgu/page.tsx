@@ -1,12 +1,19 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getCurrentHotelServer } from '@/lib/hotel-server'
 
-export const metadata: Metadata = {
-  title: "Conditions générales d'utilisation — The Orangers Beach Resort",
-  description: "Conditions d'utilisation de l'application GuestKit pour les clients de l'hôtel.",
+export async function generateMetadata(): Promise<Metadata> {
+  const hotel = await getCurrentHotelServer()
+  return {
+    title: `Conditions générales d'utilisation — ${hotel?.name || 'GuestsKit'}`,
+    description: "Conditions d'utilisation de l'application GuestsKit pour les clients de l'hôtel.",
+  }
 }
 
-export default function CguPage() {
+export default async function CguPage() {
+  const hotel = await getCurrentHotelServer()
+  const hotelName = hotel?.name || 'l\'hôtel'
+  const hotelAddress = hotel?.address
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -19,15 +26,20 @@ export default function CguPage() {
 
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Conditions générales d'utilisation</h1>
-            <p className="text-sm text-gray-500">Dernière mise à jour : novembre 2025</p>
+            <p className="text-sm text-gray-500">Dernière mise à jour : novembre 2026</p>
           </div>
 
           <Section title="1. Objet">
             <p>
               Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation
-              de l'application GuestKit, mise à disposition des clients de{' '}
-              <strong>The Orangers Beach Resort &amp; Bungalows</strong> (Hammamet, Tunisie) pendant
+              de l'application GuestsKit, mise à disposition des clients de{' '}
+              <strong>{hotelName}</strong>{hotelAddress && ` (${hotelAddress})`} pendant
               la durée de leur séjour.
+            </p>
+            <p className="mt-2 text-sm">
+              L'application est éditée et hébergée par <strong>GuestsKit</strong>, prestataire
+              technique de l'hôtel. Le nom légal exact de GuestsKit est en cours de confirmation
+              (à mettre à jour dès que disponible).
             </p>
           </Section>
 
@@ -43,11 +55,11 @@ export default function CguPage() {
           </Section>
 
           <Section title="3. Services proposés">
-            <p>L'application GuestKit permet aux clients de :</p>
+            <p>L'application GuestsKit permet aux clients de :</p>
             <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
               <li>Consulter les informations de l'hôtel (restaurants, activités, spectacles, carte)</li>
               <li>Effectuer des demandes de service (room service, conciergerie, etc.)</li>
-              <li>Suivre l'état de leurs demandes en temps réel</li>
+              <li>Suivre l'état de leurs demandes et échanges avec l'équipe</li>
               <li>Communiquer avec l'équipe de l'hôtel</li>
               <li>Explorer les suggestions de découvertes locales</li>
             </ul>
@@ -74,7 +86,7 @@ export default function CguPage() {
           <Section title="6. Propriété intellectuelle">
             <p>
               L'ensemble du contenu de l'application (textes, photos, logos, interface) est la propriété
-              exclusive de The Orangers Beach Resort &amp; Bungalows ou de ses partenaires.
+              exclusive de <strong>{hotelName}</strong> ou de ses partenaires.
               Toute reproduction sans autorisation est interdite.
             </p>
           </Section>
@@ -100,8 +112,14 @@ export default function CguPage() {
 
           <Section title="9. Droit applicable">
             <p>
-              Les présentes CGU sont soumises au droit tunisien. En cas de litige, et à défaut de
-              résolution amiable, les tribunaux compétents de Nabeul (Tunisie) seront saisis.
+              Les présentes CGU sont soumises à la loi tunisienne, notamment la loi organique
+              n° 2004-63 du 27 juillet 2004 relative à la protection des données à caractère
+              personnel. En cas de litige non résolu à l'amiable, les tribunaux compétents
+              de la juridiction de l'hôtel seront saisis.
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Note : GuestsKit (prestataire technique) n'est pas encore constitué en société.
+              Cette mention sera mise à jour lors de l'immatriculation.
             </p>
           </Section>
 

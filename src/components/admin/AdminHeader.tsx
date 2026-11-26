@@ -104,7 +104,7 @@ export default function AdminHeader() {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-7 h-7 rounded-lg flex items-center justify-center text-white group-hover:scale-105 transition">
               <Icon.Hotel className="w-3.5 h-3.5" />
             </div>
-            <span className="font-bold text-gray-800 hidden sm:inline text-sm">GuestKit</span>
+            <span className="font-bold text-gray-800 hidden sm:inline text-sm">GuestsKit</span>
           </Link>
 
           {/* Navigation Desktop */}
