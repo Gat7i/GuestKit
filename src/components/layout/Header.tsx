@@ -141,9 +141,10 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                    ${isActive(item.href) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                    ${isActive(item.href) ? 'text-white shadow-md' : 'text-gray-700 hover:bg-[#F5EFED]'}
                   `}
+                  style={isActive(item.href) ? { backgroundColor: '#E05947' } : undefined}
                 >
                   {item.name}
                 </Link>
@@ -151,9 +152,11 @@ export default function Header() {
 
               {/* Dropdown Animation — texte seul */}
               <div className="relative group">
-                <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1
-                  ${isAnimationActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'}
-                `}>
+                <button className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1
+                  ${isAnimationActive ? 'text-white shadow-md' : 'text-gray-700 hover:bg-[#F5EFED]'}
+                `}
+                  style={isAnimationActive ? { backgroundColor: '#E05947' } : undefined}
+                >
                   Animation
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -164,9 +167,8 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`block px-4 py-2.5 text-sm transition
-                        ${isActive(item.href) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}
-                      `}
+                      className={`block px-4 py-2.5 text-sm transition font-medium`}
+                      style={isActive(item.href) ? { backgroundColor: '#FFF5F3', color: '#E05947' } : { color: '#374151' }}
                     >
                       {item.name}
                     </Link>
@@ -204,9 +206,10 @@ export default function Header() {
                   {customer && (
                     <Link
                       href="/requests"
-                      className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
-                        ${isActive('/requests') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100 border border-gray-200'}
+                      className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition border
+                        ${isActive('/requests') ? 'text-white shadow-md border-transparent' : 'border-[#E8DEDA] hover:bg-[#F5EFED]'}
                       `}
+                      style={isActive('/requests') ? { backgroundColor: '#E05947', color: 'white' } : { color: '#746865' }}
                     >
                       <RequestsIcon />
                       <span>Demandes</span>
@@ -270,10 +273,11 @@ export default function Header() {
               href={item.href}
               className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors
                 ${isActive(item.href) || (item.href === '/activities' && isAnimationActive)
-                  ? 'text-blue-600'
+                  ? ''
                   : 'text-gray-400 hover:text-gray-700'
                 }
               `}
+              style={(isActive(item.href) || (item.href === '/activities' && isAnimationActive)) ? { color: '#E05947' } : undefined}
             >
               {item.icon}
               <span>{item.name}</span>
@@ -284,8 +288,9 @@ export default function Header() {
           <button
             onClick={() => setIsPlusOpen(!isPlusOpen)}
             className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors
-              ${isPlusOpen ? 'text-blue-600' : 'text-gray-400 hover:text-gray-700'}
+              ${isPlusOpen ? '' : 'text-gray-400 hover:text-gray-700'}
             `}
+            style={isPlusOpen ? { color: '#E05947' } : undefined}
           >
             <DotsIcon />
             <span>Plus</span>
@@ -308,8 +313,9 @@ export default function Header() {
                   href={item.href}
                   onClick={() => setIsPlusOpen(false)}
                   className={`flex flex-col items-center gap-2 p-3 rounded-xl text-center transition
-                    ${isActive(item.href) ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}
+                    ${isActive(item.href) ? '' : 'bg-[#F5EFED] text-gray-700 hover:bg-[#EDE7E5]'}
                   `}
+                  style={isActive(item.href) ? { backgroundColor: '#FFF5F3', color: '#E05947' } : undefined}
                 >
                   <span className="text-2xl">{item.emoji}</span>
                   <span className="text-xs font-medium">{item.name}</span>

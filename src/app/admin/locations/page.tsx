@@ -179,7 +179,7 @@ export default function AdminLocationsPage() {
           {selectedHotelId && (
             <button
               onClick={() => startEdit()}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+              className="btn-admin flex items-center gap-2"
             >
               <Icon.Plus className="w-4 h-4" />
               Nouvel emplacement
@@ -207,7 +207,7 @@ export default function AdminLocationsPage() {
                           onClick={() => { setSelectedLocation(loc); setEditing(false) }}
                           className={`w-full text-left px-4 py-3 transition border-l-2 ${
                             selectedLocation?.id === loc.id
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-[#E05947] bg-[#FFF5F3]'
                               : 'border-transparent hover:bg-gray-50'
                           }`}
                         >
@@ -248,7 +248,7 @@ export default function AdminLocationsPage() {
                       <button
                         onClick={selectedLocation ? updateLocation : createLocation}
                         disabled={saving}
-                        className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition disabled:opacity-50"
+                        className="btn-admin flex items-center gap-1.5"
                       >
                         {saving ? <Icon.Spinner className="w-4 h-4" /> : <Icon.Save className="w-4 h-4" />}
                         {selectedLocation ? 'Mettre à jour' : 'Créer'}
@@ -306,7 +306,8 @@ export default function AdminLocationsPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => startEdit(selectedLocation)}
-                        className="flex items-center gap-1.5 text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition"
+                        className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition hover:bg-[#F5EFED]"
+                        style={{ color: '#746865' }}
                       >
                         <Icon.Pencil className="w-4 h-4" />
                         Modifier

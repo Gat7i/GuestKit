@@ -97,8 +97,8 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-white flex items-center gap-3">
-                  <span className="w-1 h-8 bg-purple-400 rounded-full" />
+                <h2 className="text-2xl font-semibold text-white flex items-center gap-3" style={{ fontFamily: "'Cormorant', Georgia, serif" }}>
+                  <span className="w-1 h-8 rounded-full" style={{ backgroundColor: '#E05947' }} />
                   Spectacles & soirées
                 </h2>
                 <p className="text-sm text-gray-400 mt-1">Les prochains événements à ne pas manquer</p>
@@ -134,7 +134,7 @@ export default async function HomePage() {
                         </span>
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="font-semibold text-white text-sm line-clamp-1 group-hover:text-purple-300 transition">
+                        <h3 className="font-semibold text-white text-sm line-clamp-1 group-hover:text-[#E05947] transition">
                           {show.title}
                         </h3>
                         {show.location && (
@@ -159,15 +159,15 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
-                  <span className="w-1 h-8 bg-blue-600 rounded-full" />
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3" style={{ fontFamily: "'Cormorant', Georgia, serif" }}>
+                  <span className="w-1 h-8 rounded-full" style={{ backgroundColor: '#E05947' }} />
                   Aujourd'hui à l'hôtel
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
-              <Link href="/activities" className="text-sm text-blue-600 hover:text-blue-800 font-medium hidden md:flex items-center gap-1">
+              <Link href="/activities" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
                 Programme complet <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -199,7 +199,7 @@ export default async function HomePage() {
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition text-sm line-clamp-1">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-[#E05947] transition text-sm line-clamp-1">
                         {activity.title}
                       </h3>
                       {activity.location && (
@@ -223,13 +223,13 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
-                  <span className="w-1 h-8 bg-amber-500 rounded-full" />
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3" style={{ fontFamily: "'Cormorant', Georgia, serif" }}>
+                  <span className="w-1 h-8 rounded-full" style={{ backgroundColor: '#C49A5A' }} />
                   Nos restaurants
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Une expérience gastronomique unique</p>
               </div>
-              <Link href="/restaurants" className="text-sm text-blue-600 hover:text-blue-800 font-medium hidden md:flex items-center gap-1">
+              <Link href="/restaurants" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
                 Voir tout <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -253,7 +253,7 @@ export default async function HomePage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-amber-600 transition text-sm">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-[#E05947] transition text-sm">
                         {restaurant.name}
                       </h3>
                       {restaurant.description && (
@@ -274,13 +274,13 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
-                  <span className="w-1 h-8 bg-emerald-500 rounded-full" />
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3" style={{ fontFamily: "'Cormorant', Georgia, serif" }}>
+                  <span className="w-1 h-8 rounded-full" style={{ backgroundColor: '#E05947' }} />
                   À découvrir
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Nos sélections pour agrémenter votre séjour</p>
               </div>
-              <Link href="/suggestions" className="text-sm text-blue-600 hover:text-blue-800 font-medium hidden md:flex items-center gap-1">
+              <Link href="/suggestions" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
                 Voir tout <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -311,7 +311,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition text-sm line-clamp-1">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-[#E05947] transition text-sm line-clamp-1">
                         {suggestion.title}
                       </h3>
                       {suggestion.description && (
@@ -327,9 +327,9 @@ export default async function HomePage() {
       )}
 
       {/* CTA */}
-      <section className="py-16 bg-gray-900 text-white">
+      <section className="py-16 text-white" style={{ backgroundColor: '#1C1211' }}>
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-3">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-3" style={{ fontFamily: "'Cormorant', Georgia, serif" }}>
             Votre séjour, simplifié
           </h2>
           <p className="text-gray-400 mb-8 text-sm">

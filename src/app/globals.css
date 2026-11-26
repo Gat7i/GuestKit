@@ -1,11 +1,14 @@
+/* Google Fonts — loaded by browser at runtime */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 @import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFFAF8;
+  --foreground: #1C1211;
 }
 
 @theme inline {
@@ -13,15 +16,21 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-brand-navy: #1e3a8a;
-  --color-brand-gold: #a16207;
-  --font-playfair: Georgia, 'Times New Roman', serif;
+  --font-display: 'Cormorant', Georgia, serif;
+  /* Les Orangers brand palette */
+  --color-brand-coral: #E05947;
+  --color-brand-taupe: #746865;
+  --color-brand-gold: #C49A5A;
+  --color-brand-cream: #FFFAF8;
+  --color-brand-dark: #1C1211;
+  --color-brand-muted: #F5EFED;
+  --color-brand-border: #E8DEDA;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1C1211;
+    --foreground: #F5EFED;
   }
 }
 
@@ -30,53 +39,73 @@ body {
   color: var(--foreground);
 }
 
-
-/* Animation pour le menu mobile */
+/* Mobile menu animation */
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slideDown {
   animation: slideDown 0.2s ease-out;
 }
 
-/* Style pour la barre de défilement du sélecteur d'étage */
-.scrollbar-thin::-webkit-scrollbar {
-  height: 4px;
-}
+/* Scrollbar styling */
+.scrollbar-thin::-webkit-scrollbar { height: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 10px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
+/* ===================== BUTTON SYSTEM — Pill Elevated ===================== */
 @layer components {
+  /* Primary — coral pill */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-700 hover:bg-blue-800 text-white shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 text-white shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: #E05947;
   }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #C94836;
+  }
+
+  /* Secondary — coral outline pill */
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 bg-white shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    border: 1.5px solid #E05947;
+    color: #E05947;
   }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #FFF5F3;
+  }
+
+  /* Ghost — text only, coral */
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    color: #746865;
   }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: #F5EFED;
+    color: #E05947;
+  }
+
+  /* Danger — red text pill */
   .btn-danger {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-red-600 hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Admin buttons — taupe based, rounded-lg (not pill, stays professional) */
+  .btn-admin {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: #746865;
+  }
+  .btn-admin:hover:not(:disabled) {
+    background-color: #5E5250;
+  }
+
+  .btn-admin-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed;
+    border: 1px solid #E8DEDA;
+    color: #746865;
+  }
+  .btn-admin-secondary:hover:not(:disabled) {
+    background-color: #F5EFED;
   }
 }

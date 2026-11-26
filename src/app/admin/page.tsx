@@ -96,16 +96,16 @@ export default async function AdminDashboardPage() {
                 <Icon.Users className="w-4 h-4 text-blue-500" />
                 Réception
               </h2>
-              <Link href="/admin/reception" className="text-xs text-blue-600 hover:underline font-medium">
+              <Link href="/admin/reception" className="text-xs hover:underline font-medium" style={{ color: '#746865' }}>
                 Ouvrir →
               </Link>
             </div>
             <div className="p-5">
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Séjours actifs</p>
-                  <p className="text-3xl font-bold text-blue-700">{activeStaysCount || 0}</p>
-                  <p className="text-xs text-blue-500 mt-1">clients présents</p>
+                <div className="rounded-lg p-4" style={{ backgroundColor: '#F5EFED' }}>
+                  <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#746865' }}>Séjours actifs</p>
+                  <p className="text-3xl font-bold" style={{ color: '#1C1211' }}>{activeStaysCount || 0}</p>
+                  <p className="text-xs mt-1" style={{ color: '#746865' }}>clients présents</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Arrivées aujourd'hui</p>

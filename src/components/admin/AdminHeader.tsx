@@ -117,8 +117,9 @@ export default function AdminHeader() {
                     key={entry.href}
                     href={entry.href}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
-                      active ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      active ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
+                    style={active ? { backgroundColor: '#746865' } : undefined}
                   >
                     <entry.NavIcon className="w-4 h-4" />
                     <span>{entry.name}</span>
@@ -135,8 +136,9 @@ export default function AdminHeader() {
                   <button
                     onClick={() => setOpenDropdown(isOpen ? null : entry.id)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
-                      groupActive ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      groupActive ? 'font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
+                    style={groupActive ? { backgroundColor: '#F5EFED', color: '#746865' } : undefined}
                   >
                     <entry.NavIcon className="w-4 h-4" />
                     <span>{entry.name}</span>
@@ -152,8 +154,9 @@ export default function AdminHeader() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition ${
-                              active ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                              active ? 'font-medium' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                             }`}
+                            style={active ? { backgroundColor: '#FFF5F3', color: '#E05947' } : undefined}
                           >
                             <item.NavIcon className="w-4 h-4 flex-shrink-0" />
                             {item.name}
@@ -212,8 +215,9 @@ export default function AdminHeader() {
                     href={entry.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={`p-3 rounded-lg text-xs font-medium flex flex-col items-center gap-1 transition ${
-                      active ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      active ? 'text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
+                    style={active ? { backgroundColor: '#746865' } : undefined}
                   >
                     <entry.NavIcon className="w-5 h-5" />
                     <span>{entry.name}</span>
@@ -237,8 +241,9 @@ export default function AdminHeader() {
                           href={item.href}
                           onClick={() => setIsMenuOpen(false)}
                           className={`p-3 rounded-lg text-xs font-medium flex flex-col items-center gap-1 transition ${
-                            active ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                            active ? 'text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                           }`}
+                          style={active ? { backgroundColor: '#746865' } : undefined}
                         >
                           <item.NavIcon className="w-5 h-5" />
                           <span className="text-center leading-tight">{item.name}</span>
