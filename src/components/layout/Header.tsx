@@ -39,6 +39,7 @@ const DotsIcon = () => (
 
 export default function Header() {
   const [isPlusOpen, setIsPlusOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
   const pathname = usePathname()
@@ -55,6 +56,7 @@ export default function Header() {
 
   useEffect(() => {
     setIsPlusOpen(false)
+    setIsUserMenuOpen(false)
   }, [pathname])
 
   const handleLogout = async () => {
@@ -75,14 +77,15 @@ export default function Header() {
     { name: 'Découvertes', href: '/suggestions' },
   ]
 
+  // Mobile nav — 4 items pour invités, 5 items pour client connecté
   const mobilePrimaryItems = [
     { name: 'Accueil', href: '/', icon: <HomeIcon /> },
     { name: 'Restaurants', href: '/restaurants', icon: <RestaurantIcon /> },
     { name: 'Animation', href: '/activities', icon: <AnimationIcon /> },
+    ...(user && customer ? [{ name: 'Demandes', href: '/requests', icon: <RequestsIcon /> }] : []),
   ]
 
   const mobilePlusItems = [
-    ...(user && customer ? [{ name: 'Demandes', href: '/requests', emoji: '📋' }] : []),
     { name: 'Spectacles', href: '/shows', emoji: '🌟' },
     { name: 'Découvertes', href: '/suggestions', emoji: '✨' },
     { name: 'Carte', href: '/map', emoji: '🗺️' },
@@ -95,6 +98,9 @@ export default function Header() {
   }
 
   const isAnimationActive = animationItems.some(i => pathname?.startsWith(i.href))
+
+  // Nombre total de colonnes dans la barre mobile (items + bouton Plus)
+  const mobileGridCols = mobilePrimaryItems.length + 1
 
   if (loading) {
     return (
@@ -111,6 +117,8 @@ export default function Header() {
       </header>
     )
   }
+
+  const avatarInitial = (customer?.full_name || user?.email || 'U')[0].toUpperCase()
 
   return (
     <>
@@ -135,7 +143,7 @@ export default function Header() {
               </div>
             </Link>
 
-            {/* Navigation Desktop — texte seul */}
+            {/* Navigation Desktop */}
             <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link
@@ -150,7 +158,7 @@ export default function Header() {
                 </Link>
               ))}
 
-              {/* Dropdown Animation — texte seul */}
+              {/* Dropdown Animation */}
               <div className="relative group">
                 <button className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1
                   ${isAnimationActive ? 'text-white shadow-md' : 'text-gray-700 hover:bg-[#F5EFED]'}
@@ -167,7 +175,7 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`block px-4 py-2.5 text-sm transition font-medium`}
+                      className="block px-4 py-2.5 text-sm transition font-medium"
                       style={isActive(item.href) ? { backgroundColor: '#FFF5F3', color: '#E05947' } : { color: '#374151' }}
                     >
                       {item.name}
@@ -178,9 +186,10 @@ export default function Header() {
             </nav>
 
             {/* Zone utilisateur */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {user ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {/* Demandes — desktop uniquement */}
                   {customer && (
                     <Link
                       href="/requests"
@@ -193,43 +202,119 @@ export default function Header() {
                       <span>Demandes</span>
                     </Link>
                   )}
+
+                  {/* Déconnexion — desktop uniquement */}
                   <button
                     onClick={handleLogout}
                     aria-label="Se déconnecter"
-                    className="btn-secondary"
+                    className="hidden md:flex btn-secondary"
                   >
                     <Icon.LogOut className="w-4 h-4" />
-                    <span className="hidden md:inline">Déconnexion</span>
+                    <span>Déconnexion</span>
                   </button>
-                  <div className="relative group">
-                    <button className="flex items-center p-1 bg-gray-100 hover:bg-gray-200 rounded-full transition">
+
+                  {/* Avatar — click-controlled dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      aria-label="Mon compte"
+                      className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-transparent hover:ring-[#E05947] transition-all duration-200 focus:outline-none"
+                    >
                       {customer?.avatar_url && !avatarError ? (
-                        <img src={customer.avatar_url} alt={customer.full_name || ''} width={32} height={32} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" onError={() => setAvatarError(true)} />
+                        <img
+                          src={customer.avatar_url}
+                          alt={customer.full_name || ''}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={() => setAvatarError(true)}
+                        />
                       ) : (
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: '#E05947' }}>
-                          {(customer?.full_name || user?.email || 'U')[0].toUpperCase()}
+                        <div
+                          className="w-full h-full flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ backgroundColor: '#E05947' }}
+                        >
+                          {avatarInitial}
                         </div>
                       )}
                     </button>
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div className="px-4 py-2 border-b">
-                        <p className="text-sm font-medium text-gray-900">{customer?.full_name || 'Administrateur'}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                      </div>
-                      {customer && (
-                        <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">Mon profil</Link>
-                      )}
-                      {!customer && (
-                        <Link href="/admin" className="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition">🔧 Administration</Link>
-                      )}
-                    </div>
+
+                    {/* Dropdown utilisateur */}
+                    {isUserMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100">
+                          {/* Infos utilisateur */}
+                          <div className="px-4 py-3 border-b border-gray-100">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {customer?.full_name || 'Administrateur'}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                            {customer && currentStay && (
+                              <div className="mt-2 flex items-center gap-1.5 text-xs font-medium" style={{ color: '#16a34a' }}>
+                                <Icon.Hotel className="w-3.5 h-3.5" />
+                                Chambre {currentStay.room?.room_number || 'assignée'}
+                                {currentStay.room?.room_type && (
+                                  <span className="font-normal text-green-500 ml-1">{currentStay.room.room_type}</span>
+                                )}
+                              </div>
+                            )}
+                            {customer && !currentStay && (
+                              <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-amber-600">
+                                <Icon.Clock className="w-3.5 h-3.5" />
+                                Séjour en attente
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Liens */}
+                          {customer && (
+                            <Link
+                              href="/requests"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-[#FFF5F3]"
+                              style={{ color: '#E05947' }}
+                            >
+                              <RequestsIcon />
+                              Mes demandes
+                            </Link>
+                          )}
+                          {customer && (
+                            <Link
+                              href="/profile"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                            >
+                              Mon profil
+                            </Link>
+                          )}
+                          {!customer && (
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="block px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 transition"
+                            >
+                              🔧 Administration
+                            </Link>
+                          )}
+                          <div className="border-t border-gray-100 mt-1 pt-1">
+                            <button
+                              onClick={handleLogout}
+                              className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition flex items-center gap-2"
+                            >
+                              <Icon.LogOut className="w-4 h-4" />
+                              Déconnexion
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
-                <Link
-                  href="/login"
-                  className="btn-primary"
-                >
+                <Link href="/login" className="btn-primary">
                   <Icon.Key className="w-4 h-4" />
                   <span className="hidden sm:inline">Mon espace</span>
                 </Link>
@@ -241,7 +326,10 @@ export default function Header() {
 
       {/* Barre de navigation fixe — mobile uniquement */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-        <div className="grid grid-cols-4 h-16">
+        <div
+          className="h-16"
+          style={{ display: 'grid', gridTemplateColumns: `repeat(${mobileGridCols}, minmax(0, 1fr))` }}
+        >
           {mobilePrimaryItems.map((item) => (
             <Link
               key={item.href}
