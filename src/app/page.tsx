@@ -97,7 +97,10 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-white">Spectacles & soirées</h2>
+                <h2 className="text-2xl font-semibold text-white flex items-center gap-3">
+                  <span className="w-1 h-8 bg-purple-400 rounded-full" />
+                  Spectacles & soirées
+                </h2>
                 <p className="text-sm text-gray-400 mt-1">Les prochains événements à ne pas manquer</p>
               </div>
               <Link href="/shows" className="text-sm text-gray-300 hover:text-white font-medium hidden md:flex items-center gap-1">
@@ -111,7 +114,7 @@ export default async function HomePage() {
                 const date = new Date(show.nextSchedule.show_date)
                 const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
                 return (
-                  <Link key={show.id} href="/shows"
+                  <Link key={show.id} href={`/shows/${show.id}`}
                     className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-300">
                     <div className="relative h-52 bg-gray-800 overflow-hidden">
                       {mainImage ? (
@@ -156,7 +159,10 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Aujourd'hui à l'hôtel</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+                  <span className="w-1 h-8 bg-blue-600 rounded-full" />
+                  Aujourd'hui à l'hôtel
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
@@ -217,7 +223,10 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Nos restaurants</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+                  <span className="w-1 h-8 bg-amber-500 rounded-full" />
+                  Nos restaurants
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">Une expérience gastronomique unique</p>
               </div>
               <Link href="/restaurants" className="text-sm text-blue-600 hover:text-blue-800 font-medium hidden md:flex items-center gap-1">
@@ -265,7 +274,10 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">À découvrir</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+                  <span className="w-1 h-8 bg-emerald-500 rounded-full" />
+                  À découvrir
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">Nos sélections pour agrémenter votre séjour</p>
               </div>
               <Link href="/suggestions" className="text-sm text-blue-600 hover:text-blue-800 font-medium hidden md:flex items-center gap-1">
@@ -325,11 +337,11 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/suggestions"
-              className="bg-white text-gray-900 px-7 py-3 rounded-lg font-medium hover:bg-gray-100 transition text-sm">
+              className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition text-sm">
               Explorer l'hôtel
             </Link>
             <Link href="/contacts"
-              className="border border-gray-600 text-white px-7 py-3 rounded-lg font-medium hover:bg-gray-800 transition text-sm">
+              className="inline-flex items-center gap-2 border border-gray-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition text-sm">
               Contacts utiles
             </Link>
           </div>

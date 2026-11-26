@@ -170,19 +170,19 @@ export default async function ShowsPage() {
                       <div className="flex flex-wrap gap-2 mt-auto">
                         {show.location && (
                           <span className="flex items-center gap-1 text-xs text-gray-300 bg-gray-700/60 px-2.5 py-1 rounded-full">
-                            <Icon.Pin className="w-3 h-3 flex-shrink-0" />
+                            <Icon.Pin className="w-4 h-4 flex-shrink-0" />
                             {show.location.name}
                           </span>
                         )}
                         {show.nextSchedule.duration_minutes && (
                           <span className="flex items-center gap-1 text-xs text-gray-300 bg-gray-700/60 px-2.5 py-1 rounded-full">
-                            <Icon.Clock className="w-3 h-3 flex-shrink-0" />
+                            <Icon.Clock className="w-4 h-4 flex-shrink-0" />
                             {show.nextSchedule.duration_minutes} min
                           </span>
                         )}
                         {show.nextSchedule.target_audience && (
                           <span className="flex items-center gap-1 text-xs text-gray-300 bg-gray-700/60 px-2.5 py-1 rounded-full">
-                            <Icon.User className="w-3 h-3 flex-shrink-0" />
+                            <Icon.User className="w-4 h-4 flex-shrink-0" />
                             {show.nextSchedule.target_audience}
                           </span>
                         )}

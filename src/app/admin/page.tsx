@@ -199,9 +199,7 @@ export default async function AdminDashboardPage() {
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Animation</h2>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/admin/activities" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition group flex items-center gap-4">
-              <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon.Activity className="w-5 h-5 text-orange-500" />
-              </div>
+              <div className="w-1 h-10 bg-orange-400 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition">Activités</p>
                 <p className="text-sm text-gray-400">{activitiesCount || 0} activité{(activitiesCount || 0) !== 1 ? 's' : ''} programmée{(activitiesCount || 0) !== 1 ? 's' : ''}</p>
@@ -209,9 +207,7 @@ export default async function AdminDashboardPage() {
               <Icon.ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition flex-shrink-0" />
             </Link>
             <Link href="/admin/shows" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition group flex items-center gap-4">
-              <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon.Show className="w-5 h-5 text-purple-500" />
-              </div>
+              <div className="w-1 h-10 bg-purple-500 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition">Spectacles</p>
                 <p className="text-sm text-gray-400">{showsCount || 0} spectacle{(showsCount || 0) !== 1 ? 's' : ''} au catalogue</p>
@@ -226,9 +222,7 @@ export default async function AdminDashboardPage() {
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Contenu & Services</h2>
           <div className="grid grid-cols-3 gap-3">
             <Link href="/admin/restaurants" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition group flex items-center gap-4">
-              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon.Utensils className="w-5 h-5 text-amber-500" />
-              </div>
+              <div className="w-1 h-10 bg-amber-400 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition">Restaurants</p>
                 <p className="text-sm text-gray-400">{restaurantsCount || 0} établissement{(restaurantsCount || 0) !== 1 ? 's' : ''}</p>
@@ -236,9 +230,7 @@ export default async function AdminDashboardPage() {
               <Icon.ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition flex-shrink-0" />
             </Link>
             <Link href="/admin/suggestions" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition group flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon.Compass className="w-5 h-5 text-emerald-500" />
-              </div>
+              <div className="w-1 h-10 bg-emerald-500 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition">Découvertes</p>
                 <p className="text-sm text-gray-400">{suggestionsCount || 0} suggestion{(suggestionsCount || 0) !== 1 ? 's' : ''}</p>
@@ -246,9 +238,7 @@ export default async function AdminDashboardPage() {
               <Icon.ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition flex-shrink-0" />
             </Link>
             <Link href="/admin/contacts" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition group flex items-center gap-4">
-              <div className="w-10 h-10 bg-sky-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon.Phone className="w-5 h-5 text-sky-500" />
-              </div>
+              <div className="w-1 h-10 bg-sky-500 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition">Contacts</p>
                 <p className="text-sm text-gray-400">{contactsCount || 0} numéro{(contactsCount || 0) !== 1 ? 's' : ''} utile{(contactsCount || 0) !== 1 ? 's' : ''}</p>

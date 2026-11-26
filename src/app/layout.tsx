@@ -2,8 +2,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'  // ← CLIENT
-import Footer from '@/components/layout/Footer'  // ← CLIENT
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import CookieBanner from '@/components/layout/CookieBanner'
 import { Analytics } from '@vercel/analytics/next'
 
@@ -36,11 +36,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <Header />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}
+        <Header />
         <main className="flex-grow pb-16 lg:pb-0">
           {children}
         </main>
-        <Footer />  {/* ← CLIENT - Ne doit PAS être dans l'admin */}
+        <Footer />
         <CookieBanner />
         <Analytics />
       </body>

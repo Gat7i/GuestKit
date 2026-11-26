@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useHotelData } from '@/hooks/useHotelData'
+import { Icon } from '@/components/ui/Icons'
 
 // SVG icons for mobile bottom nav
 const HomeIcon = () => (
@@ -181,8 +182,9 @@ export default function Header() {
                   {customer && currentStay && (
                     <div className="hidden md:block">
                       <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
-                        <span className="text-green-600 text-sm font-medium">
-                          🏨 Chambre {currentStay.room?.room_number || 'assignée'}
+                        <span className="text-green-600 text-sm font-medium flex items-center gap-1">
+                          <Icon.Hotel className="w-4 h-4" />
+                          Chambre {currentStay.room?.room_number || 'assignée'}
                         </span>
                         <span className="text-xs text-green-500">{currentStay.room?.room_type || ''}</span>
                       </div>
@@ -191,7 +193,10 @@ export default function Header() {
                   {customer && !currentStay && (
                     <div className="hidden md:block">
                       <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                        <span className="text-amber-600 text-sm font-medium animate-pulse">⏳ Séjour en attente</span>
+                        <span className="text-amber-600 text-sm font-medium animate-pulse flex items-center gap-1">
+                          <Icon.Clock className="w-4 h-4" />
+                          Séjour en attente
+                        </span>
                         <span className="text-xs text-amber-500">Présentez-vous à la réception</span>
                       </div>
                     </div>
@@ -210,9 +215,9 @@ export default function Header() {
                   <button
                     onClick={handleLogout}
                     aria-label="Se déconnecter"
-                    className="border border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                    className="btn-secondary"
                   >
-                    <span>🚪</span>
+                    <Icon.LogOut className="w-4 h-4" />
                     <span className="hidden md:inline">Déconnexion</span>
                   </button>
                   <div className="relative group">
@@ -245,9 +250,9 @@ export default function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+                  className="btn-primary"
                 >
-                  <span>🔑</span>
+                  <Icon.Key className="w-4 h-4" />
                   <span className="hidden sm:inline">Mon espace</span>
                 </Link>
               )}

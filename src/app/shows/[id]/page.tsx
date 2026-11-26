@@ -187,7 +187,7 @@ export default async function ShowDetailPage({
                           <div className="flex flex-wrap gap-3 mt-1">
                             {sc.start_time && (
                               <span className="text-sm text-gray-300 flex items-center gap-1">
-                                <Icon.Clock className="w-3.5 h-3.5" />
+                                <Icon.Clock className="w-4 h-4" />
                                 {sc.start_time.slice(0, 5)}
                               </span>
                             )}
@@ -196,7 +196,7 @@ export default async function ShowDetailPage({
                             )}
                             {sc.target_audience && (
                               <span className="text-sm text-gray-400 flex items-center gap-1">
-                                <Icon.User className="w-3.5 h-3.5" />
+                                <Icon.User className="w-4 h-4" />
                                 {sc.target_audience}
                               </span>
                             )}
