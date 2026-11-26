@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -9,10 +9,23 @@ import { Icon } from '@/components/ui/Icons'
 
 export default function NewRequestPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><p className="text-gray-600">Chargement...</p></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF8' }}>
+        <p className="text-sm" style={{ color: '#746865' }}>Chargement...</p>
+      </div>
+    }>
       <NewRequestForm />
     </Suspense>
   )
+}
+
+type CategoryComp = (props: { className?: string }) => React.ReactNode
+
+const categoryConfig: Record<string, { title: string; Comp: CategoryComp; colorClass: string }> = {
+  maintenance:  { title: 'Maintenance',  Comp: Icon.Wrench,           colorClass: 'text-[#E05947]' },
+  room_service: { title: 'Room Service', Comp: Icon.Utensils,         colorClass: 'text-[#C49A5A]' },
+  housekeeping: { title: 'Housekeeping', Comp: Icon.SparklesCleaning, colorClass: 'text-[#746865]' },
+  concierge:    { title: 'Conciergerie', Comp: Icon.Concierge,        colorClass: 'text-[#E05947]' },
 }
 
 function NewRequestForm() {
@@ -37,79 +50,50 @@ function NewRequestForm() {
   useEffect(() => {
     const init = async () => {
       try {
-        if (!typeId) {
-          router.push('/requests')
-          return
-        }
+        if (!typeId) { router.push('/requests'); return }
 
-        // 1. Récupérer l'utilisateur connecté
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          router.push('/login')
-          return
-        }
+        if (!user) { router.push('/login'); return }
 
-        // 2. Récupérer le client
         const { data: customerData } = await supabase
           .from('customers')
           .select('customer_uuid, full_name')
           .eq('user_id', user.id)
           .single()
-
-        if (!customerData) {
-          router.push('/')
-          return
-        }
+        if (!customerData) { router.push('/'); return }
         setCustomer(customerData)
 
-        // 3. Récupérer le séjour actif
         const { data: stayData } = await supabase
           .from('stays')
           .select('id')
           .eq('primary_customer_id', customerData.customer_uuid)
           .eq('status', 'active')
           .maybeSingle()
-
-        if (!stayData) {
-          router.push('/requests')
-          return
-        }
+        if (!stayData) { router.push('/requests'); return }
         setActiveStay(stayData)
 
-        // 4. Récupérer le type de demande
         const { data: typeData } = await supabase
           .from('request_types')
           .select('*')
           .eq('id', typeId)
           .maybeSingle()
-
-        if (!typeData) {
-          router.push('/requests')
-          return
-        }
+        if (!typeData) { router.push('/requests'); return }
         setRequestType(typeData)
-        setFormData(prev => ({
-          ...prev,
-          title: typeData.name
-        }))
-
+        setFormData(prev => ({ ...prev, title: typeData.name }))
       } catch (error) {
         console.error('Erreur initialisation:', error)
       } finally {
         setLoading(false)
       }
     }
-
     init()
   }, [typeId, router, supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!customer || !activeStay || !requestType) return
-
     setSaving(true)
     try {
-      // Re-vérifier que le séjour est toujours actif au moment de la soumission
       const { data: stayCheck } = await supabase
         .from('stays')
         .select('id')
@@ -117,11 +101,7 @@ function NewRequestForm() {
         .eq('primary_customer_id', customer.customer_uuid)
         .eq('status', 'active')
         .maybeSingle()
-
-      if (!stayCheck) {
-        showToast('error', 'Votre séjour n\'est plus actif')
-        return
-      }
+      if (!stayCheck) { showToast('error', 'Votre séjour n\'est plus actif'); return }
 
       const { data, error } = await supabase
         .from('customer_requests')
@@ -138,17 +118,13 @@ function NewRequestForm() {
         })
         .select()
         .single()
-
       if (error) throw error
 
-      showToast('success', 'Demande envoyée avec succès !')
-      setTimeout(() => {
-        router.push(`/requests/${data.id}`)
-        router.refresh()
-      }, 1200)
+      showToast('success', 'Demande envoyée')
+      setTimeout(() => { router.push(`/requests/${data.id}`); router.refresh() }, 1200)
     } catch (error) {
       console.error('Erreur création demande:', error)
-      showToast('error', 'Erreur lors de l\'envoi de la demande')
+      showToast('error', 'Erreur lors de l\'envoi')
     } finally {
       setSaving(false)
     }
@@ -156,17 +132,17 @@ function NewRequestForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen p-6" style={{ backgroundColor: '#FFFAF8' }}>
         <div className="max-w-2xl mx-auto space-y-6">
           <Skeleton className="h-4 w-32" />
           <div className="flex items-center gap-4">
-            <Skeleton className="w-16 h-16 rounded-2xl flex-shrink-0" />
+            <Skeleton className="w-12 h-12 rounded-xl flex-shrink-0" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-64" />
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-xl p-6 space-y-4" style={{ border: '1px solid #E8DEDA' }}>
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-4 w-32" />
@@ -180,133 +156,117 @@ function NewRequestForm() {
 
   if (!requestType) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen p-6" style={{ backgroundColor: '#FFFAF8' }}>
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-red-600">Type de demande invalide</p>
-          <Link href="/requests" className="text-blue-600 mt-4 inline-block">
-            Retour aux demandes
+          <p style={{ color: '#E05947' }}>Type de demande invalide</p>
+          <Link href="/requests" className="mt-4 inline-block text-sm" style={{ color: '#746865' }}>
+            ← Retour aux demandes
           </Link>
         </div>
       </div>
     )
   }
 
-  const categoryColors = {
-    maintenance: 'from-orange-500 to-red-600',
-    room_service: 'from-green-500 to-emerald-600',
-    housekeeping: 'from-blue-500 to-cyan-600',
-    concierge: 'from-purple-500 to-pink-600'
-  }
-
-  const categoryIconMap = {
-    maintenance:  Icon.Wrench,
-    room_service: Icon.Utensils,
-    housekeeping: Icon.SparklesCleaning,
-    concierge:    Icon.Concierge,
-  }
-
-  const color = categoryColors[requestType.category as keyof typeof categoryColors] || 'from-gray-500 to-gray-600'
-  const CategoryIcon = categoryIconMap[requestType.category as keyof typeof categoryIconMap] || Icon.ClipboardList
+  const cfg = categoryConfig[requestType.category]
+  const CategoryIcon = cfg?.Comp || Icon.ClipboardList
+  const categoryColorClass = cfg?.colorClass || 'text-[#746865]'
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: '#FFFAF8' }}>
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium ${
           toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`}>
           {toast.text}
         </div>
       )}
+
       <div className="max-w-2xl mx-auto">
-        {/* En-tête */}
-        <div className="mb-8">
-          <Link
-            href="/requests"
-            className="text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center gap-1"
+        {/* Fil d'Ariane */}
+        <Link
+          href="/requests"
+          className="inline-flex items-center gap-1 text-sm mb-6 transition hover:opacity-70"
+          style={{ color: '#746865' }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour aux demandes
+        </Link>
+
+        {/* En-tête service */}
+        <div className="flex items-center gap-4 mb-8">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#F5EFED' }}
           >
-            ← Retour aux demandes
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg`}>
-              {requestType.icon
-                ? <span className="text-3xl">{requestType.icon}</span>
-                : <CategoryIcon className="w-8 h-8" />}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {requestType.name}
-              </h1>
-              <p className="text-gray-600">
-                {requestType.description || 'Décrivez votre demande'}
-              </p>
-            </div>
+            <CategoryIcon className={`w-6 h-6 ${categoryColorClass}`} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold" style={{ color: '#1C1211' }}>
+              {requestType.name}
+            </h1>
+            <p className="text-sm" style={{ color: '#746865' }}>
+              {requestType.description || 'Décrivez votre demande'}
+            </p>
           </div>
         </div>
 
         {/* Formulaire */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-          {/* Titre */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 space-y-5" style={{ border: '1px solid #E8DEDA' }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Titre de la demande
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#1C1211' }}>
+              Titre
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-lg border-gray-200 shadow-sm text-sm focus:ring-2 focus:ring-[#E05947] focus:border-[#E05947]"
               required
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description <span className="text-gray-400">(optionnel)</span>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#1C1211' }}>
+              Précisions <span className="font-normal" style={{ color: '#746865' }}>(optionnel)</span>
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-lg border-gray-200 shadow-sm text-sm focus:ring-2 focus:ring-[#E05947] focus:border-[#E05947]"
               placeholder="Décrivez votre demande en détail..."
             />
           </div>
 
-          {/* Boutons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50"
+              className="btn-primary flex-1 justify-center"
             >
               {saving ? 'Envoi en cours...' : 'Envoyer la demande'}
             </button>
             <Link
               href="/requests"
-              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition text-center"
+              className="btn-ghost flex-1 justify-center"
             >
               Annuler
             </Link>
           </div>
         </form>
 
-        {/* Note d'information */}
-        <div className="mt-6 bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
-          <div className="flex items-start gap-2">
-            <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium mb-1">Temps d'attente estimé</p>
-              <p>
-                {requestType.estimated_time 
-                  ? `Ce service est généralement traité en ${requestType.estimated_time} minutes environ.`
-                  : 'Notre équipe traitera votre demande dans les plus brefs délais.'
-                }
-              </p>
-            </div>
+        {/* Délai estimé */}
+        {requestType.estimated_time && (
+          <div className="mt-5 flex items-start gap-3 px-4 py-3 rounded-lg text-sm" style={{ backgroundColor: '#F5EFED' }}>
+            <Icon.Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#746865]" />
+            <p style={{ color: '#746865' }}>
+              Délai de traitement estimé : <strong style={{ color: '#1C1211' }}>{requestType.estimated_time} minutes</strong>
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

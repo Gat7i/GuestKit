@@ -1,9 +1,31 @@
+import React from 'react'
 import { createClient } from '@/lib/supabase/server-client'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import RequestActions from './RequestActions'
 import { Icon } from '@/components/ui/Icons'
+
+const categoryIconMap: Record<string, (props: { className?: string }) => React.ReactNode> = {
+  maintenance:  Icon.Wrench,
+  room_service: Icon.Utensils,
+  housekeeping: Icon.SparklesCleaning,
+  concierge:    Icon.Concierge,
+}
+
+const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
+  pending:     { label: 'En attente', bg: '#FFF5F3', color: '#E05947' },
+  in_progress: { label: 'En cours',   bg: '#F5EFED', color: '#746865' },
+  completed:   { label: 'Terminée',   bg: '#F0FDF4', color: '#16a34a' },
+  cancelled:   { label: 'Annulée',    bg: '#F5F5F5', color: '#9CA3AF' },
+}
+
+const priorityConfig: Record<string, { label: string; bg: string; color: string }> = {
+  urgent: { label: 'Urgente',  bg: '#FEF2F2', color: '#DC2626' },
+  high:   { label: 'Haute',    bg: '#FFF5F3', color: '#E05947' },
+  normal: { label: 'Normale',  bg: '#F5EFED', color: '#746865' },
+  low:    { label: 'Basse',    bg: '#F9FAFB', color: '#9CA3AF' },
+}
 
 export default async function RequestDetailPage({
   params
@@ -13,181 +35,122 @@ export default async function RequestDetailPage({
   const { id } = await params
   const supabase = await createClient()
   const hotel = await getCurrentHotelServer()
-  
-  if (!hotel) {
-    return redirect('/')
-  }
 
-  // Récupérer l'utilisateur connecté
+  if (!hotel) return redirect('/')
+
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return redirect('/login')
-  }
+  if (!user) return redirect('/login')
 
-  // Récupérer le client
   const { data: customer } = await supabase
     .from('customers')
     .select('customer_uuid, full_name')
     .eq('user_id', user.id)
     .single()
+  if (!customer) return redirect('/')
 
-  if (!customer) {
-    return redirect('/')
-  }
-
-  // Récupérer la demande avec toutes ses relations
   const { data: request, error } = await supabase
     .from('customer_requests')
     .select(`
       *,
-      request_type:request_types(
-        id,
-        category,
-        name,
-        icon,
-        estimated_time
-      ),
-      stay:stays(
-        id,
-        booking_reference,
-        room:rooms(room_number)
-      ),
-      messages:request_messages(
-        id,
-        sender_type,
-        sender_name,
-        message,
-        is_internal,
-        created_at
-      )
+      request_type:request_types(id, category, name, icon, estimated_time),
+      stay:stays(id, booking_reference, room:rooms(room_number)),
+      messages:request_messages(id, sender_type, sender_name, message, is_internal, created_at)
     `)
     .eq('id', id)
     .eq('hotel_id', hotel.id)
-    .eq('customer_id', customer.customer_uuid)  // ← Vérification directe
+    .eq('customer_id', customer.customer_uuid)
     .single()
 
-  if (error || !request) {
-    console.error('Erreur chargement demande:', error)
-    notFound()
-  }
+  if (error || !request) notFound()
 
-  const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    in_progress: 'bg-blue-100 text-blue-800',
-    completed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-gray-100 text-gray-800'
-  }
-
-  const statusLabels = {
-    pending: 'En attente',
-    in_progress: 'En cours',
-    completed: 'Terminée',
-    cancelled: 'Annulée'
-  }
-
-  const priorityColors = {
-    low: 'bg-gray-100 text-gray-600',
-    normal: 'bg-blue-100 text-blue-600',
-    high: 'bg-orange-100 text-orange-600',
-    urgent: 'bg-red-100 text-red-600'
-  }
-
-  const priorityLabels = {
-    low: 'Basse',
-    normal: 'Normale',
-    high: 'Haute',
-    urgent: 'Urgente'
-  }
-
-  const categoryIconMap = {
-    maintenance:  Icon.Wrench,
-    room_service: Icon.Utensils,
-    housekeeping: Icon.SparklesCleaning,
-    concierge:    Icon.Concierge,
-  }
+  const st = statusConfig[request.status] || { label: request.status, bg: '#F5EFED', color: '#746865' }
+  const pr = priorityConfig[request.priority] || { label: request.priority, bg: '#F5EFED', color: '#746865' }
+  const CategoryIcon = categoryIconMap[request.request_type.category] || Icon.ClipboardList
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-4 md:p-6" style={{ backgroundColor: '#FFFAF8' }}>
       <div className="max-w-4xl mx-auto">
-        {/* Fil d'Ariane */}
-        <div className="mb-6">
-          <Link
-            href="/requests"
-            className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-sm"
-          >
-            ← Retour aux demandes
-          </Link>
-        </div>
 
-        {/* En-tête */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex items-start justify-between mb-4">
+        {/* Fil d'Ariane */}
+        <Link
+          href="/requests"
+          className="inline-flex items-center gap-1 text-sm mb-6 transition hover:opacity-70"
+          style={{ color: '#746865' }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Mes demandes
+        </Link>
+
+        {/* En-tête de la demande */}
+        <div className="bg-white rounded-xl p-6 mb-5" style={{ border: '1px solid #E8DEDA' }}>
+          <div className="flex items-start justify-between gap-4 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
-                {request.request_type.icon
-                  ? <span className="text-2xl">{request.request_type.icon}</span>
-                  : (() => { const C = categoryIconMap[request.request_type.category as keyof typeof categoryIconMap] || Icon.ClipboardList; return <C className="w-6 h-6" /> })()}
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F5EFED' }}>
+                <CategoryIcon className="w-5 h-5 text-[#746865]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-xl font-semibold leading-tight" style={{ color: '#1C1211' }}>
                   {request.title}
                 </h1>
-                <p className="text-sm text-gray-500">
-                  {request.request_type.name} • Réf: #{request.id}
+                <p className="text-xs mt-0.5" style={{ color: '#746865' }}>
+                  {request.request_type.name} · Réf. #{request.id}
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[request.status as keyof typeof statusColors]}`}>
-                {statusLabels[request.status as keyof typeof statusLabels]}
+            <div className="flex gap-2 flex-shrink-0">
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ backgroundColor: st.bg, color: st.color }}>
+                {st.label}
               </span>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${priorityColors[request.priority as keyof typeof priorityColors]}`}>
-                {priorityLabels[request.priority as keyof typeof priorityLabels]}
-              </span>
+              {request.priority !== 'normal' && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ backgroundColor: pr.bg, color: pr.color }}>
+                  {pr.label}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Infos chambre */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 text-gray-700">
-              <Icon.Key className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span className="font-medium">Chambre {request.stay.room?.room_number || '?'}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm text-gray-500">Séjour: {request.stay.booking_reference}</span>
-            </div>
+          {/* Chambre */}
+          <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg mb-4 text-sm" style={{ backgroundColor: '#F5EFED' }}>
+            <Icon.Key className="w-3.5 h-3.5 flex-shrink-0 text-[#746865]" />
+            <span className="font-medium" style={{ color: '#1C1211' }}>
+              Chambre {request.stay.room?.room_number || '—'}
+            </span>
+            <span style={{ color: '#E8DEDA' }}>·</span>
+            <span className="text-xs" style={{ color: '#746865' }}>{request.stay.booking_reference}</span>
           </div>
 
           {/* Description */}
           {request.description && (
             <div className="mb-4">
-              <h2 className="text-sm font-medium text-gray-700 mb-2">Description</h2>
-              <p className="text-gray-600 bg-gray-50 p-4 rounded-lg">
+              <p className="text-xs font-medium mb-1.5" style={{ color: '#746865' }}>Description</p>
+              <p className="text-sm leading-relaxed px-3 py-3 rounded-lg" style={{ color: '#1C1211', backgroundColor: '#FFFAF8', border: '1px solid #E8DEDA' }}>
                 {request.description}
               </p>
             </div>
           )}
 
-          {/* Horaires */}
-          <div className="grid grid-cols-3 gap-4 text-sm border-t pt-4">
+          {/* Dates */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm pt-4" style={{ borderTop: '1px solid #F5EFED' }}>
             <div>
-              <p className="text-gray-500">Demandée le</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-xs mb-0.5" style={{ color: '#746865' }}>Demandée le</p>
+              <p className="font-medium text-sm" style={{ color: '#1C1211' }}>
                 {new Date(request.created_at).toLocaleString('fr-FR')}
               </p>
             </div>
             {request.scheduled_time && (
               <div>
-                <p className="text-gray-500">Planifiée le</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-xs mb-0.5" style={{ color: '#746865' }}>Planifiée</p>
+                <p className="font-medium text-sm" style={{ color: '#1C1211' }}>
                   {new Date(request.scheduled_time).toLocaleString('fr-FR')}
                 </p>
               </div>
             )}
             {request.completed_time && (
               <div>
-                <p className="text-gray-500">Traitée le</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-xs mb-0.5" style={{ color: '#746865' }}>Traitée</p>
+                <p className="font-medium text-sm" style={{ color: '#16a34a' }}>
                   {new Date(request.completed_time).toLocaleString('fr-FR')}
                 </p>
               </div>
@@ -195,52 +158,44 @@ export default async function RequestDetailPage({
           </div>
         </div>
 
-        {/* Messages/Historique */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Icon.Chat className="w-5 h-5 text-gray-400" />
+        {/* Suivi / Messages */}
+        <div className="bg-white rounded-xl p-6 mb-5" style={{ border: '1px solid #E8DEDA' }}>
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: '#1C1211' }}>
+            <div className="w-1 h-5 rounded-full" style={{ backgroundColor: '#E05947' }} />
             Suivi de la demande
           </h2>
 
           {request.messages && request.messages.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {request.messages.map((message: any) => (
                 <div
                   key={message.id}
-                  className={`p-4 rounded-lg ${
-                    message.sender_type === 'customer'
-                      ? 'bg-blue-50 ml-8'
-                      : 'bg-gray-50 mr-8'
-                  }`}
+                  className={`p-4 rounded-lg ${message.sender_type === 'customer' ? 'ml-6' : 'mr-6'}`}
+                  style={{
+                    backgroundColor: message.sender_type === 'customer' ? '#FFF5F3' : '#F5EFED',
+                    border: `1px solid ${message.sender_type === 'customer' ? '#E8DEDA' : '#E8DEDA'}`,
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">
-                        {message.sender_name || (message.sender_type === 'customer' ? 'Vous' : 'Service client')}
-                      </span>
-                      {message.is_internal && (
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
-                          Interne
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-500">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold" style={{ color: '#1C1211' }}>
+                      {message.sender_name || (message.sender_type === 'customer' ? 'Vous' : 'Service hôtel')}
+                    </span>
+                    <span className="text-xs" style={{ color: '#746865' }}>
                       {new Date(message.created_at).toLocaleString('fr-FR')}
                     </span>
                   </div>
-                  <p className="text-gray-700">{message.message}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: '#1C1211' }}>{message.message}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-8">
+            <p className="text-center text-sm py-8" style={{ color: '#746865' }}>
               Aucun message pour le moment
             </p>
           )}
-
         </div>
 
-        {/* Actions - Utilisation du composant client */}
+        {/* Actions client */}
         <RequestActions
           requestId={request.id}
           status={request.status}
@@ -249,6 +204,7 @@ export default async function RequestDetailPage({
           existingRating={request.rating}
           existingFeedback={request.feedback}
         />
+
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import React from 'react'
 import { createClient } from '@/lib/supabase/server-client'
 import { getCurrentHotelServer } from '@/lib/hotel-server'
 import { redirect } from 'next/navigation'
@@ -5,44 +6,48 @@ import Link from 'next/link'
 import RequestStayButton from '@/components/requests/RequestStayButton'
 import { Icon } from '@/components/ui/Icons'
 
+type CategoryComp = (props: { className?: string }) => React.ReactNode
+
+const categoryConfig: Record<string, { title: string; Comp: CategoryComp; color: string }> = {
+  maintenance:  { title: 'Maintenance',  Comp: Icon.Wrench,           color: '#E05947' },
+  room_service: { title: 'Room Service', Comp: Icon.Utensils,         color: '#C49A5A' },
+  housekeeping: { title: 'Housekeeping', Comp: Icon.SparklesCleaning, color: '#746865' },
+  concierge:    { title: 'Conciergerie', Comp: Icon.Concierge,        color: '#E05947' },
+}
+
+const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
+  pending:     { label: 'En attente', bg: '#FFF5F3', color: '#E05947' },
+  in_progress: { label: 'En cours',   bg: '#F5EFED', color: '#746865' },
+  completed:   { label: 'Terminée',   bg: '#F0FDF4', color: '#16a34a' },
+}
+
 export default async function RequestsPage() {
   const supabase = await createClient()
   const hotel = await getCurrentHotelServer()
-  
-  if (!hotel) {
-    return redirect('/')
-  }
 
-  // Récupérer l'utilisateur connecté
+  if (!hotel) return redirect('/')
+
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return redirect('/login')
-  }
+  if (!user) return redirect('/login')
 
-  // Récupérer le client
   const { data: customer } = await supabase
     .from('customers')
     .select('customer_uuid, full_name')
     .eq('user_id', user.id)
     .single()
 
-  // Vérifier si le client a un séjour actif
   let activeStay = null
   let pendingStay = null
-  
+
   if (customer) {
-    // Chercher un séjour actif
     const { data: active } = await supabase
       .from('stays')
       .select('id, status')
       .eq('primary_customer_id', customer.customer_uuid)
       .eq('status', 'active')
       .maybeSingle()
-    
     activeStay = active
 
-    // Chercher un séjour en attente
     const { data: pending } = await supabase
       .from('stays')
       .select('id, status, created_at')
@@ -50,32 +55,24 @@ export default async function RequestsPage() {
       .eq('status', 'upcoming')
       .order('created_at', { ascending: false })
       .maybeSingle()
-    
     pendingStay = pending
   }
 
-  // Si pas de client du tout, on propose la création
   const showStayRequest = !customer || (!activeStay && !pendingStay)
 
-  // Récupérer les demandes actives du client
   let activeRequests: any[] = []
   if (activeStay) {
     const { data } = await supabase
       .from('customer_requests')
-      .select(`
-        id, title, status, priority, created_at,
-        request_type:request_types(name, icon, category)
-      `)
+      .select('id, title, status, priority, created_at, request_type:request_types(name, category)')
       .eq('stay_id', activeStay.id)
       .neq('status', 'cancelled')
       .order('created_at', { ascending: false })
       .limit(10)
-
     activeRequests = data || []
   }
 
-  // Récupérer les types de demandes (si le client a un séjour actif)
-  let requestTypes = []
+  let requestTypes: any[] = []
   if (activeStay) {
     const { data } = await supabase
       .from('request_types')
@@ -84,64 +81,54 @@ export default async function RequestsPage() {
       .eq('is_active', true)
       .order('category')
       .order('sort_order')
-
     requestTypes = data || []
   }
 
-  // Grouper par catégorie
-  const categories = requestTypes?.reduce((acc: any, type: any) => {
-    if (!acc[type.category]) {
-      acc[type.category] = {
-        name: type.category,
-        items: []
-      }
-    }
+  const categories = requestTypes.reduce((acc: any, type: any) => {
+    if (!acc[type.category]) acc[type.category] = { name: type.category, items: [] }
     acc[type.category].items.push(type)
     return acc
   }, {})
 
-  const categoryLabels = {
-    maintenance:  { title: 'Maintenance',  LabelIcon: Icon.Wrench,            color: 'from-orange-500 to-red-600' },
-    room_service: { title: 'Room Service', LabelIcon: Icon.Utensils,          color: 'from-green-500 to-emerald-600' },
-    housekeeping: { title: 'Housekeeping', LabelIcon: Icon.SparklesCleaning,  color: 'from-blue-500 to-cyan-600' },
-    concierge:    { title: 'Conciergerie', LabelIcon: Icon.Concierge,         color: 'from-purple-500 to-pink-600' },
-  } as const
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* En-tête */}
-      <div 
-        className="bg-gradient-to-r text-white"
-        style={{ background: `linear-gradient(to right, ${hotel.primary_color}, ${hotel.primary_color}dd)` }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold mb-4">
-            Faire une demande
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF8' }}>
+
+      {/* En-tête éditorial */}
+      <div style={{ backgroundColor: '#1C1211' }}>
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-20">
+          <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: '#C49A5A' }}>
+            {hotel.name}
+          </p>
+          <h1
+            className="text-4xl md:text-5xl font-light mb-3 leading-tight"
+            style={{ fontFamily: "'Cormorant', Georgia, serif", color: '#FFFAF8' }}
+          >
+            Mes demandes
           </h1>
-          <p className="text-xl opacity-90">
-            {activeStay 
-              ? 'Sélectionnez le type de service dont vous avez besoin'
-              : 'Commencez par demander un séjour'}
+          <p className="text-sm" style={{ color: '#746865' }}>
+            {activeStay
+              ? 'Sélectionnez le service dont vous avez besoin'
+              : 'Commencez par enregistrer votre séjour'}
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Message si pas de séjour */}
+      <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+
+        {/* Aucun séjour */}
         {showStayRequest && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 mb-8 text-center">
-            <Icon.Hotel className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-amber-800 mb-3">
-              Vous n'avez pas de séjour actif
+          <div className="rounded-xl p-10 text-center" style={{ backgroundColor: '#FFF5F3', border: '1px solid #E8DEDA' }}>
+            <div className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center" style={{ backgroundColor: '#F5EFED' }}>
+              <Icon.Hotel className="w-8 h-8 text-[#746865]" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: '#1C1211' }}>
+              Aucun séjour actif
             </h2>
-            <p className="text-amber-600 mb-6 max-w-2xl mx-auto">
-              Pour faire des demandes (room service, ménage, maintenance, etc.), 
-              vous devez d'abord avoir un séjour en cours.
+            <p className="text-sm mb-7 max-w-md mx-auto" style={{ color: '#746865' }}>
+              Pour accéder aux services de l'hôtel, vous devez d'abord enregistrer votre séjour à la réception.
             </p>
-            
-            {/* Bouton pour demander un séjour */}
-            <RequestStayButton 
-              hotelId={hotel.id} 
+            <RequestStayButton
+              hotelId={hotel.id}
               userId={user.id}
               customerExists={!!customer}
               customerUuid={customer?.customer_uuid}
@@ -150,59 +137,61 @@ export default async function RequestsPage() {
           </div>
         )}
 
-        {/* Message si séjour en attente */}
+        {/* Séjour en attente */}
         {pendingStay && !activeStay && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 mb-8 text-center">
-            <Icon.Clock className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-blue-800 mb-3">
+          <div className="rounded-xl p-8 text-center" style={{ backgroundColor: '#F5EFED', border: '1px solid #E8DEDA' }}>
+            <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: '#E8DEDA' }}>
+              <Icon.Clock className="w-6 h-6 text-[#746865]" />
+            </div>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: '#1C1211' }}>
               Demande de séjour en attente
             </h2>
-            <p className="text-blue-600 mb-4 max-w-2xl mx-auto">
-              Votre demande de séjour a été envoyée. La réception va la traiter sous peu.
-              Vous recevrez une notification dès que votre chambre sera assignée.
+            <p className="text-sm mb-4 max-w-md mx-auto" style={{ color: '#746865' }}>
+              Votre demande a été transmise à la réception. Votre chambre vous sera attribuée à votre arrivée.
             </p>
-            <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm text-blue-700">
-              <span>Demande envoyée le {new Date(pendingStay.created_at).toLocaleDateString('fr-FR')}</span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ backgroundColor: '#E8DEDA', color: '#746865' }}>
+              <Icon.Clock className="w-3 h-3" />
+              Envoyée le {new Date(pendingStay.created_at).toLocaleDateString('fr-FR')}
+            </span>
           </div>
         )}
 
-        {/* Mes demandes en cours */}
+        {/* Demandes en cours */}
         {activeStay && activeRequests.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Mes demandes en cours</h2>
-            <div className="space-y-3">
-              {activeRequests.map((req: any) => {
-                const statusColors: Record<string, string> = {
-                  pending:     'bg-yellow-100 text-yellow-800',
-                  in_progress: 'bg-blue-100 text-blue-800',
-                  completed:   'bg-green-100 text-green-800',
-                }
-                const statusLabels: Record<string, string> = {
-                  pending:     'En attente',
-                  in_progress: 'En cours',
-                  completed:   'Terminée',
-                }
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1 h-6 rounded-full" style={{ backgroundColor: '#E05947' }} />
+              <h2 className="text-lg font-semibold" style={{ color: '#1C1211' }}>Demandes en cours</h2>
+            </div>
+            <div className="bg-white rounded-xl overflow-hidden" style={{ border: '1px solid #E8DEDA' }}>
+              {activeRequests.map((req: any, i: number) => {
+                const st = statusConfig[req.status] || { label: req.status, bg: '#F5EFED', color: '#746865' }
+                const cfg = categoryConfig[req.request_type?.category]
+                const ReqIcon = cfg?.Comp || Icon.ClipboardList
                 return (
                   <Link
                     key={req.id}
                     href={`/requests/${req.id}`}
-                    className="flex items-center justify-between bg-white rounded-xl px-5 py-4 shadow-sm hover:shadow-md transition border border-gray-100"
+                    className="group flex items-center justify-between px-5 py-4 hover:bg-[#FFFAF8] transition"
+                    style={{ borderTop: i > 0 ? '1px solid #F5EFED' : undefined }}
                   >
                     <div className="flex items-center gap-3">
-                      {req.request_type?.icon
-                        ? <span className="text-2xl">{req.request_type.icon}</span>
-                        : <Icon.ClipboardList className="w-6 h-6 text-gray-400 flex-shrink-0" />}
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F5EFED' }}>
+                        <ReqIcon className="w-4 h-4 text-[#746865]" />
+                      </div>
                       <div>
-                        <p className="font-medium text-gray-900">{req.title}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium" style={{ color: '#1C1211' }}>{req.title}</p>
+                        <p className="text-xs" style={{ color: '#746865' }}>
                           {new Date(req.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[req.status] || 'bg-gray-100 text-gray-600'}`}>
-                      {statusLabels[req.status] || req.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ backgroundColor: st.bg, color: st.color }}>
+                        {st.label}
+                      </span>
+                      <Icon.ChevronRight className="w-4 h-4 text-[#E8DEDA] group-hover:text-[#746865] transition" />
+                    </div>
                   </Link>
                 )
               })}
@@ -210,76 +199,76 @@ export default async function RequestsPage() {
           </div>
         )}
 
-        {/* Affichage des catégories de demandes (si séjour actif) */}
+        {/* Catalogue de services */}
         {activeStay && Object.keys(categories).length > 0 && (
-          Object.entries(categories).map(([key, category]: [string, any]) => {
-            const labelDef = categoryLabels[key as keyof typeof categoryLabels]
-            const LabelIcon = labelDef?.LabelIcon || Icon.ClipboardList
-            const labelColor = labelDef?.color || 'from-gray-500 to-gray-600'
-            const labelTitle = labelDef?.title || key
+          <div className="space-y-10">
+            {Object.entries(categories).map(([key, category]: [string, any]) => {
+              const cfg = categoryConfig[key]
+              const Comp = cfg?.Comp || Icon.ClipboardList
+              const color = cfg?.color || '#746865'
+              const title = cfg?.title || key
 
-            return (
-              <div key={key} className="mb-12">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`w-1 h-10 rounded-full bg-gradient-to-b ${labelColor}`} />
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {labelTitle}
-                    </h2>
-                    <p className="text-gray-600">
-                      {category.items.length} service{category.items.length > 1 ? 's' : ''} disponible{category.items.length > 1 ? 's' : ''}
-                    </p>
+              return (
+                <div key={key}>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-1 h-8 rounded-full" style={{ backgroundColor: color }} />
+                    <div>
+                      <h2 className="text-xl font-semibold" style={{ color: '#1C1211' }}>{title}</h2>
+                      <p className="text-xs" style={{ color: '#746865' }}>
+                        {category.items.length} service{category.items.length > 1 ? 's' : ''} disponible{category.items.length > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {category.items.map((type: any) => (
+                      <Link
+                        key={type.id}
+                        href={`/requests/new?type=${type.id}`}
+                        className="group bg-white rounded-xl transition-all duration-200 hover:shadow-md"
+                        style={{ border: '1px solid #E8DEDA' }}
+                      >
+                        <div className="p-5">
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F5EFED' }}>
+                              <Comp className="w-4 h-4 text-[#746865]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="text-sm font-semibold transition group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
+                                  {type.name}
+                                </h3>
+                                {type.estimated_time && (
+                                  <span className="text-xs whitespace-nowrap flex-shrink-0" style={{ color: '#746865' }}>
+                                    ~{type.estimated_time} min
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#746865' }}>
+                                {type.description || 'Faire une demande pour ce service'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-1 text-xs font-medium" style={{ color: '#E05947' }}>
+                            <span>Faire la demande</span>
+                            <Icon.ChevronRight className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {category.items.map((type: any) => (
-                    <Link
-                      key={type.id}
-                      href={`/requests/new?type=${type.id}`}
-                      className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100"
-                    >
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${labelColor} flex items-center justify-center text-white`}>
-                            {type.icon
-                              ? <span className="text-2xl">{type.icon}</span>
-                              : <LabelIcon className="w-6 h-6" />}
-                          </div>
-                          {type.estimated_time && (
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                              <Icon.Clock className="w-3 h-3" /> {type.estimated_time} min
-                            </span>
-                          )}
-                        </div>
-                        
-                        <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition">
-                          {type.name}
-                        </h3>
-                        
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                          {type.description || 'Faire une demande pour ce service'}
-                        </p>
-
-                        <div className="flex items-center text-blue-600 text-sm font-medium group-hover:gap-2 transition-all">
-                          <span>Faire la demande</span>
-                          <span className="text-lg group-hover:translate-x-1 transition">→</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )
-          })
-        )}
-
-        {/* Message si aucune catégorie (cas improbable) */}
-        {activeStay && Object.keys(categories).length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Aucun service disponible pour le moment</p>
+              )
+            })}
           </div>
         )}
+
+        {activeStay && Object.keys(categories).length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-sm" style={{ color: '#746865' }}>Aucun service disponible pour le moment</p>
+          </div>
+        )}
+
       </div>
     </div>
   )

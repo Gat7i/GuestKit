@@ -15,6 +15,8 @@ type RequestActionsProps = {
   existingFeedback?: string | null
 }
 
+const ratingLabels = ['', 'Très insatisfait', 'Insatisfait', 'Correct', 'Satisfait', 'Très satisfait']
+
 export default function RequestActions({
   requestId,
   status,
@@ -102,6 +104,8 @@ export default function RequestActions({
     }
   }
 
+  const displayRating = hoverRating || rating
+
   return (
     <div className="space-y-4">
       {/* Toast */}
@@ -113,11 +117,12 @@ export default function RequestActions({
         </div>
       )}
 
-      {/* Formulaire de message guest (si demande non annulée) */}
+      {/* Ajouter un message */}
       {status !== 'cancelled' && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <Icon.Chat className="w-5 h-5 text-gray-400" /> Ajouter un message
+        <div className="bg-white rounded-xl p-5" style={{ border: '1px solid #E8DEDA' }}>
+          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: '#1C1211' }}>
+            <div className="w-1 h-4 rounded-full" style={{ backgroundColor: '#C49A5A' }} />
+            Ajouter un message
           </h2>
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <input
@@ -125,13 +130,13 @@ export default function RequestActions({
               value={message}
               onChange={e => setMessage(e.target.value)}
               placeholder="Précisez votre demande au service…"
-              className="flex-1 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 rounded-lg border-gray-200 text-sm focus:ring-2 focus:ring-[#E05947] focus:border-[#E05947]"
               disabled={sendingMessage}
             />
             <button
               type="submit"
               disabled={!message.trim() || sendingMessage}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 whitespace-nowrap"
+              className="btn-primary disabled:opacity-40 whitespace-nowrap"
             >
               {sendingMessage ? '…' : 'Envoyer'}
             </button>
@@ -139,33 +144,45 @@ export default function RequestActions({
         </div>
       )}
 
-      {/* Rating section pour les demandes terminées */}
+      {/* Évaluation — service terminé */}
       {status === 'completed' && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Icon.Star className="w-5 h-5 text-yellow-400" />
-            {ratingSubmitted ? 'Votre avis' : 'Évaluez ce service'}
+        <div className="bg-white rounded-xl p-5" style={{ border: '1px solid #E8DEDA' }}>
+          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: '#1C1211' }}>
+            <div className="w-1 h-4 rounded-full" style={{ backgroundColor: '#C49A5A' }} />
+            {ratingSubmitted ? 'Votre évaluation' : 'Évaluez ce service'}
           </h2>
 
           {ratingSubmitted ? (
             <div className="text-center py-2">
-              <div className="flex justify-center gap-1 mb-2">
+              {/* Étoiles affichées (lecture seule) */}
+              <div className="flex justify-center gap-1.5 mb-2">
                 {[1, 2, 3, 4, 5].map(s => (
-                  <span key={s} className={`text-3xl ${s <= rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
+                  <span
+                    key={s}
+                    className="text-xl select-none"
+                    style={{ color: s <= rating ? '#C49A5A' : '#E8DEDA' }}
+                  >
+                    ★
+                  </span>
                 ))}
               </div>
+              {rating > 0 && (
+                <p className="text-xs mb-2" style={{ color: '#746865' }}>{ratingLabels[rating]}</p>
+              )}
               {feedback && (
-                <p className="text-gray-600 text-sm bg-gray-50 rounded-lg p-3 mt-3 text-left">{feedback}</p>
+                <p className="text-sm px-4 py-3 rounded-lg text-left" style={{ color: '#1C1211', backgroundColor: '#F5EFED' }}>{feedback}</p>
               )}
               <button
                 onClick={() => setRatingSubmitted(false)}
-                className="mt-3 text-xs text-blue-600 hover:underline"
+                className="mt-3 text-xs hover:underline transition"
+                style={{ color: '#746865' }}
               >
                 Modifier mon avis
               </button>
             </div>
           ) : (
             <form onSubmit={handleRatingSubmit} className="space-y-4">
+              {/* Étoiles interactives */}
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map(s => (
                   <button
@@ -174,15 +191,16 @@ export default function RequestActions({
                     onClick={() => setRating(s)}
                     onMouseEnter={() => setHoverRating(s)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="text-4xl transition-transform hover:scale-110 focus:outline-none"
+                    className="text-2xl transition-transform hover:scale-110 focus:outline-none select-none"
+                    style={{ color: s <= displayRating ? '#C49A5A' : '#E8DEDA' }}
                   >
-                    <span className={s <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-200'}>★</span>
+                    ★
                   </button>
                 ))}
               </div>
-              {rating > 0 && (
-                <p className="text-center text-sm text-gray-500">
-                  {['', 'Très insatisfait', 'Insatisfait', 'Correct', 'Satisfait', 'Très satisfait'][rating]}
+              {displayRating > 0 && (
+                <p className="text-center text-xs" style={{ color: '#746865' }}>
+                  {ratingLabels[displayRating]}
                 </p>
               )}
               <textarea
@@ -190,14 +208,14 @@ export default function RequestActions({
                 onChange={e => setFeedback(e.target.value)}
                 rows={3}
                 placeholder="Commentaire optionnel…"
-                className="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border-gray-200 text-sm focus:ring-2 focus:ring-[#E05947] focus:border-[#E05947]"
               />
               <button
                 type="submit"
                 disabled={!rating || submittingRating}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2.5 rounded-lg font-medium transition disabled:opacity-40"
+                className="btn-primary w-full justify-center disabled:opacity-40"
               >
-                {submittingRating ? 'Envoi…' : 'Envoyer mon avis'}
+                {submittingRating ? 'Envoi…' : 'Envoyer mon évaluation'}
               </button>
             </form>
           )}
@@ -210,16 +228,13 @@ export default function RequestActions({
           <button
             onClick={handleCancel}
             disabled={cancelling}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50"
+            className="btn-danger disabled:opacity-50"
           >
             {cancelling ? 'Annulation…' : 'Annuler la demande'}
           </button>
         )}
-        <Link
-          href="/requests"
-          className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition"
-        >
-          Retour aux demandes
+        <Link href="/requests" className="btn-ghost">
+          ← Retour aux demandes
         </Link>
       </div>
     </div>
