@@ -14,6 +14,14 @@ export default async function CguPage() {
   const hotel = await getCurrentHotelServer()
   const hotelName = hotel?.name || 'l\'hôtel'
   const hotelAddress = hotel?.address
+  const legalEntity = hotel?.legal_name
+  const legalForm = hotel?.legal_form
+  const country = hotel?.country
+  const registrationNumber = hotel?.registration_number
+  const legalRepresentative = hotel?.legal_representative
+  const dataProtectionOfficer = hotel?.data_protection_officer
+  const dataProtectionEmail = hotel?.data_protection_email
+  const legalJurisdiction = hotel?.legal_jurisdiction
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -36,6 +44,14 @@ export default async function CguPage() {
               <strong>{hotelName}</strong>{hotelAddress && ` (${hotelAddress})`} pendant
               la durée de leur séjour.
             </p>
+            {legalEntity && (
+              <p className="mt-2">
+                L'établissement est exploité par <strong>{legalEntity}</strong>
+                {legalForm && `, ${legalForm}`}
+                {registrationNumber && `, immatriculé sous le n° ${registrationNumber}`}
+                {country && `, ${country}`}.
+              </p>
+            )}
             <p className="mt-2 text-sm">
               L'application est éditée et hébergée par <strong>GuestsKit</strong>, prestataire
               technique de l'hôtel.
@@ -113,7 +129,7 @@ export default async function CguPage() {
           <Section title="9. Droit applicable">
             <p>
               Les présentes CGU sont soumises au droit tunisien. En cas de litige non résolu
-              à l'amiable, les tribunaux compétents de la juridiction de l'hôtel seront saisis.
+              à l'amiable, les tribunaux{legalJurisdiction ? ` de ${legalJurisdiction}` : ' compétents'} seront saisis.
             </p>
           </Section>
 
@@ -121,6 +137,10 @@ export default async function CguPage() {
             <p>
               Pour toute question, contactez la réception de l'hôtel ou écrivez-nous via votre
               espace personnel dans l'application.
+              {legalRepresentative && <> Responsable légal : <strong>{legalRepresentative}</strong>.</>}
+              {dataProtectionOfficer && <> Délégué à la protection des données : <strong>{dataProtectionOfficer}</strong>
+                {dataProtectionEmail && <> (<a href={`mailto:${dataProtectionEmail}`} className="text-blue-600 hover:underline">{dataProtectionEmail}</a>)</>}.
+              </>}
             </p>
           </Section>
 

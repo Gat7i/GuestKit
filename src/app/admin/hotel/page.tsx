@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { updateHotelLogo, createHotel, updateHotel, addCarouselImage, deleteCarouselImage as deleteCarouselImageAction, reorderCarouselImage } from './actions'
+import { updateHotelLogo, createHotel, updateHotel, addCarouselImage as addCarouselImageAction, deleteCarouselImage as deleteCarouselImageAction, reorderCarouselImage } from './actions'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -34,7 +34,15 @@ export default function AdminHotelPage() {
     check_out_time: '11:00',
     primary_color: '#0ea5e9',
     secondary_color: '#d4af37',
-    logo_url: ''
+    logo_url: '',
+    legal_name: '',
+    legal_form: '',
+    country: '',
+    registration_number: '',
+    legal_representative: '',
+    data_protection_officer: '',
+    data_protection_email: '',
+    legal_jurisdiction: ''
   })
 
   const supabase = createClient()
@@ -98,7 +106,15 @@ export default function AdminHotelPage() {
         check_out_time: data.check_out_time?.slice(0,5) || '11:00',
         primary_color: data.primary_color || '#0ea5e9',
         secondary_color: data.secondary_color || '#d4af37',
-        logo_url: data.logo_url || ''
+        logo_url: data.logo_url || '',
+        legal_name: data.legal_name || '',
+        legal_form: data.legal_form || '',
+        country: data.country || '',
+        registration_number: data.registration_number || '',
+        legal_representative: data.legal_representative || '',
+        data_protection_officer: data.data_protection_officer || '',
+        data_protection_email: data.data_protection_email || '',
+        legal_jurisdiction: data.legal_jurisdiction || ''
       })
       setLogoPreview(data.logo_url || null)
     } catch (error) {
@@ -192,7 +208,7 @@ export default function AdminHotelPage() {
       
       const cloudinaryData = await res.json()
       
-      await addCarouselImage(
+      await addCarouselImageAction(
         selectedHotelId,
         cloudinaryData.secure_url,
         file.name.split('.')[0],
@@ -276,7 +292,15 @@ export default function AdminHotelPage() {
         phone: formData.phone, email: formData.email, website: formData.website,
         check_in_time: formData.check_in_time, check_out_time: formData.check_out_time,
         primary_color: formData.primary_color, secondary_color: formData.secondary_color,
-        logo_url: formData.logo_url
+        logo_url: formData.logo_url,
+        legal_name: formData.legal_name || undefined,
+        legal_form: formData.legal_form || undefined,
+        country: formData.country || undefined,
+        registration_number: formData.registration_number || undefined,
+        legal_representative: formData.legal_representative || undefined,
+        data_protection_officer: formData.data_protection_officer || undefined,
+        data_protection_email: formData.data_protection_email || undefined,
+        legal_jurisdiction: formData.legal_jurisdiction || undefined
       })
       toast('Informations mises à jour avec succès')
       setEditing(false)
@@ -316,7 +340,15 @@ export default function AdminHotelPage() {
       check_out_time: '11:00',
       primary_color: '#0ea5e9',
       secondary_color: '#d4af37',
-      logo_url: ''
+      logo_url: '',
+      legal_name: '',
+      legal_form: '',
+      country: '',
+      registration_number: '',
+      legal_representative: '',
+      data_protection_officer: '',
+      data_protection_email: '',
+      legal_jurisdiction: ''
     })
     setLogoPreview(null)
     setEditing(true)
@@ -488,6 +520,18 @@ export default function AdminHotelPage() {
                     `}
                   >
                     🖼️ Carrousel photos
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('legal')}
+                    className={`
+                      py-4 px-4 text-sm font-medium border-b-2 transition
+                      ${activeTab === 'legal'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    ⚖️ Mentions légales
                   </button>
                 </nav>
               </div>
@@ -972,6 +1016,105 @@ export default function AdminHotelPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+              {/* ===== ONGLET MENTIONS LÉGALES ===== */}
+              {activeTab === 'legal' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Mentions légales</h2>
+                    <p className="text-sm text-gray-500">Ces informations apparaissent dans les CGU et la politique de confidentialité publiques. Laisser vide = phrase omise.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination sociale</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.legal_name}
+                          onChange={(e) => setFormData({ ...formData, legal_name: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="SARL Les Orangers" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.legal_name || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.legal_form}
+                          onChange={(e) => setFormData({ ...formData, legal_form: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="SARL, SA, SAS…" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.legal_form || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Pays</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.country}
+                          onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="Tunisie" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.country || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">N° d'immatriculation</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.registration_number}
+                          onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="RC Tunis B 123456" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.registration_number || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Représentant légal</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.legal_representative}
+                          onChange={(e) => setFormData({ ...formData, legal_representative: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="Prénom Nom" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.legal_representative || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Juridiction compétente</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.legal_jurisdiction}
+                          onChange={(e) => setFormData({ ...formData, legal_jurisdiction: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="Tunis" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.legal_jurisdiction || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Délégué à la protection des données (DPO)</label>
+                      {(editing || creating) ? (
+                        <input type="text" value={formData.data_protection_officer}
+                          onChange={(e) => setFormData({ ...formData, data_protection_officer: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="Prénom Nom" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.data_protection_officer || '-'}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email DPO / données personnelles</label>
+                      {(editing || creating) ? (
+                        <input type="email" value={formData.data_protection_email}
+                          onChange={(e) => setFormData({ ...formData, data_protection_email: e.target.value })}
+                          className="w-full rounded-lg border-gray-300 shadow-sm" placeholder="dpo@hotel.com" />
+                      ) : (
+                        <p className="text-gray-900 py-2">{hotel?.data_protection_email || '-'}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

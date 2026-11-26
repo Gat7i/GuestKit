@@ -15,6 +15,14 @@ export type Hotel = {
   description: string | null
   created_at: string
   updated_at: string
+  legal_name: string | null
+  legal_form: string | null
+  country: string | null
+  registration_number: string | null
+  legal_representative: string | null
+  data_protection_officer: string | null
+  data_protection_email: string | null
+  legal_jurisdiction: string | null
 }
 
 export async function getCurrentHotelServer(): Promise<Hotel | null> {

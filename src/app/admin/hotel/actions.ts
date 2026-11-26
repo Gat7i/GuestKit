@@ -21,6 +21,10 @@ export async function updateHotel(hotelId: number, data: {
   phone?: string; email?: string; website?: string
   check_in_time?: string; check_out_time?: string
   primary_color?: string; secondary_color?: string; logo_url?: string
+  legal_name?: string; legal_form?: string; country?: string
+  registration_number?: string; legal_representative?: string
+  data_protection_officer?: string; data_protection_email?: string
+  legal_jurisdiction?: string
 }) {
   await requireHotelAdmin()
   const supabase = createAdminClient()

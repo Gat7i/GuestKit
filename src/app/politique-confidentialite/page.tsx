@@ -13,7 +13,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PolitiqueConfidentialitePage() {
   const hotel = await getCurrentHotelServer()
-  const contactEmail = hotel?.email || hotel?.name
+  const contactEmail = hotel?.data_protection_email || hotel?.email
+  const dpo = hotel?.data_protection_officer
+  const dpoEmail = hotel?.data_protection_email
+  const legalEntity = hotel?.legal_name
+  const legalForm = hotel?.legal_form
+  const country = hotel?.country
+  const registrationNumber = hotel?.registration_number
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -35,8 +41,14 @@ export default async function PolitiqueConfidentialitePage() {
               Le responsable du traitement des données personnelles collectées via cette application est :
             </p>
             <p className="mt-3 font-medium text-gray-800">
-              {hotel?.name || 'l\'hôtel'}<br />
-              {hotel?.address && <>{hotel.address}<br /></>}
+              {legalEntity ? (
+                <>{legalEntity}{legalForm && `, ${legalForm}`}{country && `, ${country}`}
+                  {registrationNumber && <><br /><span className="font-normal text-sm">N° d'immatriculation : {registrationNumber}</span></>}
+                </>
+              ) : (hotel?.name || 'l\'hôtel')}
+              <br />
+              {hotel?.address && <span className="font-normal">{hotel.address}<br /></span>}
+              {dpo && <><span className="font-normal">DPO : {dpo}</span><br /></>}
               {contactEmail && (
                 <a href={`mailto:${contactEmail}`} className="text-blue-600 hover:underline font-normal">
                   {contactEmail}
