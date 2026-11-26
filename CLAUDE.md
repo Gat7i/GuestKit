@@ -23,18 +23,18 @@ L'app est déployée sur **`www.guestskit.app`** (pas de `basePath` dans `next.c
 - `www.guestskit.app` → application hôtel (ce dépôt)
 
 **`src/middleware.ts` — deux rôles :**
-1. Contient la constante `UNDER_CONSTRUCTION_HTML` (code mort, non utilisée dans la fonction) — à nettoyer ou réactiver si besoin.
-2. Protège toutes les routes `/admin/*` : vérifie le JWT Supabase via `getUser()`, redirige vers `/admin/login` si non authentifié.
-- `proxy.ts` n'existe pas dans ce dépôt.
+Protège toutes les routes `/admin/*` : vérifie le JWT Supabase via `getUser()`, redirige vers `/admin/login` si non authentifié. `proxy.ts` n'existe pas dans ce dépôt.
 
 **Supabase Auth — URLs configurées :**
 - Site URL : `https://www.guestskit.app`
 - Redirect URL : `https://www.guestskit.app/auth/callback`
 
-**OAuth :**
-- Login client (`/login`) : Google uniquement (Facebook supprimé du code)
-- Login admin (`/admin/login`) : Google + email/mot de passe
+**Méthodes de connexion :**
+- Login client (`/login`) : e-mail/mot de passe **ou** Google (Facebook supprimé du code)
+- Login admin (`/admin/login`) : Google **ou** e-mail/mot de passe
 - Callback admin Google : `redirectTo` contient `?from=admin` → `auth/callback` redirige vers `/admin`
+
+**Textes légaux — note :** `src/app/cgu/page.tsx` et `src/app/politique-confidentialite/page.tsx` lisent les informations de l'hôtel depuis la DB. Droit tunisien (loi n° 2004-63). Ces textes sont à faire relire par un juriste avant tout déploiement commercial.
 
 ---
 
