@@ -112,8 +112,9 @@ export default async function CguPage() {
 
           <Section title="9. Droit applicable">
             <p>
-              Les présentes CGU sont soumises au droit tunisien. En cas de litige, et à défaut de
-              résolution amiable, les tribunaux compétents de Nabeul (Tunisie) seront saisis.
+              La loi applicable et les tribunaux compétents en cas de litige seront précisés
+              dans une prochaine mise à jour après validation par Fethi (décision en attente :
+              loi applicable et juridiction selon l'établissement de GuestsKit et la localisation de l'hôtel).
             </p>
           </Section>
 

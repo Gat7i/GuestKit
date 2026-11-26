@@ -35,7 +35,7 @@ export default async function PolitiqueConfidentialitePage() {
               Le responsable du traitement des données personnelles collectées via cette application est :
             </p>
             <p className="mt-3 font-medium text-gray-800">
-              {hotel?.name || 'The Orangers Beach Resort & Bungalows'}<br />
+              {hotel?.name || 'l\'hôtel'}<br />
               {hotel?.address && <>{hotel.address}<br /></>}
               {contactEmail && (
                 <a href={`mailto:${contactEmail}`} className="text-blue-600 hover:underline font-normal">
