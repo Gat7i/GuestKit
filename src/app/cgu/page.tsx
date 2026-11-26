@@ -112,9 +112,14 @@ export default async function CguPage() {
 
           <Section title="9. Droit applicable">
             <p>
-              La loi applicable et les tribunaux compétents en cas de litige seront précisés
-              dans une prochaine mise à jour après validation par Fethi (décision en attente :
-              loi applicable et juridiction selon l'établissement de GuestsKit et la localisation de l'hôtel).
+              Les présentes CGU sont soumises à la loi tunisienne, notamment la loi organique
+              n° 2004-63 du 27 juillet 2004 relative à la protection des données à caractère
+              personnel. En cas de litige non résolu à l'amiable, les tribunaux compétents
+              de la juridiction de l'hôtel seront saisis.
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Note : GuestsKit (prestataire technique) n'est pas encore constitué en société.
+              Cette mention sera mise à jour lors de l'immatriculation.
             </p>
           </Section>
 

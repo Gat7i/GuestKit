@@ -67,10 +67,10 @@ export default async function PolitiqueConfidentialitePage() {
 
           <Section title="4. Base légale">
             <p>
-              Le traitement est fondé sur l'exécution du contrat d'hébergement (gestion du séjour)
-              et votre consentement explicite lors de la création de votre compte.
-              La base légale applicable (réglementation locale ou européenne) sera précisée
-              dans une prochaine mise à jour après validation juridique.
+              Le traitement est fondé sur l'exécution du contrat d'hébergement et votre
+              consentement explicite lors de la création de votre compte, conformément à
+              la loi organique tunisienne n° 2004-63 du 27 juillet 2004 relative à la
+              protection des données à caractère personnel.
             </p>
           </Section>
 
@@ -89,7 +89,7 @@ export default async function PolitiqueConfidentialitePage() {
             </p>
             <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
               <li><strong>GuestsKit</strong> (prestataire technique, éditeur de l'application)</li>
-              <li><strong>Supabase</strong> (base de données et authentification)</li>
+              <li><strong>Supabase</strong> (base de données et authentification — serveurs us-east-2, États-Unis)</li>
               <li><strong>Cloudinary</strong> (hébergement des photos)</li>
               <li><strong>Vercel</strong> (hébergement de l'application)</li>
             </ul>
