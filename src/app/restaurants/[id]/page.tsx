@@ -1,21 +1,22 @@
 // src/app/restaurants/[id]/page.tsx
-import { createClient } from '@/lib/supabase/server-client'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import RestaurantGallery from '@/components/restaurants/RestaurantGallery'
-import { Icon } from '@/components/ui/Icons'
+
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import RestaurantGallery from "@/components/restaurants/RestaurantGallery";
+import { Icon } from "@/components/ui/Icons";
+import { createClient } from "@/lib/supabase/server-client";
 
 export default async function RestaurantDetailPage({
-  params
+  params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  const supabase = await createClient()
-  
+  const { id } = await params;
+  const supabase = await createClient();
+
   // 1. Récupérer les détails du restaurant
   const { data: restaurant, error } = await supabase
-    .from('food_spots')
+    .from("food_spots")
     .select(`
       *,
       images:food_spot_images(
@@ -23,23 +24,22 @@ export default async function RestaurantDetailPage({
         image:image_id(id, url, alt_text)
       )
     `)
-    .eq('id', id)
-    .single()
+    .eq("id", id)
+    .single();
 
   // 2. Si le restaurant n'existe pas → page 404
   if (error || !restaurant) {
-    notFound()
+    notFound();
   }
 
   const typeLabels: Record<string, string> = {
-    restaurant: 'Restaurant',
-    bar: 'Bar',
-    café: 'Café',
-  }
+    restaurant: "Restaurant",
+    bar: "Bar",
+    café: "Café",
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      
       {/* Fil d'Ariane */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -48,13 +48,14 @@ export default async function RestaurantDetailPage({
               Accueil
             </Link>
             <span className="text-gray-400">›</span>
-            <Link href="/restaurants" className="text-gray-500 hover:text-gray-700">
+            <Link
+              href="/restaurants"
+              className="text-gray-500 hover:text-gray-700"
+            >
               Restauration & Bars
             </Link>
             <span className="text-gray-400">›</span>
-            <span className="text-gray-900 font-medium">
-              {restaurant.name}
-            </span>
+            <span className="text-gray-900 font-medium">{restaurant.name}</span>
           </div>
         </div>
       </div>
@@ -65,8 +66,10 @@ export default async function RestaurantDetailPage({
         {restaurant.images && restaurant.images.length > 0 ? (
           <>
             <img
-              src={restaurant.images.find((img: any) => img.is_principal)?.image.url || 
-                   restaurant.images[0].image.url}
+              src={
+                restaurant.images.find((img: any) => img.is_principal)?.image
+                  .url || restaurant.images[0].image.url
+              }
               alt={restaurant.name}
               className="w-full h-full object-cover opacity-80"
             />
@@ -97,7 +100,8 @@ export default async function RestaurantDetailPage({
               {restaurant.name}
             </h1>
             <p className="text-xl text-white/90 max-w-3xl">
-              {restaurant.description || 'Découvrez notre cuisine raffinée dans un cadre exceptionnel.'}
+              {restaurant.description ||
+                "Découvrez notre cuisine raffinée dans un cadre exceptionnel."}
             </p>
           </div>
         </div>
@@ -106,10 +110,8 @@ export default async function RestaurantDetailPage({
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Colonne principale : Galerie et infos */}
           <div className="lg:col-span-2 space-y-8">
-            
             {/* Galerie photos */}
             {restaurant.images && restaurant.images.length > 0 && (
               <section className="bg-white rounded-2xl shadow-sm p-6">
@@ -127,7 +129,8 @@ export default async function RestaurantDetailPage({
               </h2>
               <div className="prose max-w-none text-gray-600">
                 <p className="text-lg leading-relaxed">
-                  {restaurant.description || 'Aucune description disponible pour le moment.'}
+                  {restaurant.description ||
+                    "Aucune description disponible pour le moment."}
                 </p>
               </div>
             </section>
@@ -161,14 +164,13 @@ export default async function RestaurantDetailPage({
 
           {/* Colonne latérale : Informations pratiques */}
           <div className="lg:col-span-1 space-y-6">
-            
             {/* Carte d'informations */}
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Icon.Bell className="w-5 h-5 text-gray-400" />
                 Informations
               </h2>
-              
+
               <div className="space-y-4">
                 {/* Type */}
                 <div className="flex items-start gap-3">
@@ -191,7 +193,9 @@ export default async function RestaurantDetailPage({
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Emplacement</p>
-                      <p className="font-medium text-gray-800">{restaurant.location}</p>
+                      <p className="font-medium text-gray-800">
+                        {restaurant.location}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -203,7 +207,9 @@ export default async function RestaurantDetailPage({
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Capacité</p>
-                    <p className="font-medium text-gray-800">80 couverts • 20 places au bar</p>
+                    <p className="font-medium text-gray-800">
+                      80 couverts • 20 places au bar
+                    </p>
                   </div>
                 </div>
 
@@ -214,7 +220,9 @@ export default async function RestaurantDetailPage({
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Code vestimentaire</p>
-                    <p className="font-medium text-gray-800">Tenue correcte exigée</p>
+                    <p className="font-medium text-gray-800">
+                      Tenue correcte exigée
+                    </p>
                   </div>
                 </div>
               </div>
@@ -226,7 +234,9 @@ export default async function RestaurantDetailPage({
                     <Icon.Clock className="w-4 h-4 text-gray-400" />
                     Horaires d'ouverture
                   </h3>
-                  <p className="text-sm text-gray-700">{restaurant.opening_hours}</p>
+                  <p className="text-sm text-gray-700">
+                    {restaurant.opening_hours}
+                  </p>
                 </div>
               )}
 
@@ -259,7 +269,9 @@ export default async function RestaurantDetailPage({
                 <Icon.Utensils className="w-6 h-6 text-amber-500" />
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Bar "Le Ciel"</h3>
-              <p className="text-sm text-gray-600">Cocktails signatures et vue panoramique</p>
+              <p className="text-sm text-gray-600">
+                Cocktails signatures et vue panoramique
+              </p>
             </Link>
             <Link
               href="/suggestions"
@@ -268,8 +280,12 @@ export default async function RestaurantDetailPage({
               <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-purple-100 transition">
                 <Icon.Compass className="w-6 h-6 text-purple-500" />
               </div>
-              <h3 className="font-bold text-gray-800 mb-1">Dégustation de vins</h3>
-              <p className="text-sm text-gray-600">Atelier découverte des crus locaux</p>
+              <h3 className="font-bold text-gray-800 mb-1">
+                Dégustation de vins
+              </h3>
+              <p className="text-sm text-gray-600">
+                Atelier découverte des crus locaux
+              </p>
             </Link>
             <Link
               href="/activities"
@@ -279,11 +295,13 @@ export default async function RestaurantDetailPage({
                 <Icon.Activity className="w-6 h-6 text-blue-500" />
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Cours de cuisine</h3>
-              <p className="text-sm text-gray-600">Apprenez les secrets de notre chef</p>
+              <p className="text-sm text-gray-600">
+                Apprenez les secrets de notre chef
+              </p>
             </Link>
           </div>
         </section>
       </div>
     </div>
-  )
+  );
 }

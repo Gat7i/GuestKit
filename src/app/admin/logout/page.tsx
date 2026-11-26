@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LogoutPage() {
-  const router = useRouter()
-  const supabase = createClient()
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const logout = async () => {
       // Nettoyer le localStorage
-      localStorage.removeItem('currentHotel')
-      
+      localStorage.removeItem("currentHotel");
+
       // Déconnexion de Supabase
-      const { error } = await supabase.auth.signOut()
-      
+      const { error } = await supabase.auth.signOut();
+
       if (error) {
-        console.error('Erreur déconnexion:', error)
+        console.error("Erreur déconnexion:", error);
       }
-      
+
       // Redirection vers la page de login
-      router.push('/admin/login')
-      router.refresh()
-    }
-    
-    logout()
-  }, [router, supabase])
+      router.push("/admin/login");
+      router.refresh();
+    };
+
+    logout();
+  }, [router, supabase]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
@@ -36,5 +36,5 @@ export default function LogoutPage() {
         <p className="text-white/70 text-sm mt-2">Vous allez être redirigé</p>
       </div>
     </div>
-  )
+  );
 }

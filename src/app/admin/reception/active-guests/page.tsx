@@ -1,120 +1,127 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import Link from 'next/link'
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client-browser";
 
 type ActiveGuest = {
-  id: string
+  id: string;
   customer: {
-    customer_uuid: string
-    full_name: string | null
-    email: string
-    avatar_url: string | null
-  }
+    customer_uuid: string;
+    full_name: string | null;
+    email: string;
+    avatar_url: string | null;
+  };
   room: {
-    room_number: string
-    room_type: string
-    floor: number | null
-  }
-  check_in_date: string
-  check_out_date: string
-  adults_count: number
-  children_count: number
-  status: string
-}
+    room_number: string;
+    room_type: string;
+    floor: number | null;
+  };
+  check_in_date: string;
+  check_out_date: string;
+  adults_count: number;
+  children_count: number;
+  status: string;
+};
 
 export default function ActiveGuestsPage() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [activeGuests, setActiveGuests] = useState<ActiveGuest[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const supabase = createClient()
+  const [hotel, setHotel] = useState<any>(null);
+  const [activeGuests, setActiveGuests] = useState<ActiveGuest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const supabase = createClient();
 
   useEffect(() => {
     const init = async () => {
       try {
-        const hotelData = await getCurrentHotelClient()
-        setHotel(hotelData)
+        const hotelData = await getCurrentHotelClient();
+        setHotel(hotelData);
         if (hotelData) {
-          await loadActiveGuests(hotelData.id)
+          await loadActiveGuests(hotelData.id);
         } else {
-          setLoading(false)
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Erreur init:', error)
-        setLoading(false)
+        console.error("Erreur init:", error);
+        setLoading(false);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   async function loadActiveGuests(hotelId: number) {
     try {
-      console.log('🔍 Chargement des clients actifs pour hotelId:', hotelId)
-      
+      console.log("🔍 Chargement des clients actifs pour hotelId:", hotelId);
+
       // Version simplifiée sans jointures complexes
       const { data: stays, error: staysError } = await supabase
-        .from('stays')
-        .select('*')
-        .eq('hotel_id', hotelId)
-        .eq('status', 'active')
-        .order('check_in_date', { ascending: false })
+        .from("stays")
+        .select("*")
+        .eq("hotel_id", hotelId)
+        .eq("status", "active")
+        .order("check_in_date", { ascending: false });
 
-      if (staysError) throw staysError
-      console.log('📊 Séjours actifs trouvés:', stays?.length || 0)
+      if (staysError) throw staysError;
+      console.log("📊 Séjours actifs trouvés:", stays?.length || 0);
 
       if (!stays || stays.length === 0) {
-        setActiveGuests([])
-        setLoading(false)
-        return
+        setActiveGuests([]);
+        setLoading(false);
+        return;
       }
 
       // Récupérer les infos des clients et chambres séparément
       const enrichedStays = await Promise.all(
         stays.map(async (stay) => {
           const [customerResult, roomResult] = await Promise.all([
-            supabase.from('customers').select('*').eq('customer_uuid', stay.primary_customer_id).single(),
-            supabase.from('rooms').select('*').eq('id', stay.room_id).single()
-          ])
+            supabase
+              .from("customers")
+              .select("*")
+              .eq("customer_uuid", stay.primary_customer_id)
+              .single(),
+            supabase.from("rooms").select("*").eq("id", stay.room_id).single(),
+          ]);
 
           return {
             id: stay.id,
             customer: customerResult.data || {
               customer_uuid: stay.primary_customer_id,
-              full_name: 'Client inconnu',
-              email: 'email@inconnu.com',
-              avatar_url: null
+              full_name: "Client inconnu",
+              email: "email@inconnu.com",
+              avatar_url: null,
             },
             room: roomResult.data || {
-              room_number: '?',
-              room_type: '?',
-              floor: null
+              room_number: "?",
+              room_type: "?",
+              floor: null,
             },
             check_in_date: stay.check_in_date,
             check_out_date: stay.check_out_date,
             adults_count: stay.adults_count,
             children_count: stay.children_count,
-            status: stay.status
-          }
-        })
-      )
+            status: stay.status,
+          };
+        }),
+      );
 
-      console.log('✅ Clients actifs chargés:', enrichedStays.length)
-      setActiveGuests(enrichedStays)
+      console.log("✅ Clients actifs chargés:", enrichedStays.length);
+      setActiveGuests(enrichedStays);
     } catch (error) {
-      console.error('Erreur chargement clients actifs:', error)
+      console.error("Erreur chargement clients actifs:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  const filteredGuests = activeGuests.filter(guest =>
-    guest.customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    guest.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    guest.room.room_number.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredGuests = activeGuests.filter(
+    (guest) =>
+      guest.customer.full_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      guest.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      guest.room.room_number.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   if (loading) {
     return (
@@ -124,7 +131,7 @@ export default function ActiveGuestsPage() {
           <p className="text-gray-600">Chargement des clients présents...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -142,7 +149,8 @@ export default function ActiveGuestsPage() {
               )}
             </h1>
             <p className="text-gray-600">
-              {activeGuests.length} client{activeGuests.length > 1 ? 's' : ''} actuellement en séjour
+              {activeGuests.length} client{activeGuests.length > 1 ? "s" : ""}{" "}
+              actuellement en séjour
             </p>
           </div>
           <Link
@@ -190,7 +198,10 @@ export default function ActiveGuestsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredGuests.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
                       Aucun client présent pour le moment
                     </td>
                   </tr>
@@ -202,19 +213,20 @@ export default function ActiveGuestsPage() {
                           {guest.customer.avatar_url ? (
                             <img
                               src={guest.customer.avatar_url}
-                              alt={guest.customer.full_name || ''}
+                              alt={guest.customer.full_name || ""}
                               className="w-10 h-10 rounded-full"
                             />
                           ) : (
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                               <span className="text-lg text-blue-600">
-                                {(guest.customer.full_name || guest.customer.email)[0].toUpperCase()}
+                                {(guest.customer.full_name ||
+                                  guest.customer.email)[0].toUpperCase()}
                               </span>
                             </div>
                           )}
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {guest.customer.full_name || 'Non renseigné'}
+                              {guest.customer.full_name || "Non renseigné"}
                             </div>
                             <div className="text-sm text-gray-500">
                               {guest.customer.email}
@@ -227,21 +239,29 @@ export default function ActiveGuestsPage() {
                           Chambre {guest.room.room_number}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {guest.room.room_type} • Étage {guest.room.floor || 'RDC'}
+                          {guest.room.room_type} • Étage{" "}
+                          {guest.room.floor || "RDC"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {new Date(guest.check_in_date).toLocaleDateString('fr-FR')}
+                          {new Date(guest.check_in_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </div>
                         <div className="text-sm text-gray-500">
-                          → {new Date(guest.check_out_date).toLocaleDateString('fr-FR')}
+                          →{" "}
+                          {new Date(guest.check_out_date).toLocaleDateString(
+                            "fr-FR",
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {guest.adults_count} adulte{guest.adults_count > 1 ? 's' : ''}
-                          {guest.children_count > 0 && `, ${guest.children_count} enfant${guest.children_count > 1 ? 's' : ''}`}
+                          {guest.adults_count} adulte
+                          {guest.adults_count > 1 ? "s" : ""}
+                          {guest.children_count > 0 &&
+                            `, ${guest.children_count} enfant${guest.children_count > 1 ? "s" : ""}`}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -267,5 +287,5 @@ export default function ActiveGuestsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

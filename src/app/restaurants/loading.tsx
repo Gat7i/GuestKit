@@ -1,4 +1,4 @@
-import { PageHeaderSkeleton, GridSkeleton } from '@/components/ui/Skeleton'
+import { GridSkeleton, PageHeaderSkeleton } from "@/components/ui/Skeleton";
 
 export default function RestaurantsLoading() {
   return (
@@ -8,5 +8,5 @@ export default function RestaurantsLoading() {
         <GridSkeleton count={6} />
       </div>
     </div>
-  )
+  );
 }

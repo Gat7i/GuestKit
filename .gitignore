@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 .env.local
 .env
 !.env.production
@@ -49,3 +50,10 @@ next-env.d.ts
 # Outils locaux
 .claude/
 _backup_single_hotel/
+
+# Claude Code agents et skills (générés localement)
+.agents/
+skills-lock.json
+
+# Images temporaires de travail
+public/icon-192-temp.jpg

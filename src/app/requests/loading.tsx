@@ -1,4 +1,8 @@
-import { PageHeaderSkeleton, ListSkeleton, GridSkeleton } from '@/components/ui/Skeleton'
+import {
+  GridSkeleton,
+  ListSkeleton,
+  PageHeaderSkeleton,
+} from "@/components/ui/Skeleton";
 
 export default function RequestsLoading() {
   return (
@@ -15,5 +19,5 @@ export default function RequestsLoading() {
         </div>
       </div>
     </div>
-  )
+  );
 }

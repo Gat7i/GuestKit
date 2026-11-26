@@ -1,60 +1,63 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 interface ImageCarouselProps {
   images: {
-    id: number
-    url: string
-    title?: string
-    alt_text?: string
-  }[]
-  autoPlayInterval?: number
+    id: number;
+    url: string;
+    title?: string;
+    alt_text?: string;
+  }[];
+  autoPlayInterval?: number;
 }
 
-export default function ImageCarousel({ images, autoPlayInterval = 5000 }: ImageCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+export default function ImageCarousel({
+  images,
+  autoPlayInterval = 5000,
+}: ImageCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Auto-play
   useEffect(() => {
-    if (images.length <= 1) return
+    if (images.length <= 1) return;
 
     const interval = setInterval(() => {
-      handleNext()
-    }, autoPlayInterval)
+      handleNext();
+    }, autoPlayInterval);
 
-    return () => clearInterval(interval)
-  }, [currentIndex, images.length, autoPlayInterval])
+    return () => clearInterval(interval);
+  }, [currentIndex, images.length, autoPlayInterval]);
 
   const handlePrevious = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
 
   const handleNext = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
 
   const goToSlide = (index: number) => {
-    if (isTransitioning || index === currentIndex) return
-    setIsTransitioning(true)
-    setCurrentIndex(index)
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
+    if (isTransitioning || index === currentIndex) return;
+    setIsTransitioning(true);
+    setCurrentIndex(index);
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
 
   if (!images || images.length === 0) {
     return (
       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
         <span className="text-gray-400">Aucune image disponible</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -65,7 +68,7 @@ export default function ImageCarousel({ images, autoPlayInterval = 5000 }: Image
           <div
             key={image.id}
             className={`absolute w-full h-full transition-opacity duration-500 ease-in-out ${
-              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
             }`}
           >
             <Image
@@ -77,7 +80,7 @@ export default function ImageCarousel({ images, autoPlayInterval = 5000 }: Image
             />
             {/* Overlay gradient pour lisibilité */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            
+
             {/* Titre de l'image (optionnel) */}
             {image.title && (
               <div className="absolute bottom-8 left-8 text-white z-20">
@@ -117,8 +120,8 @@ export default function ImageCarousel({ images, autoPlayInterval = 5000 }: Image
               onClick={() => goToSlide(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex
-                  ? 'bg-white w-4'
-                  : 'bg-white/50 hover:bg-white/80'
+                  ? "bg-white w-4"
+                  : "bg-white/50 hover:bg-white/80"
               }`}
               aria-label={`Aller à l'image ${index + 1}`}
             />
@@ -126,5 +129,5 @@ export default function ImageCarousel({ images, autoPlayInterval = 5000 }: Image
         </div>
       )}
     </div>
-  )
+  );
 }

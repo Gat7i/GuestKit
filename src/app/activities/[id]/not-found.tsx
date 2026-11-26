@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
 
 export default function ActivityNotFound() {
   return (
@@ -21,5 +21,5 @@ export default function ActivityNotFound() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

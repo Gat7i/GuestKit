@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Icon } from '@/components/ui/Icons'
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icons";
 
 export default function SuggestionNotFound() {
   return (
@@ -10,7 +10,8 @@ export default function SuggestionNotFound() {
           Découverte introuvable
         </h1>
         <p className="text-gray-600 mb-8">
-          L'expérience que vous recherchez n'existe pas ou n'est plus disponible.
+          L'expérience que vous recherchez n'existe pas ou n'est plus
+          disponible.
         </p>
         <Link
           href="/suggestions"
@@ -21,5 +22,5 @@ export default function SuggestionNotFound() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

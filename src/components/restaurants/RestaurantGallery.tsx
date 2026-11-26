@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
+import Image from "next/image";
+import { useState } from "react";
 
 interface RestaurantGalleryProps {
-  images: any[]
+  images: any[];
 }
 
 export default function RestaurantGallery({ images }: RestaurantGalleryProps) {
-  const [selectedImage, setSelectedImage] = useState(0)
+  const [selectedImage, setSelectedImage] = useState(0);
 
   // Trier les images : principale d'abord, puis les autres
   const sortedImages = [...images].sort((a, b) => {
-    if (a.is_principal && !b.is_principal) return -1
-    if (!a.is_principal && b.is_principal) return 1
-    return 0
-  })
+    if (a.is_principal && !b.is_principal) return -1;
+    if (!a.is_principal && b.is_principal) return 1;
+    return 0;
+  });
 
-  const currentImage = sortedImages[selectedImage]
+  const currentImage = sortedImages[selectedImage];
 
   if (!images || images.length === 0) {
     return (
@@ -25,7 +25,7 @@ export default function RestaurantGallery({ images }: RestaurantGalleryProps) {
         <div className="text-5xl mb-3">🖼️</div>
         <p>Aucune photo disponible</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -34,10 +34,10 @@ export default function RestaurantGallery({ images }: RestaurantGalleryProps) {
       <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
         <img
           src={currentImage.image.url}
-          alt={currentImage.image.alt_text || 'Photo du restaurant'}
+          alt={currentImage.image.alt_text || "Photo du restaurant"}
           className="w-full h-full object-cover"
         />
-        
+
         {/* Badge "Principale" */}
         {currentImage.is_principal && (
           <div className="absolute top-4 left-4">
@@ -62,9 +62,10 @@ export default function RestaurantGallery({ images }: RestaurantGalleryProps) {
               onClick={() => setSelectedImage(idx)}
               className={`
                 relative aspect-square rounded-lg overflow-hidden border-2 transition
-                ${selectedImage === idx 
-                  ? 'border-amber-500 ring-2 ring-amber-200' 
-                  : 'border-transparent hover:border-gray-300'
+                ${
+                  selectedImage === idx
+                    ? "border-amber-500 ring-2 ring-amber-200"
+                    : "border-transparent hover:border-gray-300"
                 }
               `}
             >
@@ -83,5 +84,5 @@ export default function RestaurantGallery({ images }: RestaurantGalleryProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

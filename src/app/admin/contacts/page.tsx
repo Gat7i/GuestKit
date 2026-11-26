@@ -1,57 +1,59 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { Icon } from '@/components/ui/Icons'
-import Link from 'next/link'
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ToastContainer, useToast } from "@/components/admin/Toast";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client";
 
 // ============================================
 // TYPES
 // ============================================
 type ContactType = {
-  id: number
-  hotel_id: number
-  name: string
-  phone_number: string
-  department: string
-  created_at: string
-}
+  id: number;
+  hotel_id: number;
+  name: string;
+  phone_number: string;
+  department: string;
+  created_at: string;
+};
 
-type ContactsByDepartment = Record<string, ContactType[]>
+type ContactsByDepartment = Record<string, ContactType[]>;
 
 export default function AdminContactsPage() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [contacts, setContacts] = useState<ContactType[]>([])
-  const [selectedContact, setSelectedContact] = useState<ContactType | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
-  const { toast, toasts } = useToast()
+  const [hotel, setHotel] = useState<any>(null);
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+  const [contacts, setContacts] = useState<ContactType[]>([]);
+  const [selectedContact, setSelectedContact] = useState<ContactType | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const { toast, toasts } = useToast();
   const [formData, setFormData] = useState({
-    name: '',
-    phone_number: '',
-    department: ''
-  })
+    name: "",
+    phone_number: "",
+    department: "",
+  });
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   // Départements prédéfinis
   const departments = [
-    'Réception',
-    'Restauration',
-    'Conciergerie',
-    'Activités',
-    'Sécurité',
-    'Service en chambre',
-    'Spa & Bien-être',
-    'Maintenance',
-    'Direction'
-  ]
+    "Réception",
+    "Restauration",
+    "Conciergerie",
+    "Activités",
+    "Sécurité",
+    "Service en chambre",
+    "Spa & Bien-être",
+    "Maintenance",
+    "Direction",
+  ];
 
   // ============================================
   // CHARGEMENT INITIAL
@@ -59,57 +61,57 @@ export default function AdminContactsPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const hotelData = await getCurrentHotelClient()
-        setHotel(hotelData)
+        const hotelData = await getCurrentHotelClient();
+        setHotel(hotelData);
 
         if (!hotelData) {
-          setSelectedHotelId(null)
-          setLoading(false)
+          setSelectedHotelId(null);
+          setLoading(false);
         } else {
-          setSelectedHotelId(hotelData.id)
-          await loadData(hotelData.id)
+          setSelectedHotelId(hotelData.id);
+          await loadData(hotelData.id);
         }
       } catch (error) {
-        console.error('Erreur initialisation:', error)
-        setLoading(false)
+        console.error("Erreur initialisation:", error);
+        setLoading(false);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   // ============================================
   // CHARGEMENT QUAND UN HÔTEL EST SÉLECTIONNÉ
   // ============================================
   useEffect(() => {
     if (selectedHotelId) {
-      loadData(selectedHotelId)
+      loadData(selectedHotelId);
     }
-  }, [selectedHotelId])
+  }, [selectedHotelId]);
 
   async function loadData(hotelId: number) {
-    setLoading(true)
+    setLoading(true);
     try {
       const { data } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('hotel_id', hotelId)
-        .order('department')
-        .order('name')
+        .from("contacts")
+        .select("*")
+        .eq("hotel_id", hotelId)
+        .order("department")
+        .order("name");
 
-      setContacts(data || [])
-      
+      setContacts(data || []);
+
       if (data?.length && !selectedContact) {
-        setSelectedContact(data[0])
+        setSelectedContact(data[0]);
         setFormData({
-          name: data[0].name || '',
-          phone_number: data[0].phone_number || '',
-          department: data[0].department || ''
-        })
+          name: data[0].name || "",
+          phone_number: data[0].phone_number || "",
+          department: data[0].department || "",
+        });
       }
     } catch (error) {
-      console.error('Erreur chargement:', error)
+      console.error("Erreur chargement:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -117,96 +119,103 @@ export default function AdminContactsPage() {
   // CRUD CONTACTS
   // ============================================
   async function createContact() {
-    if (!formData.name.trim() || !formData.phone_number.trim() || !formData.department) {
-      toast('Veuillez remplir tous les champs', 'warning')
-      return
+    if (
+      !formData.name.trim() ||
+      !formData.phone_number.trim() ||
+      !formData.department
+    ) {
+      toast("Veuillez remplir tous les champs", "warning");
+      return;
     }
-    if (!selectedHotelId) return
-    setSaving(true)
+    if (!selectedHotelId) return;
+    setSaving(true);
     try {
       const { data, error } = await supabase
-        .from('contacts')
+        .from("contacts")
         .insert({
           hotel_id: selectedHotelId,
           name: formData.name,
           phone_number: formData.phone_number,
-          department: formData.department
+          department: formData.department,
         })
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast('Contact créé avec succès')
-      setEditing(false)
-      resetForm()
-      await loadData(selectedHotelId)
-      setSelectedContact(data)
+      toast("Contact créé avec succès");
+      setEditing(false);
+      resetForm();
+      await loadData(selectedHotelId);
+      setSelectedContact(data);
     } catch (error) {
-      console.error('Erreur création:', error)
-      toast('Erreur lors de la création', 'error')
+      console.error("Erreur création:", error);
+      toast("Erreur lors de la création", "error");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function updateContact() {
-    if (!selectedContact || !selectedHotelId) return
+    if (!selectedContact || !selectedHotelId) return;
     if (!formData.name.trim() || !formData.phone_number.trim()) {
-      toast('Veuillez remplir tous les champs', 'warning')
-      return
+      toast("Veuillez remplir tous les champs", "warning");
+      return;
     }
-    setSaving(true)
+    setSaving(true);
     try {
       const { error } = await supabase
-        .from('contacts')
+        .from("contacts")
         .update({
           name: formData.name,
           phone_number: formData.phone_number,
-          department: formData.department
+          department: formData.department,
         })
-        .eq('id', selectedContact.id)
-        .eq('hotel_id', selectedHotelId)
+        .eq("id", selectedContact.id)
+        .eq("hotel_id", selectedHotelId);
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast('Contact mis à jour')
-      setEditing(false)
-      await loadData(selectedHotelId)
+      toast("Contact mis à jour");
+      setEditing(false);
+      await loadData(selectedHotelId);
     } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      toast('Erreur lors de la mise à jour', 'error')
+      console.error("Erreur mise à jour:", error);
+      toast("Erreur lors de la mise à jour", "error");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function deleteContact(id: number) {
     if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id)
-      setTimeout(() => setConfirmDeleteId(null), 3000)
-      return
+      setConfirmDeleteId(id);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
     }
-    if (!selectedHotelId) return
-    setDeletingId(id)
-    setConfirmDeleteId(null)
+    if (!selectedHotelId) return;
+    setDeletingId(id);
+    setConfirmDeleteId(null);
     try {
       const { error } = await supabase
-        .from('contacts')
+        .from("contacts")
         .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
+        .eq("id", id)
+        .eq("hotel_id", selectedHotelId);
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast('Contact supprimé')
-      await loadData(selectedHotelId)
-      if (selectedContact?.id === id) { setSelectedContact(null); resetForm() }
+      toast("Contact supprimé");
+      await loadData(selectedHotelId);
+      if (selectedContact?.id === id) {
+        setSelectedContact(null);
+        resetForm();
+      }
     } catch (error) {
-      console.error('Erreur suppression:', error)
-      toast('Erreur lors de la suppression', 'error')
+      console.error("Erreur suppression:", error);
+      toast("Erreur lors de la suppression", "error");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
   }
 
@@ -215,44 +224,47 @@ export default function AdminContactsPage() {
   // ============================================
   function resetForm() {
     setFormData({
-      name: '',
-      phone_number: '',
-      department: ''
-    })
+      name: "",
+      phone_number: "",
+      department: "",
+    });
   }
 
   function startEdit(contact?: ContactType) {
     if (contact) {
       setFormData({
-        name: contact.name || '',
-        phone_number: contact.phone_number || '',
-        department: contact.department || ''
-      })
-      setSelectedContact(contact)
+        name: contact.name || "",
+        phone_number: contact.phone_number || "",
+        department: contact.department || "",
+      });
+      setSelectedContact(contact);
     }
-    setEditing(true)
+    setEditing(true);
   }
 
   function cancelEdit() {
-    setEditing(false)
+    setEditing(false);
     if (selectedContact) {
       setFormData({
-        name: selectedContact.name || '',
-        phone_number: selectedContact.phone_number || '',
-        department: selectedContact.department || ''
-      })
+        name: selectedContact.name || "",
+        phone_number: selectedContact.phone_number || "",
+        department: selectedContact.department || "",
+      });
     } else {
-      resetForm()
+      resetForm();
     }
   }
 
   // Grouper les contacts par département
-  const contactsByDepartment = contacts.reduce((acc: ContactsByDepartment, contact: ContactType) => {
-    const dept = contact.department || 'Autres'
-    if (!acc[dept]) acc[dept] = []
-    acc[dept].push(contact)
-    return acc
-  }, {} as ContactsByDepartment)
+  const contactsByDepartment = contacts.reduce(
+    (acc: ContactsByDepartment, contact: ContactType) => {
+      const dept = contact.department || "Autres";
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(contact);
+      return acc;
+    },
+    {} as ContactsByDepartment,
+  );
 
   if (loading && !contacts.length && selectedHotelId) {
     return (
@@ -262,7 +274,7 @@ export default function AdminContactsPage() {
           <p className="text-gray-600">Chargement des contacts...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -287,9 +299,9 @@ export default function AdminContactsPage() {
           {selectedHotelId && (
             <button
               onClick={() => {
-                resetForm()
-                setSelectedContact(null)
-                setEditing(true)
+                resetForm();
+                setSelectedContact(null);
+                setEditing(true);
               }}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
             >
@@ -302,7 +314,6 @@ export default function AdminContactsPage() {
         {/* Contenu principal */}
         {selectedHotelId && (
           <div className="grid grid-cols-12 gap-6">
-            
             {/* ===== COLONNE 1 : LISTE DES CONTACTS PAR DÉPARTEMENT ===== */}
             <div className="col-span-4 bg-white rounded-xl shadow-sm p-4">
               <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -312,58 +323,63 @@ export default function AdminContactsPage() {
                   {contacts.length}
                 </span>
               </h2>
-              
+
               <div className="space-y-4 max-h-[600px] overflow-y-auto">
                 {Object.entries(contactsByDepartment).length === 0 ? (
                   <p className="text-center text-gray-500 py-8 text-sm">
                     Aucun contact
                   </p>
                 ) : (
-                  Object.entries(contactsByDepartment).map(([department, deptContacts]) => {
-                    const typedDeptContacts = deptContacts as ContactType[]
-                    
-                    return (
-                      <div key={department}>
-                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                          {department}
-                        </h3>
-                        <div className="space-y-1">
-                          {typedDeptContacts.map((contact: ContactType) => (
-                            <button
-                              key={contact.id}
-                              onClick={() => {
-                                setSelectedContact(contact)
-                                setFormData({
-                                  name: contact.name || '',
-                                  phone_number: contact.phone_number || '',
-                                  department: contact.department || ''
-                                })
-                                setEditing(false)
-                              }}
-                              className={`
+                  Object.entries(contactsByDepartment).map(
+                    ([department, deptContacts]) => {
+                      const typedDeptContacts = deptContacts as ContactType[];
+
+                      return (
+                        <div key={department}>
+                          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            {department}
+                          </h3>
+                          <div className="space-y-1">
+                            {typedDeptContacts.map((contact: ContactType) => (
+                              <button
+                                key={contact.id}
+                                onClick={() => {
+                                  setSelectedContact(contact);
+                                  setFormData({
+                                    name: contact.name || "",
+                                    phone_number: contact.phone_number || "",
+                                    department: contact.department || "",
+                                  });
+                                  setEditing(false);
+                                }}
+                                className={`
                                 w-full text-left p-3 rounded-lg transition
-                                ${selectedContact?.id === contact.id
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                                ${
+                                  selectedContact?.id === contact.id
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-50 hover:bg-gray-100 text-gray-700"
                                 }
                               `}
-                            >
-                              <div className="font-medium text-sm truncate">
-                                {contact.name}
-                              </div>
-                              <div className={`text-xs ${
-                                selectedContact?.id === contact.id
-                                  ? 'text-white/80'
-                                  : 'text-gray-500'
-                              }`}>
-                                {contact.phone_number}
-                              </div>
-                            </button>
-                          ))}
+                              >
+                                <div className="font-medium text-sm truncate">
+                                  {contact.name}
+                                </div>
+                                <div
+                                  className={`text-xs ${
+                                    selectedContact?.id === contact.id
+                                      ? "text-white/80"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {contact.phone_number}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })
+                      );
+                    },
+                  )
                 )}
               </div>
             </div>
@@ -374,7 +390,7 @@ export default function AdminContactsPage() {
                 // ===== FORMULAIRE D'ÉDITION =====
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    {selectedContact ? '✏️ Modifier' : '➕ Nouveau contact'}
+                    {selectedContact ? "✏️ Modifier" : "➕ Nouveau contact"}
                   </h2>
 
                   <div className="space-y-4">
@@ -386,7 +402,9 @@ export default function AdminContactsPage() {
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                         placeholder="Ex: Réception centrale"
                       />
@@ -395,12 +413,18 @@ export default function AdminContactsPage() {
                     {/* Numéro de téléphone */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Numéro de téléphone <span className="text-red-500">*</span>
+                        Numéro de téléphone{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.phone_number}
-                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            phone_number: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                         placeholder="Ex: 0, 122, +33 4 93 12 34 56"
                       />
@@ -413,7 +437,12 @@ export default function AdminContactsPage() {
                       </label>
                       <select
                         value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            department: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                       >
                         <option value="">Sélectionner un département...</option>
@@ -428,11 +457,13 @@ export default function AdminContactsPage() {
                     {/* Boutons */}
                     <div className="flex gap-3 pt-4">
                       <button
-                        onClick={selectedContact ? updateContact : createContact}
+                        onClick={
+                          selectedContact ? updateContact : createContact
+                        }
                         className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
                       >
                         <span>💾</span>
-                        {selectedContact ? 'Mettre à jour' : 'Créer'}
+                        {selectedContact ? "Mettre à jour" : "Créer"}
                       </button>
                       <button
                         onClick={cancelEdit}
@@ -444,74 +475,75 @@ export default function AdminContactsPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
-                // ===== AFFICHAGE DES DÉTAILS =====
-                selectedContact ? (
-                  <div className="bg-white rounded-xl shadow-sm p-6">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl text-green-700">
-                          📞
-                        </div>
-                        <div>
-                          <h2 className="text-2xl font-bold text-gray-800">
-                            {selectedContact.name}
-                          </h2>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {selectedContact.department}
-                          </p>
-                        </div>
+              ) : // ===== AFFICHAGE DES DÉTAILS =====
+              selectedContact ? (
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl text-green-700">
+                        📞
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEdit(selectedContact)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
-                        >
-                          <span>✏️</span>
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => deleteContact(selectedContact.id)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
-                        >
-                          <span>🗑️</span>
-                          Supprimer
-                        </button>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800">
+                          {selectedContact.name}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {selectedContact.department}
+                        </p>
                       </div>
                     </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEdit(selectedContact)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                      >
+                        <span>✏️</span>
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => deleteContact(selectedContact.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                      >
+                        <span>🗑️</span>
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
 
-                    <div className="bg-gray-50 p-6 rounded-lg mt-4">
-                      <p className="text-xs text-gray-500 mb-2">Numéro de téléphone</p>
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl text-gray-400">📱</span>
-                        <span className="text-2xl font-bold text-gray-900">
-                          {selectedContact.phone_number}
-                        </span>
-                        <a
-                          href={`tel:${selectedContact.phone_number}`}
-                          className="ml-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-                        >
-                          Tester l'appel
-                        </a>
-                      </div>
+                  <div className="bg-gray-50 p-6 rounded-lg mt-4">
+                    <p className="text-xs text-gray-500 mb-2">
+                      Numéro de téléphone
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl text-gray-400">📱</span>
+                      <span className="text-2xl font-bold text-gray-900">
+                        {selectedContact.phone_number}
+                      </span>
+                      <a
+                        href={`tel:${selectedContact.phone_number}`}
+                        className="ml-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                      >
+                        Tester l'appel
+                      </a>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <div className="text-7xl mb-4">📞</div>
-                    <h3 className="text-xl font-medium text-gray-800 mb-2">
-                      Aucun contact sélectionné
-                    </h3>
-                    <p className="text-gray-600">
-                      Sélectionnez un contact dans la liste ou créez-en un nouveau.
-                    </p>
-                  </div>
-                )
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                  <div className="text-7xl mb-4">📞</div>
+                  <h3 className="text-xl font-medium text-gray-800 mb-2">
+                    Aucun contact sélectionné
+                  </h3>
+                  <p className="text-gray-600">
+                    Sélectionnez un contact dans la liste ou créez-en un
+                    nouveau.
+                  </p>
+                </div>
               )}
             </div>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

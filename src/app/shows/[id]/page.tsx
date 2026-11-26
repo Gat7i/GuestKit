@@ -1,30 +1,48 @@
-import { createClient } from '@/lib/supabase/server-client'
-import { getCurrentHotelServer } from '@/lib/hotel-server'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Icon } from '@/components/ui/Icons'
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelServer } from "@/lib/hotel-server";
+import { createClient } from "@/lib/supabase/server-client";
 
 const MONTHS_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-]
-const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
-const DAYS_SHORT_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+const DAYS_FR = [
+  "Dimanche",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+];
+const DAYS_SHORT_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 export default async function ShowDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  const supabase = await createClient()
-  const hotel = await getCurrentHotelServer()
+  const { id } = await params;
+  const supabase = await createClient();
+  const hotel = await getCurrentHotelServer();
 
-  if (!hotel) return notFound()
+  if (!hotel) return notFound();
 
   const { data: show, error } = await supabase
-    .from('entertainments')
+    .from("entertainments")
     .select(`
       *,
       location:locations(id, name, description),
@@ -36,44 +54,58 @@ export default async function ShowDetailPage({
         id, show_date, start_time, duration_minutes, target_audience
       )
     `)
-    .eq('id', id)
-    .eq('hotel_id', hotel.id)
-    .eq('is_night_show', true)
-    .single()
+    .eq("id", id)
+    .eq("hotel_id", hotel.id)
+    .eq("is_night_show", true)
+    .single();
 
-  if (error || !show) return notFound()
+  if (error || !show) return notFound();
 
-  const mainImage = show.images?.find((img: any) => img.is_principal)?.image || show.images?.[0]?.image
+  const mainImage =
+    show.images?.find((img: any) => img.is_principal)?.image ||
+    show.images?.[0]?.image;
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const sortedSchedules = [...(show.schedules || [])].sort(
-    (a: any, b: any) => new Date(a.show_date).getTime() - new Date(b.show_date).getTime()
-  )
-  const upcomingSchedules = sortedSchedules.filter((s: any) => new Date(s.show_date) >= today)
-  const nextSchedule = upcomingSchedules[0]
+    (a: any, b: any) =>
+      new Date(a.show_date).getTime() - new Date(b.show_date).getTime(),
+  );
+  const upcomingSchedules = sortedSchedules.filter(
+    (s: any) => new Date(s.show_date) >= today,
+  );
+  const nextSchedule = upcomingSchedules[0];
 
   const { data: otherShows } = await supabase
-    .from('entertainments')
+    .from("entertainments")
     .select(`
       id, title, description,
       images:entertainment_images(is_principal, image:images(url))
     `)
-    .eq('hotel_id', hotel.id)
-    .eq('is_night_show', true)
-    .neq('id', show.id)
-    .limit(3)
+    .eq("hotel_id", hotel.id)
+    .eq("is_night_show", true)
+    .neq("id", show.id)
+    .limit(3);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
-
       {/* Fil d'Ariane */}
       <div className="bg-gray-900/80 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-2 text-sm">
-            <Link href="/" className="text-gray-400 hover:text-white transition">Accueil</Link>
+            <Link
+              href="/"
+              className="text-gray-400 hover:text-white transition"
+            >
+              Accueil
+            </Link>
             <span className="text-gray-600">›</span>
-            <Link href="/shows" className="text-gray-400 hover:text-white transition">Spectacles</Link>
+            <Link
+              href="/shows"
+              className="text-gray-400 hover:text-white transition"
+            >
+              Spectacles
+            </Link>
             <span className="text-gray-600">›</span>
             <span className="text-white font-medium">{show.title}</span>
           </div>
@@ -104,9 +136,13 @@ export default async function ShowDetailPage({
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-600/80 backdrop-blur rounded-full text-purple-100 text-sm font-medium mb-4 border border-purple-500/30">
               <Icon.Show className="w-4 h-4" /> Spectacle
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{show.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+              {show.title}
+            </h1>
             {show.description && (
-              <p className="text-xl text-gray-300 max-w-3xl">{show.description}</p>
+              <p className="text-xl text-gray-300 max-w-3xl">
+                {show.description}
+              </p>
             )}
           </div>
         </div>
@@ -115,17 +151,20 @@ export default async function ShowDetailPage({
       {/* Contenu */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-8">
-
             {/* Galerie */}
             {show.images && show.images.length > 1 && (
               <section className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-                <h2 className="text-xl font-bold text-white mb-4">Galerie photos</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Galerie photos
+                </h2>
                 <div className="grid grid-cols-3 gap-2">
                   {show.images.map((img: any) => (
-                    <div key={img.image.id} className="aspect-square rounded-lg overflow-hidden">
+                    <div
+                      key={img.image.id}
+                      className="aspect-square rounded-lg overflow-hidden"
+                    >
                       <Image
                         src={img.image.url}
                         alt={img.image.alt_text || show.title}
@@ -143,7 +182,8 @@ export default async function ShowDetailPage({
             <section className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
               <h2 className="text-xl font-bold text-white mb-4">À propos</h2>
               <p className="text-gray-300 leading-relaxed text-lg">
-                {show.description || 'Aucune description disponible pour le moment.'}
+                {show.description ||
+                  "Aucune description disponible pour le moment."}
               </p>
               {show.location?.description && (
                 <div className="mt-6 p-4 bg-purple-900/30 rounded-lg border border-purple-700/30">
@@ -162,27 +202,34 @@ export default async function ShowDetailPage({
                 </h2>
                 <div className="space-y-3">
                   {sortedSchedules.map((sc: any) => {
-                    const d = new Date(sc.show_date)
-                    const isPast = d < today
+                    const d = new Date(sc.show_date);
+                    const isPast = d < today;
                     return (
                       <div
                         key={sc.id}
                         className={`flex items-center gap-4 p-4 rounded-xl border ${
                           isPast
-                            ? 'border-gray-700 bg-gray-700/20 opacity-50'
-                            : 'border-purple-700/40 bg-purple-900/20'
+                            ? "border-gray-700 bg-gray-700/20 opacity-50"
+                            : "border-purple-700/40 bg-purple-900/20"
                         }`}
                       >
                         {/* Badge date */}
                         <div className="bg-purple-700/80 text-white rounded-xl px-3 py-2 text-center min-w-[52px] flex-shrink-0">
-                          <p className="text-xs uppercase tracking-wider opacity-80">{DAYS_SHORT_FR[d.getDay()]}</p>
-                          <p className="text-2xl font-bold leading-none">{d.getDate()}</p>
-                          <p className="text-xs mt-0.5">{MONTHS_FR[d.getMonth()].slice(0, 3)}</p>
+                          <p className="text-xs uppercase tracking-wider opacity-80">
+                            {DAYS_SHORT_FR[d.getDay()]}
+                          </p>
+                          <p className="text-2xl font-bold leading-none">
+                            {d.getDate()}
+                          </p>
+                          <p className="text-xs mt-0.5">
+                            {MONTHS_FR[d.getMonth()].slice(0, 3)}
+                          </p>
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <p className="text-white font-medium">
-                            {DAYS_FR[d.getDay()]} {d.getDate()} {MONTHS_FR[d.getMonth()]} {d.getFullYear()}
+                            {DAYS_FR[d.getDay()]} {d.getDate()}{" "}
+                            {MONTHS_FR[d.getMonth()]} {d.getFullYear()}
                           </p>
                           <div className="flex flex-wrap gap-3 mt-1">
                             {sc.start_time && (
@@ -192,7 +239,9 @@ export default async function ShowDetailPage({
                               </span>
                             )}
                             {sc.duration_minutes && (
-                              <span className="text-sm text-gray-400">{sc.duration_minutes} min</span>
+                              <span className="text-sm text-gray-400">
+                                {sc.duration_minutes} min
+                              </span>
                             )}
                             {sc.target_audience && (
                               <span className="text-sm text-gray-400 flex items-center gap-1">
@@ -204,10 +253,12 @@ export default async function ShowDetailPage({
                         </div>
 
                         {isPast && (
-                          <span className="text-xs text-gray-500 flex-shrink-0">Passé</span>
+                          <span className="text-xs text-gray-500 flex-shrink-0">
+                            Passé
+                          </span>
                         )}
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </section>
@@ -224,16 +275,24 @@ export default async function ShowDetailPage({
 
               {nextSchedule && (
                 <div className="bg-purple-900/30 border border-purple-700/40 rounded-xl p-4">
-                  <p className="text-xs text-purple-300 uppercase tracking-wider mb-1">Prochaine date</p>
-                  <p className="text-white font-semibold">
-                    {DAYS_FR[new Date(nextSchedule.show_date).getDay()]} {new Date(nextSchedule.show_date).getDate()} {MONTHS_FR[new Date(nextSchedule.show_date).getMonth()]}
+                  <p className="text-xs text-purple-300 uppercase tracking-wider mb-1">
+                    Prochaine date
                   </p>
-                  <p className="text-purple-300 text-sm mt-1">{nextSchedule.start_time?.slice(0, 5)}</p>
+                  <p className="text-white font-semibold">
+                    {DAYS_FR[new Date(nextSchedule.show_date).getDay()]}{" "}
+                    {new Date(nextSchedule.show_date).getDate()}{" "}
+                    {MONTHS_FR[new Date(nextSchedule.show_date).getMonth()]}
+                  </p>
+                  <p className="text-purple-300 text-sm mt-1">
+                    {nextSchedule.start_time?.slice(0, 5)}
+                  </p>
                 </div>
               )}
 
               {!nextSchedule && (
-                <p className="text-gray-400 text-sm">Aucune date à venir pour le moment.</p>
+                <p className="text-gray-400 text-sm">
+                  Aucune date à venir pour le moment.
+                </p>
               )}
 
               {show.location && (
@@ -243,7 +302,9 @@ export default async function ShowDetailPage({
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Lieu</p>
-                    <p className="text-white font-medium">{show.location.name}</p>
+                    <p className="text-white font-medium">
+                      {show.location.name}
+                    </p>
                   </div>
                 </div>
               )}
@@ -255,7 +316,9 @@ export default async function ShowDetailPage({
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Durée</p>
-                    <p className="text-white font-medium">{nextSchedule.duration_minutes} min</p>
+                    <p className="text-white font-medium">
+                      {nextSchedule.duration_minutes} min
+                    </p>
                   </div>
                 </div>
               )}
@@ -294,7 +357,9 @@ export default async function ShowDetailPage({
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {otherShows.map((s: any) => {
-                const img = s.images?.find((i: any) => i.is_principal)?.image || s.images?.[0]?.image
+                const img =
+                  s.images?.find((i: any) => i.is_principal)?.image ||
+                  s.images?.[0]?.image;
                 return (
                   <Link
                     key={s.id}
@@ -303,7 +368,13 @@ export default async function ShowDetailPage({
                   >
                     <div className="h-32 bg-gray-700 relative overflow-hidden">
                       {img ? (
-                        <Image src={img.url} alt={s.title} fill sizes="300px" className="object-cover group-hover:scale-105 transition duration-300 opacity-80" />
+                        <Image
+                          src={img.url}
+                          alt={s.title}
+                          fill
+                          sizes="300px"
+                          className="object-cover group-hover:scale-105 transition duration-300 opacity-80"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Icon.Show className="w-10 h-10 text-purple-400/30" />
@@ -311,16 +382,22 @@ export default async function ShowDetailPage({
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-bold text-white group-hover:text-purple-400 transition line-clamp-1">{s.title}</h3>
-                      {s.description && <p className="text-sm text-gray-400 line-clamp-2 mt-1">{s.description}</p>}
+                      <h3 className="font-bold text-white group-hover:text-purple-400 transition line-clamp-1">
+                        {s.title}
+                      </h3>
+                      {s.description && (
+                        <p className="text-sm text-gray-400 line-clamp-2 mt-1">
+                          {s.description}
+                        </p>
+                      )}
                     </div>
                   </Link>
-                )
+                );
               })}
             </div>
           </section>
         )}
       </div>
     </div>
-  )
+  );
 }

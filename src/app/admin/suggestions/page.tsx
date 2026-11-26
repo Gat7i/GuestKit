@@ -1,41 +1,41 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client-browser'
-import { getCurrentHotelClient } from '@/lib/hotel-client'
-import AdminImageGallery from '@/components/admin/AdminImageGallery'
-import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { Icon } from '@/components/ui/Icons'
-import Link from 'next/link'
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   createSuggestion as createSuggestionAction,
-  updateSuggestion as updateSuggestionAction,
   deleteSuggestion as deleteSuggestionAction,
-} from '@/app/admin/entertainments-actions'
+  updateSuggestion as updateSuggestionAction,
+} from "@/app/admin/entertainments-actions";
+import AdminImageGallery from "@/components/admin/AdminImageGallery";
+import { ToastContainer, useToast } from "@/components/admin/Toast";
+import { Icon } from "@/components/ui/Icons";
+import { getCurrentHotelClient } from "@/lib/hotel-client";
+import { createClient } from "@/lib/supabase/client-browser";
 
 export default function AdminSuggestionsPage() {
-  const [hotel, setHotel] = useState<any>(null)
-  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null)
-  const [suggestions, setSuggestions] = useState<any[]>([])
-  const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null)
-  const [categories, setCategories] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
-  const { toast, toasts } = useToast()
+  const [hotel, setHotel] = useState<any>(null);
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const { toast, toasts } = useToast();
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category_id: '',
-    location_type: 'internal',
-    address: '',
-    phone: '',
-    is_hotel_internal: true
-  })
+    title: "",
+    description: "",
+    category_id: "",
+    location_type: "internal",
+    address: "",
+    phone: "",
+    is_hotel_internal: true,
+  });
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   // ============================================
   // CHARGEMENT INITIAL
@@ -43,39 +43,39 @@ export default function AdminSuggestionsPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const hotelData = await getCurrentHotelClient()
-        setHotel(hotelData)
+        const hotelData = await getCurrentHotelClient();
+        setHotel(hotelData);
 
         if (!hotelData) {
-          setSelectedHotelId(null)
-          setLoading(false)
+          setSelectedHotelId(null);
+          setLoading(false);
         } else {
-          setSelectedHotelId(hotelData.id)
-          await loadData(hotelData.id)
+          setSelectedHotelId(hotelData.id);
+          await loadData(hotelData.id);
         }
       } catch (error) {
-        console.error('Erreur initialisation:', error)
-        setLoading(false)
+        console.error("Erreur initialisation:", error);
+        setLoading(false);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   // ============================================
   // CHARGEMENT QUAND UN HÔTEL EST SÉLECTIONNÉ
   // ============================================
   useEffect(() => {
     if (selectedHotelId) {
-      loadData(selectedHotelId)
+      loadData(selectedHotelId);
     }
-  }, [selectedHotelId])
+  }, [selectedHotelId]);
 
   async function loadData(hotelId: number) {
-    setLoading(true)
+    setLoading(true);
     try {
       // Charger les suggestions
       const { data: suggestionsData } = await supabase
-        .from('suggestions')
+        .from("suggestions")
         .select(`
           *,
           category:categories!category_id(
@@ -95,38 +95,38 @@ export default function AdminSuggestionsPage() {
             )
           )
         `)
-        .eq('hotel_id', hotelId)
-        .order('created_at', { ascending: false })
+        .eq("hotel_id", hotelId)
+        .order("created_at", { ascending: false });
 
-      setSuggestions(suggestionsData || [])
+      setSuggestions(suggestionsData || []);
 
       // Charger les catégories de suggestions
       const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('hotel_id', hotelId)
-        .eq('category_type', 'suggestion')
-        .eq('is_active', true)
-        .order('sort_order')
+        .from("categories")
+        .select("*")
+        .eq("hotel_id", hotelId)
+        .eq("category_type", "suggestion")
+        .eq("is_active", true)
+        .order("sort_order");
 
-      setCategories(categoriesData || [])
-      
+      setCategories(categoriesData || []);
+
       if (suggestionsData?.length && !selectedSuggestion) {
-        setSelectedSuggestion(suggestionsData[0])
+        setSelectedSuggestion(suggestionsData[0]);
         setFormData({
-          title: suggestionsData[0].title || '',
-          description: suggestionsData[0].description || '',
-          category_id: suggestionsData[0].category_id?.toString() || '',
-          location_type: suggestionsData[0].location_type || 'internal',
-          address: suggestionsData[0].address || '',
-          phone: suggestionsData[0].phone || '',
-          is_hotel_internal: suggestionsData[0].is_hotel_internal
-        })
+          title: suggestionsData[0].title || "",
+          description: suggestionsData[0].description || "",
+          category_id: suggestionsData[0].category_id?.toString() || "",
+          location_type: suggestionsData[0].location_type || "internal",
+          address: suggestionsData[0].address || "",
+          phone: suggestionsData[0].phone || "",
+          is_hotel_internal: suggestionsData[0].is_hotel_internal,
+        });
       }
     } catch (error) {
-      console.error('Erreur chargement:', error)
+      console.error("Erreur chargement:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -135,11 +135,11 @@ export default function AdminSuggestionsPage() {
   // ============================================
   async function createSuggestion() {
     if (!formData.title.trim() || !formData.category_id) {
-      toast('Veuillez remplir le titre et la catégorie', 'warning')
-      return
+      toast("Veuillez remplir le titre et la catégorie", "warning");
+      return;
     }
-    if (!selectedHotelId) return
-    setSaving(true)
+    if (!selectedHotelId) return;
+    setSaving(true);
     try {
       const data = await createSuggestionAction({
         hotel_id: selectedHotelId,
@@ -147,69 +147,75 @@ export default function AdminSuggestionsPage() {
         description: formData.description,
         category_id: parseInt(formData.category_id),
         location_type: formData.location_type,
-        is_hotel_internal: formData.location_type === 'internal',
+        is_hotel_internal: formData.location_type === "internal",
         address: formData.address || null,
         phone: formData.phone || null,
-      })
+      });
 
-      toast('Suggestion créée avec succès')
-      setEditing(false)
-      resetForm()
-      await loadData(selectedHotelId)
-      setSelectedSuggestion(data)
+      toast("Suggestion créée avec succès");
+      setEditing(false);
+      resetForm();
+      await loadData(selectedHotelId);
+      setSelectedSuggestion(data);
     } catch (error) {
-      console.error('Erreur création:', error)
-      toast('Erreur lors de la création', 'error')
+      console.error("Erreur création:", error);
+      toast("Erreur lors de la création", "error");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function updateSuggestion() {
-    if (!selectedSuggestion || !selectedHotelId) return
-    if (!formData.title.trim()) { toast('Veuillez saisir un titre', 'warning'); return }
-    setSaving(true)
+    if (!selectedSuggestion || !selectedHotelId) return;
+    if (!formData.title.trim()) {
+      toast("Veuillez saisir un titre", "warning");
+      return;
+    }
+    setSaving(true);
     try {
       await updateSuggestionAction(selectedSuggestion.id, selectedHotelId, {
         title: formData.title,
         description: formData.description,
         category_id: parseInt(formData.category_id),
         location_type: formData.location_type,
-        is_hotel_internal: formData.location_type === 'internal',
+        is_hotel_internal: formData.location_type === "internal",
         address: formData.address || null,
         phone: formData.phone || null,
-      })
+      });
 
-      toast('Suggestion mise à jour')
-      setEditing(false)
-      await loadData(selectedHotelId)
+      toast("Suggestion mise à jour");
+      setEditing(false);
+      await loadData(selectedHotelId);
     } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      toast('Erreur lors de la mise à jour', 'error')
+      console.error("Erreur mise à jour:", error);
+      toast("Erreur lors de la mise à jour", "error");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function deleteSuggestion(id: number) {
     if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id)
-      setTimeout(() => setConfirmDeleteId(null), 3000)
-      return
+      setConfirmDeleteId(id);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
     }
-    if (!selectedHotelId) return
-    setDeletingId(id)
-    setConfirmDeleteId(null)
+    if (!selectedHotelId) return;
+    setDeletingId(id);
+    setConfirmDeleteId(null);
     try {
-      await deleteSuggestionAction(id, selectedHotelId)
-      toast('Suggestion supprimée')
-      await loadData(selectedHotelId)
-      if (selectedSuggestion?.id === id) { setSelectedSuggestion(null); resetForm() }
+      await deleteSuggestionAction(id, selectedHotelId);
+      toast("Suggestion supprimée");
+      await loadData(selectedHotelId);
+      if (selectedSuggestion?.id === id) {
+        setSelectedSuggestion(null);
+        resetForm();
+      }
     } catch (error) {
-      console.error('Erreur suppression:', error)
-      toast('Erreur lors de la suppression', 'error')
+      console.error("Erreur suppression:", error);
+      toast("Erreur lors de la suppression", "error");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
   }
 
@@ -218,46 +224,46 @@ export default function AdminSuggestionsPage() {
   // ============================================
   function resetForm() {
     setFormData({
-      title: '',
-      description: '',
-      category_id: '',
-      location_type: 'internal',
-      address: '',
-      phone: '',
-      is_hotel_internal: true
-    })
+      title: "",
+      description: "",
+      category_id: "",
+      location_type: "internal",
+      address: "",
+      phone: "",
+      is_hotel_internal: true,
+    });
   }
 
   function startEdit(suggestion?: any) {
     if (suggestion) {
       setFormData({
-        title: suggestion.title || '',
-        description: suggestion.description || '',
-        category_id: suggestion.category_id?.toString() || '',
-        location_type: suggestion.location_type || 'internal',
-        address: suggestion.address || '',
-        phone: suggestion.phone || '',
-        is_hotel_internal: suggestion.is_hotel_internal
-      })
-      setSelectedSuggestion(suggestion)
+        title: suggestion.title || "",
+        description: suggestion.description || "",
+        category_id: suggestion.category_id?.toString() || "",
+        location_type: suggestion.location_type || "internal",
+        address: suggestion.address || "",
+        phone: suggestion.phone || "",
+        is_hotel_internal: suggestion.is_hotel_internal,
+      });
+      setSelectedSuggestion(suggestion);
     }
-    setEditing(true)
+    setEditing(true);
   }
 
   function cancelEdit() {
-    setEditing(false)
+    setEditing(false);
     if (selectedSuggestion) {
       setFormData({
-        title: selectedSuggestion.title || '',
-        description: selectedSuggestion.description || '',
-        category_id: selectedSuggestion.category_id?.toString() || '',
-        location_type: selectedSuggestion.location_type || 'internal',
-        address: selectedSuggestion.address || '',
-        phone: selectedSuggestion.phone || '',
-        is_hotel_internal: selectedSuggestion.is_hotel_internal
-      })
+        title: selectedSuggestion.title || "",
+        description: selectedSuggestion.description || "",
+        category_id: selectedSuggestion.category_id?.toString() || "",
+        location_type: selectedSuggestion.location_type || "internal",
+        address: selectedSuggestion.address || "",
+        phone: selectedSuggestion.phone || "",
+        is_hotel_internal: selectedSuggestion.is_hotel_internal,
+      });
     } else {
-      resetForm()
+      resetForm();
     }
   }
 
@@ -269,7 +275,7 @@ export default function AdminSuggestionsPage() {
           <p className="text-gray-600">Chargement des suggestions...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -294,9 +300,9 @@ export default function AdminSuggestionsPage() {
           {selectedHotelId && (
             <button
               onClick={() => {
-                resetForm()
-                setSelectedSuggestion(null)
-                setEditing(true)
+                resetForm();
+                setSelectedSuggestion(null);
+                setEditing(true);
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md flex items-center gap-2"
             >
@@ -309,7 +315,6 @@ export default function AdminSuggestionsPage() {
         {/* Contenu principal */}
         {selectedHotelId && (
           <div className="grid grid-cols-12 gap-6">
-            
             {/* ===== COLONNE 1 : LISTE DES SUGGESTIONS ===== */}
             <div className="col-span-3 bg-white rounded-xl shadow-sm p-4">
               <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -319,7 +324,7 @@ export default function AdminSuggestionsPage() {
                   {suggestions.length}
                 </span>
               </h2>
-              
+
               <div className="space-y-2 max-h-[600px] overflow-y-auto">
                 {suggestions.length === 0 ? (
                   <p className="text-center text-gray-500 py-8 text-sm">
@@ -330,46 +335,54 @@ export default function AdminSuggestionsPage() {
                     <button
                       key={suggestion.id}
                       onClick={() => {
-                        setSelectedSuggestion(suggestion)
+                        setSelectedSuggestion(suggestion);
                         setFormData({
-                          title: suggestion.title || '',
-                          description: suggestion.description || '',
-                          category_id: suggestion.category_id?.toString() || '',
-                          location_type: suggestion.location_type || 'internal',
-                          address: suggestion.address || '',
-                          phone: suggestion.phone || '',
-                          is_hotel_internal: suggestion.is_hotel_internal
-                        })
-                        setEditing(false)
+                          title: suggestion.title || "",
+                          description: suggestion.description || "",
+                          category_id: suggestion.category_id?.toString() || "",
+                          location_type: suggestion.location_type || "internal",
+                          address: suggestion.address || "",
+                          phone: suggestion.phone || "",
+                          is_hotel_internal: suggestion.is_hotel_internal,
+                        });
+                        setEditing(false);
                       }}
                       className={`
                         w-full text-left p-3 rounded-lg transition
-                        ${selectedSuggestion?.id === suggestion.id
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                        ${
+                          selectedSuggestion?.id === suggestion.id
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-50 hover:bg-gray-100 text-gray-700"
                         }
                       `}
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`
+                        <span
+                          className={`
                           w-6 h-6 rounded-full flex items-center justify-center text-xs
-                          ${selectedSuggestion?.id === suggestion.id
-                            ? 'bg-white/20 text-white'
-                            : suggestion.category?.bg_color || 'bg-gray-200'
+                          ${
+                            selectedSuggestion?.id === suggestion.id
+                              ? "bg-white/20 text-white"
+                              : suggestion.category?.bg_color || "bg-gray-200"
                           }
-                        `}>
-                          {suggestion.category?.icon || '✨'}
+                        `}
+                        >
+                          {suggestion.category?.icon || "✨"}
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium truncate">
                             {suggestion.title}
                           </div>
-                          <div className={`text-xs ${
-                            selectedSuggestion?.id === suggestion.id
-                              ? 'text-white/80'
-                              : 'text-gray-500'
-                          }`}>
-                            {suggestion.location_type === 'internal' ? '🏨 Hôtel' : '🗺️ Extérieur'}
+                          <div
+                            className={`text-xs ${
+                              selectedSuggestion?.id === suggestion.id
+                                ? "text-white/80"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {suggestion.location_type === "internal"
+                              ? "🏨 Hôtel"
+                              : "🗺️ Extérieur"}
                           </div>
                         </div>
                       </div>
@@ -385,7 +398,9 @@ export default function AdminSuggestionsPage() {
                 // ===== FORMULAIRE D'ÉDITION =====
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    {selectedSuggestion ? '✏️ Modifier' : '➕ Nouvelle suggestion'}
+                    {selectedSuggestion
+                      ? "✏️ Modifier"
+                      : "➕ Nouvelle suggestion"}
                   </h2>
 
                   <div className="space-y-4">
@@ -400,12 +415,14 @@ export default function AdminSuggestionsPage() {
                             type="radio"
                             name="location_type"
                             value="internal"
-                            checked={formData.location_type === 'internal'}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              location_type: e.target.value,
-                              is_hotel_internal: true
-                            })}
+                            checked={formData.location_type === "internal"}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                location_type: e.target.value,
+                                is_hotel_internal: true,
+                              })
+                            }
                             className="text-purple-600"
                           />
                           <span>🏨 Dans l'hôtel</span>
@@ -415,12 +432,14 @@ export default function AdminSuggestionsPage() {
                             type="radio"
                             name="location_type"
                             value="external"
-                            checked={formData.location_type === 'external'}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              location_type: e.target.value,
-                              is_hotel_internal: false
-                            })}
+                            checked={formData.location_type === "external"}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                location_type: e.target.value,
+                                is_hotel_internal: false,
+                              })
+                            }
                             className="text-purple-600"
                           />
                           <span>🗺️ Aux alentours</span>
@@ -435,10 +454,12 @@ export default function AdminSuggestionsPage() {
                       </label>
                       <select
                         value={formData.category_id}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          category_id: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            category_id: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                       >
                         <option value="">Sélectionner une catégorie...</option>
@@ -458,10 +479,12 @@ export default function AdminSuggestionsPage() {
                       <input
                         type="text"
                         value={formData.title}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          title: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            title: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                         placeholder="Ex: Spa L'Oasis"
                       />
@@ -474,10 +497,12 @@ export default function AdminSuggestionsPage() {
                       </label>
                       <textarea
                         value={formData.description}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          description: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
                         rows={4}
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                         placeholder="Décrivez cette activité/service..."
@@ -485,7 +510,7 @@ export default function AdminSuggestionsPage() {
                     </div>
 
                     {/* Adresse (pour externe) */}
-                    {formData.location_type === 'external' && (
+                    {formData.location_type === "external" && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Adresse
@@ -493,10 +518,12 @@ export default function AdminSuggestionsPage() {
                         <input
                           type="text"
                           value={formData.address}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            address: e.target.value
-                          })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              address: e.target.value,
+                            })
+                          }
                           className="w-full rounded-lg border-gray-300 shadow-sm"
                           placeholder="123 rue Exemple, 06000 Nice"
                         />
@@ -511,10 +538,12 @@ export default function AdminSuggestionsPage() {
                       <input
                         type="text"
                         value={formData.phone}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          phone: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            phone: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border-gray-300 shadow-sm"
                         placeholder="+33 4 93 12 34 56"
                       />
@@ -523,11 +552,15 @@ export default function AdminSuggestionsPage() {
                     {/* Boutons */}
                     <div className="flex gap-3 pt-4">
                       <button
-                        onClick={selectedSuggestion ? updateSuggestion : createSuggestion}
+                        onClick={
+                          selectedSuggestion
+                            ? updateSuggestion
+                            : createSuggestion
+                        }
                         className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-medium transition flex items-center gap-2"
                       >
                         <span>💾</span>
-                        {selectedSuggestion ? 'Mettre à jour' : 'Créer'}
+                        {selectedSuggestion ? "Mettre à jour" : "Créer"}
                       </button>
                       <button
                         onClick={cancelEdit}
@@ -539,123 +572,139 @@ export default function AdminSuggestionsPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
-                // ===== AFFICHAGE DES DÉTAILS =====
-                selectedSuggestion ? (
-                  <>
-                    {/* Détails de la suggestion */}
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center gap-3">
-                          <div className={`
+              ) : // ===== AFFICHAGE DES DÉTAILS =====
+              selectedSuggestion ? (
+                <>
+                  {/* Détails de la suggestion */}
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`
                             w-12 h-12 rounded-xl flex items-center justify-center text-2xl
-                            ${selectedSuggestion.category?.bg_color || 'bg-gray-100'}
-                            ${selectedSuggestion.category?.text_color || 'text-gray-700'}
-                          `}>
-                            {selectedSuggestion.category?.icon || '✨'}
-                          </div>
-                          <div>
-                            <h2 className="text-2xl font-bold text-gray-800">
-                              {selectedSuggestion.title}
-                            </h2>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className={`
+                            ${selectedSuggestion.category?.bg_color || "bg-gray-100"}
+                            ${selectedSuggestion.category?.text_color || "text-gray-700"}
+                          `}
+                        >
+                          {selectedSuggestion.category?.icon || "✨"}
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            {selectedSuggestion.title}
+                          </h2>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              className={`
                                 px-2 py-0.5 rounded-full text-xs
-                                ${selectedSuggestion.location_type === 'internal'
-                                  ? 'bg-blue-100 text-blue-700'
-                                  : 'bg-amber-100 text-amber-700'
+                                ${
+                                  selectedSuggestion.location_type ===
+                                  "internal"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-amber-100 text-amber-700"
                                 }
-                              `}>
-                                {selectedSuggestion.location_type === 'internal' 
-                                  ? '🏨 Dans l\'hôtel' 
-                                  : '🗺️ Aux alentours'}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {selectedSuggestion.category?.name}
-                              </span>
-                            </div>
+                              `}
+                            >
+                              {selectedSuggestion.location_type === "internal"
+                                ? "🏨 Dans l'hôtel"
+                                : "🗺️ Aux alentours"}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {selectedSuggestion.category?.name}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => startEdit(selectedSuggestion)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
-                          >
-                            <span>✏️</span>
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => deleteSuggestion(selectedSuggestion.id)}
-                            className={`text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
-                              confirmDeleteId === selectedSuggestion.id
-                                ? 'bg-red-700 animate-pulse'
-                                : 'bg-red-600 hover:bg-red-700'
-                            }`}
-                          >
-                            <span>🗑️</span>
-                            {confirmDeleteId === selectedSuggestion.id ? 'Confirmer la suppression ?' : 'Supprimer'}
-                          </button>
-                        </div>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-6 mt-4">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-xs text-gray-500 mb-1">Description</p>
-                          <p className="text-gray-800">
-                            {selectedSuggestion.description || 'Aucune description'}
-                          </p>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-xs text-gray-500 mb-1">Contact</p>
-                          {selectedSuggestion.phone ? (
-                            <a 
-                              href={`tel:${selectedSuggestion.phone}`}
-                              className="text-blue-600 hover:underline"
-                            >
-                              {selectedSuggestion.phone}
-                            </a>
-                          ) : (
-                            <p className="text-gray-500">Non renseigné</p>
-                          )}
-                          {selectedSuggestion.address && (
-                            <>
-                              <p className="text-xs text-gray-500 mt-2 mb-1">Adresse</p>
-                              <p className="text-gray-800">{selectedSuggestion.address}</p>
-                            </>
-                          )}
-                        </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEdit(selectedSuggestion)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                        >
+                          <span>✏️</span>
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() =>
+                            deleteSuggestion(selectedSuggestion.id)
+                          }
+                          className={`text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                            confirmDeleteId === selectedSuggestion.id
+                              ? "bg-red-700 animate-pulse"
+                              : "bg-red-600 hover:bg-red-700"
+                          }`}
+                        >
+                          <span>🗑️</span>
+                          {confirmDeleteId === selectedSuggestion.id
+                            ? "Confirmer la suppression ?"
+                            : "Supprimer"}
+                        </button>
                       </div>
                     </div>
 
-                    {/* Gestion des images */}
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                        <Icon.Image className="w-5 h-5 text-gray-500" />
-                        Photos de la découverte
-                      </h3>
-                      <AdminImageGallery
-                        entityType="suggestion"
-                        entityId={selectedSuggestion.id}
-                        hotelId={selectedHotelId!}
-                      />
+                    <div className="grid grid-cols-2 gap-6 mt-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Description
+                        </p>
+                        <p className="text-gray-800">
+                          {selectedSuggestion.description ||
+                            "Aucune description"}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Contact</p>
+                        {selectedSuggestion.phone ? (
+                          <a
+                            href={`tel:${selectedSuggestion.phone}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {selectedSuggestion.phone}
+                          </a>
+                        ) : (
+                          <p className="text-gray-500">Non renseigné</p>
+                        )}
+                        {selectedSuggestion.address && (
+                          <>
+                            <p className="text-xs text-gray-500 mt-2 mb-1">
+                              Adresse
+                            </p>
+                            <p className="text-gray-800">
+                              {selectedSuggestion.address}
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <div className="text-7xl mb-4">✨</div>
-                    <h3 className="text-xl font-medium text-gray-800 mb-2">
-                      Aucune suggestion sélectionnée
-                    </h3>
-                    <p className="text-gray-600">
-                      Sélectionnez une suggestion dans la liste ou créez-en une nouvelle.
-                    </p>
                   </div>
-                )
+
+                  {/* Gestion des images */}
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Icon.Image className="w-5 h-5 text-gray-500" />
+                      Photos de la découverte
+                    </h3>
+                    <AdminImageGallery
+                      entityType="suggestion"
+                      entityId={selectedSuggestion.id}
+                      hotelId={selectedHotelId!}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                  <div className="text-7xl mb-4">✨</div>
+                  <h3 className="text-xl font-medium text-gray-800 mb-2">
+                    Aucune suggestion sélectionnée
+                  </h3>
+                  <p className="text-gray-600">
+                    Sélectionnez une suggestion dans la liste ou créez-en une
+                    nouvelle.
+                  </p>
+                </div>
               )}
             </div>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,16 +1,18 @@
-import { createClient } from '@/lib/supabase/server-client'
-import { redirect } from 'next/navigation'
-import RequestsTable from '../RequestsTable'
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server-client";
+import RequestsTable from "../RequestsTable";
 
 export default async function RoomServiceRequestsPage() {
-  const supabase = await createClient()
-  const hotelId = parseInt(process.env.NEXT_PUBLIC_HOTEL_ID || '0')
+  const supabase = await createClient();
+  const hotelId = parseInt(process.env.NEXT_PUBLIC_HOTEL_ID || "0");
 
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/admin/login')
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) redirect("/admin/login");
 
   const { data: requests } = await supabase
-    .from('customer_requests')
+    .from("customer_requests")
     .select(`
       *,
       customer:customers(
@@ -21,9 +23,9 @@ export default async function RoomServiceRequestsPage() {
       ),
       request_type:request_types(name)
     `)
-    .eq('hotel_id', hotelId)
-    .eq('request_types.category', 'room_service')
-    .order('created_at', { ascending: false })
+    .eq("hotel_id", hotelId)
+    .eq("request_types.category", "room_service")
+    .order("created_at", { ascending: false });
 
   return (
     <div>
@@ -32,10 +34,7 @@ export default async function RoomServiceRequestsPage() {
         <p className="text-gray-600">Gérez les commandes en chambre</p>
       </div>
 
-      <RequestsTable
-        requests={requests || []}
-        category="room-service"
-      />
+      <RequestsTable requests={requests || []} category="room-service" />
     </div>
-  )
+  );
 }

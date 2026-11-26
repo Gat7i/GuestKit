@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 export default function RequestsRedirectPage() {
-  redirect('/admin/requests/maintenance')
+  redirect("/admin/requests/maintenance");
 }

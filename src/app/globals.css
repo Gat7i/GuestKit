@@ -1,5 +1,5 @@
 /* Google Fonts — loaded by browser at runtime */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap");
 
 @import "tailwindcss";
 @tailwind base;
@@ -7,8 +7,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFAF8;
-  --foreground: #1C1211;
+  --background: #fffaf8;
+  --foreground: #1c1211;
 }
 
 @theme inline {
@@ -16,21 +16,21 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: 'Cormorant', Georgia, serif;
+  --font-display: "Cormorant", Georgia, serif;
   /* Les Orangers brand palette */
-  --color-brand-coral: #E05947;
+  --color-brand-coral: #e05947;
   --color-brand-taupe: #746865;
-  --color-brand-gold: #C49A5A;
-  --color-brand-cream: #FFFAF8;
-  --color-brand-dark: #1C1211;
-  --color-brand-muted: #F5EFED;
-  --color-brand-border: #E8DEDA;
+  --color-brand-gold: #c49a5a;
+  --color-brand-cream: #fffaf8;
+  --color-brand-dark: #1c1211;
+  --color-brand-muted: #f5efed;
+  --color-brand-border: #e8deda;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1C1211;
-    --foreground: #F5EFED;
+    --background: #1c1211;
+    --foreground: #f5efed;
   }
 }
 
@@ -41,8 +41,14 @@ body {
 
 /* Mobile menu animation */
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-slideDown {
@@ -50,30 +56,40 @@ body {
 }
 
 /* Scrollbar styling */
-.scrollbar-thin::-webkit-scrollbar { height: 4px; }
-.scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 
 /* ===================== BUTTON SYSTEM — Pill Elevated ===================== */
 @layer components {
   /* Primary — coral pill */
   .btn-primary {
     @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 text-white shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
-    background-color: #E05947;
+    background-color: #e05947;
   }
   .btn-primary:hover:not(:disabled) {
-    background-color: #C94836;
+    background-color: #c94836;
   }
 
   /* Secondary — coral outline pill */
   .btn-secondary {
     @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 bg-white shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
-    border: 1.5px solid #E05947;
-    color: #E05947;
+    border: 1.5px solid #e05947;
+    color: #e05947;
   }
   .btn-secondary:hover:not(:disabled) {
-    background-color: #FFF5F3;
+    background-color: #fff5f3;
   }
 
   /* Ghost — text only, coral */
@@ -82,8 +98,8 @@ body {
     color: #746865;
   }
   .btn-ghost:hover:not(:disabled) {
-    background-color: #F5EFED;
-    color: #E05947;
+    background-color: #f5efed;
+    color: #e05947;
   }
 
   /* Danger — red text pill */
@@ -97,15 +113,15 @@ body {
     background-color: #746865;
   }
   .btn-admin:hover:not(:disabled) {
-    background-color: #5E5250;
+    background-color: #5e5250;
   }
 
   .btn-admin-secondary {
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed;
-    border: 1px solid #E8DEDA;
+    border: 1px solid #e8deda;
     color: #746865;
   }
   .btn-admin-secondary:hover:not(:disabled) {
-    background-color: #F5EFED;
+    background-color: #f5efed;
   }
 }
