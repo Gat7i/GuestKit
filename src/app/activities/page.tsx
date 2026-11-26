@@ -129,18 +129,21 @@ export default async function ActivitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* En-tête de la page */}
-      <div 
-        className="bg-gradient-to-r text-white"
-        style={{ background: `linear-gradient(to right, ${hotel.primary_color}, ${hotel.primary_color}dd)` }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold mb-4">
-            Programme d'animations - {hotel.name}
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF8' }}>
+      {/* En-tête éditorial */}
+      <div style={{ backgroundColor: '#1C1211' }}>
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-20">
+          <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: '#C49A5A' }}>
+            {hotel.name}
+          </p>
+          <h1
+            className="text-4xl md:text-5xl font-light mb-3 leading-tight"
+            style={{ fontFamily: "'Cormorant', Georgia, serif", color: '#FFFAF8' }}
+          >
+            Programme d'animations
           </h1>
-          <p className="text-xl text-white/90">
-            Découvrez toutes les activités proposées chaque jour par notre équipe d'animation
+          <p className="text-sm" style={{ color: '#746865' }}>
+            Toutes les activités proposées chaque jour par notre équipe
           </p>
         </div>
       </div>
@@ -148,12 +151,12 @@ export default async function ActivitiesPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Message si aucune activité */}
         {(!activities || activities.length === 0) && (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <Icon.Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          <div className="bg-white rounded-xl p-8 text-center" style={{ border: '1px solid #E8DEDA' }}>
+            <Icon.Activity className="w-16 h-16 mx-auto mb-4 text-[#E8DEDA]" />
+            <h2 className="text-xl font-semibold mb-2" style={{ color: '#1C1211' }}>
               Aucune activité programmée pour le moment
             </h2>
-            <p className="text-gray-600">
+            <p style={{ color: '#746865' }}>
               Revenez bientôt pour découvrir notre programme d'animations !
             </p>
           </div>
@@ -172,19 +175,19 @@ export default async function ActivitiesPage() {
                 className="bg-white rounded-xl shadow-sm overflow-hidden scroll-mt-4"
               >
                 {/* En-tête du jour */}
-                <div className={`
-                  px-6 py-4 border-b
-                  ${day === today 
-                    ? 'bg-blue-50 border-blue-200' 
-                    : 'bg-gray-50 border-gray-200'
+                <div
+                  className="px-6 py-4 border-b"
+                  style={day === today
+                    ? { backgroundColor: '#FFF5F3', borderColor: '#E8DEDA' }
+                    : { backgroundColor: '#F5EFED', borderColor: '#E8DEDA' }
                   }
-                `}>
+                >
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold" style={{ color: '#1C1211' }}>
                       {DAYS_FR[day]}
                     </h2>
                     {day === today && (
-                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs">
+                      <span className="text-white px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#E05947' }}>
                         Aujourd'hui
                       </span>
                     )}
@@ -216,10 +219,11 @@ export default async function ActivitiesPage() {
                             const mainImage = getMainImage(item)
                             
                             return (
-                              <Link 
-                                key={`${item.id}-${index}`} 
+                              <Link
+                                key={`${item.id}-${index}`}
                                 href={`/activities/${item.id}`}
-                                className="flex flex-col md:flex-row gap-4 p-4 hover:bg-gray-50 rounded-lg transition group border border-gray-100 hover:border-blue-200"
+                                className="flex flex-col md:flex-row gap-4 p-4 rounded-lg transition group hover:bg-[#FFF5F3]"
+                                style={{ border: '1px solid #E8DEDA' }}
                               >
                                 {/* Image de l'activité */}
                                 <div className="relative md:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
@@ -232,8 +236,8 @@ export default async function ActivitiesPage() {
                                       className="object-cover group-hover:scale-105 transition duration-300"
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-                                      <Icon.Activity className="w-8 h-8 text-blue-200" />
+                                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#F5EFED' }}>
+                                      <Icon.Activity className="w-8 h-8 text-[#E8DEDA]" />
                                     </div>
                                   )}
                                 </div>
@@ -241,10 +245,10 @@ export default async function ActivitiesPage() {
                                 {/* Contenu */}
                                 <div className="flex-1">
                                   <div className="flex items-start justify-between mb-1">
-                                    <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition">
+                                    <h4 className="font-medium transition group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
                                       {item.title}
                                     </h4>
-                                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#F5EFED', color: '#E05947' }}>
                                       {item.schedule.start_time.slice(0,5)}
                                     </span>
                                   </div>
@@ -279,12 +283,12 @@ export default async function ActivitiesPage() {
         </div>
 
         {/* Note d'information */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <div className="mt-8 rounded-lg p-4 text-sm" style={{ backgroundColor: '#FFF5F3', border: '1px solid #E8DEDA' }}>
           <div className="flex items-start gap-3">
-            <Icon.Bell className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <Icon.Bell className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#E05947]" />
             <div>
-              <p className="font-medium mb-1">Inscription aux activités</p>
-              <p>
+              <p className="font-medium mb-1" style={{ color: '#1C1211' }}>Inscription aux activités</p>
+              <p style={{ color: '#746865' }}>
                 Pour participer aux activités, rendez-vous à la réception ou contactez notre équipe d'animation.
                 Les places sont limitées, nous vous recommandons de vous inscrire à l'avance.
               </p>

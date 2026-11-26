@@ -7,29 +7,33 @@ import { Icon } from '@/components/ui/Icons'
 const SPOT_TYPE_CONFIG: Record<string, {
   label: string
   icon: React.ReactNode
-  headerGradient: string
-  badgeColor: string
+  traitColor: string
+  badgeBg: string
+  badgeText: string
   emptyLabel: string
 }> = {
   restaurant: {
     label: 'Restaurants',
     icon: <Icon.Utensils className="w-6 h-6 text-white" />,
-    headerGradient: 'from-amber-600 to-orange-600',
-    badgeColor: 'bg-amber-100 text-amber-700',
+    traitColor: '#E05947',
+    badgeBg: '#FFF5F3',
+    badgeText: '#E05947',
     emptyLabel: 'Aucun restaurant disponible',
   },
   bar: {
     label: 'Bars',
     icon: <Icon.Wine className="w-6 h-6 text-white" />,
-    headerGradient: 'from-purple-600 to-indigo-600',
-    badgeColor: 'bg-purple-100 text-purple-700',
+    traitColor: '#746865',
+    badgeBg: '#F5EFED',
+    badgeText: '#746865',
     emptyLabel: 'Aucun bar disponible',
   },
   café: {
     label: 'Cafés',
     icon: <Icon.Coffee className="w-6 h-6 text-white" />,
-    headerGradient: 'from-yellow-700 to-amber-700',
-    badgeColor: 'bg-yellow-100 text-yellow-800',
+    traitColor: '#C49A5A',
+    badgeBg: '#FAF5EC',
+    badgeText: '#C49A5A',
     emptyLabel: 'Aucun café disponible',
   },
 }
@@ -37,8 +41,9 @@ const SPOT_TYPE_CONFIG: Record<string, {
 const DEFAULT_TYPE_CONFIG = {
   label: 'Autres',
   icon: <Icon.Utensils className="w-6 h-6 text-white" />,
-  headerGradient: 'from-gray-600 to-gray-700',
-  badgeColor: 'bg-gray-100 text-gray-700',
+  traitColor: '#746865',
+  badgeBg: '#F5EFED',
+  badgeText: '#746865',
   emptyLabel: 'Aucun établissement disponible',
 }
 
@@ -95,13 +100,22 @@ export default async function RestaurantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF8' }}>
 
-      {/* En-tête */}
-      <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2">Restauration & Bars</h1>
-          <p className="text-xl text-amber-100">
+      {/* En-tête éditorial */}
+      <div style={{ backgroundColor: '#1C1211' }}>
+        <div className="max-w-7xl mx-auto px-4 py-16 md:py-20">
+          <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: '#C49A5A' }}>
+            {/* hotel name shown via section below */}
+            Gastronomie &amp; Détente
+          </p>
+          <h1
+            className="text-4xl md:text-5xl font-light mb-3 leading-tight"
+            style={{ fontFamily: "'Cormorant', Georgia, serif", color: '#FFFAF8' }}
+          >
+            Restauration &amp; Bars
+          </h1>
+          <p className="text-sm" style={{ color: '#746865' }}>
             Découvrez nos restaurants, bars et espaces de détente
           </p>
         </div>
@@ -123,9 +137,9 @@ export default async function RestaurantsPage() {
               <section key={type}>
                 {/* Titre de section */}
                 <div className="flex items-center gap-4 mb-6">
-                  <div className={`w-1 h-8 rounded-full bg-gradient-to-b ${config.headerGradient}`} />
-                  <h2 className="text-2xl font-bold text-gray-800">{config.label}</h2>
-                  <span className="text-sm text-gray-400 font-normal">{spots.length} établissement{spots.length > 1 ? 's' : ''}</span>
+                  <div className="w-1 h-8 rounded-full" style={{ backgroundColor: config.traitColor }} />
+                  <h2 className="text-2xl font-bold" style={{ color: '#1C1211' }}>{config.label}</h2>
+                  <span className="text-sm font-normal" style={{ color: '#746865' }}>{spots.length} établissement{spots.length > 1 ? 's' : ''}</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -148,7 +162,7 @@ export default async function RestaurantsPage() {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                             </>
                           ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${config.headerGradient} opacity-20`}>
+                            <div className="w-full h-full flex items-center justify-center opacity-20" style={{ backgroundColor: config.traitColor }}>
                               <div className="opacity-100">
                                 {config.icon}
                               </div>
@@ -157,7 +171,7 @@ export default async function RestaurantsPage() {
 
                           {/* Badge type */}
                           <div className="absolute top-3 left-3">
-                            <span className={`${config.badgeColor} px-2.5 py-1 rounded-full text-xs font-medium`}>
+                            <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: config.badgeBg, color: config.badgeText }}>
                               {config.label.slice(0, -1)}
                             </span>
                           </div>
@@ -165,7 +179,7 @@ export default async function RestaurantsPage() {
 
                         {/* Contenu */}
                         <div className="p-5">
-                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition mb-1">
+                          <h3 className="text-lg font-bold transition mb-1 group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
                             {spot.name}
                           </h3>
 
@@ -193,7 +207,8 @@ export default async function RestaurantsPage() {
                                 href={spot.menu_pdf_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-1.5"
+                                className="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-1.5 hover:opacity-80"
+                                style={{ backgroundColor: '#FFF5F3', color: '#E05947' }}
                               >
                                 <Icon.ExternalLink className="w-3.5 h-3.5" />
                                 Menu
@@ -201,7 +216,8 @@ export default async function RestaurantsPage() {
                             )}
                             <Link
                               href={`/restaurants/${spot.id}`}
-                              className="flex-1 bg-white border border-gray-200 hover:border-amber-300 text-gray-700 hover:text-amber-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-1.5"
+                              className="flex-1 bg-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-1.5 hover:bg-[#FFF5F3] hover:text-[#E05947]"
+                              style={{ border: '1px solid #E8DEDA', color: '#746865' }}
                             >
                               <Icon.ChevronRight className="w-3.5 h-3.5" />
                               Voir détails
@@ -219,12 +235,12 @@ export default async function RestaurantsPage() {
 
         {/* Note réservation */}
         {presentTypes.length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-sm text-amber-800">
+          <div className="rounded-xl p-6 text-sm" style={{ backgroundColor: '#FFF5F3', border: '1px solid #E8DEDA' }}>
             <div className="flex items-start gap-3">
-              <Icon.Bell className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <Icon.Bell className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#E05947]" />
               <div>
-                <h3 className="font-medium mb-1">Réservation recommandée</h3>
-                <p className="text-amber-700">
+                <h3 className="font-medium mb-1" style={{ color: '#1C1211' }}>Réservation recommandée</h3>
+                <p style={{ color: '#746865' }}>
                   Pour les dîners et les grandes tables, contactez la réception au poste 0.
                 </p>
               </div>

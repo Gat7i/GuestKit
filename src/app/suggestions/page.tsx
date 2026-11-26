@@ -98,15 +98,21 @@ export default async function SuggestionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* En-tête de la page */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Découvrez & Expérimentez
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF8' }}>
+      {/* En-tête éditorial */}
+      <div style={{ backgroundColor: '#1C1211' }}>
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-20">
+          <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: '#C49A5A' }}>
+            Découvertes
+          </p>
+          <h1
+            className="text-4xl md:text-5xl font-light mb-3 leading-tight"
+            style={{ fontFamily: "'Cormorant', Georgia, serif", color: '#FFFAF8' }}
+          >
+            Vivez l'expérience
           </h1>
-          <p className="text-xl text-purple-100 max-w-3xl">
-            Que vous cherchiez à vous détendre, vivre des sensations fortes ou explorer les environs, 
+          <p className="text-sm max-w-2xl" style={{ color: '#746865' }}>
+            Que vous cherchiez à vous détendre, vivre des sensations fortes ou explorer les environs,
             nous avons sélectionné pour vous les meilleures expériences.
           </p>
         </div>
@@ -130,14 +136,10 @@ export default async function SuggestionsPage() {
         {internalSuggestions.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-1 h-10 rounded-full bg-gradient-to-b from-blue-500 to-blue-600" />
+              <div className="w-1 h-10 rounded-full" style={{ backgroundColor: '#E05947' }} />
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Dans notre hôtel
-                </h2>
-                <p className="text-gray-600">
-                  Des services exclusifs pour agrémenter votre séjour
-                </p>
+                <h2 className="text-2xl font-bold" style={{ color: '#1C1211' }}>Dans notre hôtel</h2>
+                <p style={{ color: '#746865' }}>Des services exclusifs pour agrémenter votre séjour</p>
               </div>
             </div>
 
@@ -195,7 +197,7 @@ export default async function SuggestionsPage() {
 
                           {/* Contenu */}
                           <div className="p-5">
-                            <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition line-clamp-1">
+                            <h4 className="text-lg font-bold mb-2 transition line-clamp-1 group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
                               {suggestion.title}
                             </h4>
                             
@@ -216,7 +218,8 @@ export default async function SuggestionsPage() {
                                   <Icon.Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                   <a
                                     href={`tel:${suggestion.phone}`}
-                                    className="text-blue-600 hover:underline text-xs"
+                                    className="hover:underline text-xs"
+                                    style={{ color: '#E05947' }}
                                   >
                                     {suggestion.phone}
                                   </a>
@@ -230,7 +233,8 @@ export default async function SuggestionsPage() {
                               </span>
                               <Link
                                 href={`/suggestions/${suggestion.id}`}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                className="text-sm font-medium flex items-center gap-1 hover:opacity-80 transition"
+                                style={{ color: '#E05947' }}
                               >
                                 Plus d'infos
                                 <Icon.ChevronRight className="w-4 h-4" />
@@ -251,14 +255,10 @@ export default async function SuggestionsPage() {
         {externalSuggestions.length > 0 && (
           <div>
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-1 h-10 rounded-full bg-gradient-to-b from-amber-500 to-orange-600" />
+              <div className="w-1 h-10 rounded-full" style={{ backgroundColor: '#C49A5A' }} />
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Aux alentours
-                </h2>
-                <p className="text-gray-600">
-                  Explorez les richesses de la région
-                </p>
+                <h2 className="text-2xl font-bold" style={{ color: '#1C1211' }}>Aux alentours</h2>
+                <p style={{ color: '#746865' }}>Explorez les richesses de la région</p>
               </div>
             </div>
 
@@ -317,7 +317,7 @@ export default async function SuggestionsPage() {
                           </div>
 
                           <div className="p-5">
-                            <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-amber-600 transition line-clamp-1">
+                            <h4 className="text-lg font-bold mb-2 transition line-clamp-1 group-hover:text-[#C49A5A]" style={{ color: '#1C1211' }}>
                               {suggestion.title}
                             </h4>
                             
@@ -349,7 +349,8 @@ export default async function SuggestionsPage() {
                             <div className="mt-4">
                               <Link
                                 href={`/suggestions/${suggestion.id}`}
-                                className="w-full bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
+                                className="w-full px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 hover:opacity-80"
+                                style={{ backgroundColor: '#FFF5F3', color: '#E05947', border: '1px solid #E8DEDA' }}
                               >
                                 <Icon.ChevronRight className="w-4 h-4" />
                                 Voir détails
@@ -367,28 +368,32 @@ export default async function SuggestionsPage() {
         )}
 
         {/* Conseil de la conciergerie */}
-        <div className="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+        <div className="mt-16 rounded-2xl p-8" style={{ backgroundColor: '#1C1211' }}>
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-              <Icon.Concierge className="w-8 h-8 text-blue-500" />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#2C1F1E' }}>
+              <Icon.Concierge className="w-8 h-8 text-[#C49A5A]" />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
+              <h3 className="text-xl font-semibold mb-2" style={{ color: '#FFFAF8' }}>
                 Besoin d'un conseil personnalisé ?
               </h3>
-              <p className="text-gray-600">
-                Notre équipe de conciergerie est à votre disposition pour organiser vos sorties, 
+              <p style={{ color: '#746865' }}>
+                Notre équipe de conciergerie est à votre disposition pour organiser vos sorties,
                 réserver vos activités ou vous recommander les meilleures adresses.
               </p>
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 flex-shrink-0">
               {hotel?.phone ? (
-                <a href={`tel:${hotel.phone}`} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition">
+                <a
+                  href={`tel:${hotel.phone}`}
+                  className="text-white px-6 py-3 rounded-full font-medium flex items-center gap-2 transition hover:opacity-90"
+                  style={{ backgroundColor: '#E05947' }}
+                >
                   <Icon.Phone className="w-4 h-4" />
                   {hotel.phone}
                 </a>
               ) : (
-                <div className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
+                <div className="text-white px-6 py-3 rounded-full font-medium flex items-center gap-2" style={{ backgroundColor: '#E05947' }}>
                   <Icon.Phone className="w-4 h-4" />
                   Réception
                 </div>
