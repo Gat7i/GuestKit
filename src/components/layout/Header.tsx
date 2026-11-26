@@ -410,8 +410,8 @@ export default function Header() {
                   </div>
                 </div>
               ) : (
-                <Link href="/login" className="btn-primary">
-                  <Icon.Key className="w-4 h-4" />
+                <Link href="/login" className="btn-primary" aria-label="Mon espace">
+                  <Icon.Key className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Mon espace</span>
                 </Link>
               )}
@@ -429,40 +429,27 @@ export default function Header() {
             gridTemplateColumns: `repeat(${mobileGridCols}, minmax(0, 1fr))`,
           }}
         >
-          {mobilePrimaryItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors
-                ${
-                  isActive(item.href) ||
-                  (item.href === "/activities" && isAnimationActive)
-                    ? ""
-                    : "text-gray-400 hover:text-gray-700"
-                }
-              `}
-              style={
-                isActive(item.href) ||
-                (item.href === "/activities" && isAnimationActive)
-                  ? { color: "#E05947" }
-                  : undefined
-              }
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </Link>
-          ))}
+          {mobilePrimaryItems.map((item) => {
+            const active = isActive(item.href) || (item.href === "/activities" && isAnimationActive);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${active ? "" : "text-gray-600 hover:text-gray-900"}`}
+              >
+                <span style={active ? { color: "#E05947" } : undefined}>{item.icon}</span>
+                <span style={active ? { color: "#1C1211" } : undefined}>{item.name}</span>
+              </Link>
+            );
+          })}
 
           {/* Bouton Plus */}
           <button
             onClick={() => setIsPlusOpen(!isPlusOpen)}
-            className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors
-              ${isPlusOpen ? "" : "text-gray-400 hover:text-gray-700"}
-            `}
-            style={isPlusOpen ? { color: "#E05947" } : undefined}
+            className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${isPlusOpen ? "" : "text-gray-600 hover:text-gray-900"}`}
           >
-            <DotsIcon />
-            <span>Plus</span>
+            <span style={isPlusOpen ? { color: "#E05947" } : undefined}><DotsIcon /></span>
+            <span style={isPlusOpen ? { color: "#1C1211" } : undefined}>Plus</span>
           </button>
         </div>
       </nav>

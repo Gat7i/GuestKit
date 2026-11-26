@@ -476,14 +476,14 @@ export default async function HomePage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gray-950 text-gray-500 py-6">
+      <footer className="bg-gray-950 text-gray-400 py-6">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-xs">
             © {new Date().getFullYear()} {hotel?.name || "GuestsKit"} — Tous
             droits réservés
           </p>
           {hotel?.check_in_time && hotel?.check_out_time && (
-            <p className="text-xs mt-1 text-gray-600">
+            <p className="text-xs mt-1">
               Arrivée {hotel.check_in_time.slice(0, 5)} · Départ{" "}
               {hotel.check_out_time.slice(0, 5)}
             </p>
