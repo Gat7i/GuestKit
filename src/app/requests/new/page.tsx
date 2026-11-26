@@ -101,7 +101,7 @@ function NewRequestForm() {
         .eq('primary_customer_id', customer.customer_uuid)
         .eq('status', 'active')
         .maybeSingle()
-      if (!stayCheck) { showToast('error', 'Votre séjour n\'est plus actif'); return }
+      if (!stayCheck) { showToast('error', 'Votre séjour n\'est pas ou plus confirmé par la réception'); return }
 
       const { data, error } = await supabase
         .from('customer_requests')

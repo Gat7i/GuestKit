@@ -144,10 +144,10 @@ export default async function RequestsPage() {
               <Icon.Clock className="w-6 h-6 text-[#746865]" />
             </div>
             <h2 className="text-lg font-semibold mb-2" style={{ color: '#1C1211' }}>
-              Demande de séjour en attente
+              Séjour en attente de confirmation
             </h2>
             <p className="text-sm mb-4 max-w-md mx-auto" style={{ color: '#746865' }}>
-              Votre demande a été transmise à la réception. Votre chambre vous sera attribuée à votre arrivée.
+              Votre séjour n'est pas encore confirmé par la réception. Les services de l'hôtel seront accessibles une fois votre arrivée enregistrée.
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ backgroundColor: '#E8DEDA', color: '#746865' }}>
               <Icon.Clock className="w-3 h-3" />
