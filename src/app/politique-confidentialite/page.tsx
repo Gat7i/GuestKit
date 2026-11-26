@@ -95,13 +95,14 @@ export default async function PolitiqueConfidentialitePage() {
             </ul>
           </Section>
 
-          <Section title="7. Vos droits (RGPD)">
-            <p>Conformément au RGPD, vous disposez des droits suivants :</p>
+          <Section title="7. Vos droits">
+            <p>
+              Conformément à la loi organique tunisienne n° 2004-63, vous disposez des droits suivants :
+            </p>
             <ul className="list-disc list-inside mt-3 space-y-1 text-gray-600">
               <li><strong>Droit d'accès</strong> — obtenir une copie de vos données</li>
               <li><strong>Droit de rectification</strong> — corriger des données inexactes</li>
-              <li><strong>Droit à l'effacement</strong> — demander la suppression de votre compte</li>
-              <li><strong>Droit à la portabilité</strong> — recevoir vos données dans un format structuré</li>
+              <li><strong>Droit d'effacement</strong> — demander la suppression de votre compte</li>
               <li><strong>Droit d'opposition</strong> — vous opposer à certains traitements</li>
             </ul>
             <p className="mt-4">
