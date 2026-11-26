@@ -42,7 +42,7 @@ L'app est déployée sur **`www.guestskit.app`** (pas de `basePath` dans `next.c
 
 **Chaque hôtel client a son propre déploiement :**
 ```
-GuestKit (1 codebase)
+GuestsKit (1 codebase)
   ├── Vercel A + Supabase A  →  Hôtel Les Orangers  (NEXT_PUBLIC_HOTEL_ID=1)
   ├── Vercel B + Supabase B  →  Hôtel Bellevue       (NEXT_PUBLIC_HOTEL_ID=1)
   └── Vercel C + Supabase C  →  Hôtel du Lac         (NEXT_PUBLIC_HOTEL_ID=1)

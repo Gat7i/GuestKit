@@ -86,7 +86,7 @@ export default async function CguPage() {
           <Section title="6. Propriété intellectuelle">
             <p>
               L'ensemble du contenu de l'application (textes, photos, logos, interface) est la propriété
-              exclusive de The Orangers Beach Resort &amp; Bungalows ou de ses partenaires.
+              exclusive de <strong>{hotelName}</strong> ou de ses partenaires.
               Toute reproduction sans autorisation est interdite.
             </p>
           </Section>
