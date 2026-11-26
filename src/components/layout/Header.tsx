@@ -181,28 +181,6 @@ export default function Header() {
             <div className="flex items-center gap-3">
               {user ? (
                 <div className="flex items-center gap-3">
-                  {customer && currentStay && (
-                    <div className="hidden md:block">
-                      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
-                        <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                          <Icon.Hotel className="w-4 h-4" />
-                          Chambre {currentStay.room?.room_number || 'assignée'}
-                        </span>
-                        <span className="text-xs text-green-500">{currentStay.room?.room_type || ''}</span>
-                      </div>
-                    </div>
-                  )}
-                  {customer && !currentStay && (
-                    <div className="hidden md:block">
-                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                        <span className="text-amber-600 text-sm font-medium animate-pulse flex items-center gap-1">
-                          <Icon.Clock className="w-4 h-4" />
-                          Séjour en attente
-                        </span>
-                        <span className="text-xs text-amber-500">Présentez-vous à la réception</span>
-                      </div>
-                    </div>
-                  )}
                   {customer && (
                     <Link
                       href="/requests"
@@ -224,17 +202,14 @@ export default function Header() {
                     <span className="hidden md:inline">Déconnexion</span>
                   </button>
                   <div className="relative group">
-                    <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">
+                    <button className="flex items-center p-1 bg-gray-100 hover:bg-gray-200 rounded-full transition">
                       {customer?.avatar_url && !avatarError ? (
                         <img src={customer.avatar_url} alt={customer.full_name || ''} width={32} height={32} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" onError={() => setAvatarError(true)} />
                       ) : (
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: '#E05947' }}>
                           {(customer?.full_name || user?.email || 'U')[0].toUpperCase()}
                         </div>
                       )}
-                      <span className="text-sm font-medium text-gray-700 hidden md:block">
-                        {customer?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Compte'}
-                      </span>
                     </button>
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                       <div className="px-4 py-2 border-b">
