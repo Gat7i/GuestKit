@@ -258,7 +258,7 @@ export default function AdminImageGallery({
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-blue-400 transition">
             {preview ? (
               <div className="space-y-2">
-                <img src={preview} alt="Aperçu" className="max-h-24 mx-auto rounded" />
+                <img src={preview} alt="Aperçu de l'image à uploader" className="max-h-24 mx-auto rounded" />
                 <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
                   <Icon.Spinner className="w-3 h-3" /> Upload en cours...
                 </p>

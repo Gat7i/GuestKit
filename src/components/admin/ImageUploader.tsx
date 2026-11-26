@@ -114,7 +114,7 @@ export default function ImageUploader({
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition">
         {preview ? (
           <div className="space-y-2">
-            <img src={preview} alt="Preview" className="max-h-32 mx-auto rounded" />
+            <img src={preview} alt="Aperçu de l'image à uploader" className="max-h-32 mx-auto rounded" />
             <p className="text-sm text-gray-600">Upload en cours...</p>
           </div>
         ) : (
