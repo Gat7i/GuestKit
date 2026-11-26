@@ -64,7 +64,6 @@ export default function Header() {
   const navItems = [
     { name: 'Accueil', href: '/' },
     { name: 'Restaurants', href: '/restaurants' },
-    { name: 'Demandes', href: '/requests' },
     { name: 'Carte', href: '/map' },
     { name: 'Contacts', href: '/contacts' },
   ]
@@ -79,10 +78,10 @@ export default function Header() {
     { name: 'Accueil', href: '/', icon: <HomeIcon /> },
     { name: 'Restaurants', href: '/restaurants', icon: <RestaurantIcon /> },
     { name: 'Animation', href: '/activities', icon: <AnimationIcon /> },
-    { name: 'Demandes', href: '/requests', icon: <RequestsIcon /> },
   ]
 
   const mobilePlusItems = [
+    ...(user && customer ? [{ name: 'Demandes', href: '/requests', emoji: '📋' }] : []),
     { name: 'Spectacles', href: '/shows', emoji: '🌟' },
     { name: 'Découvertes', href: '/suggestions', emoji: '✨' },
     { name: 'Carte', href: '/map', emoji: '🗺️' },
@@ -197,6 +196,17 @@ export default function Header() {
                       </div>
                     </div>
                   )}
+                  {customer && (
+                    <Link
+                      href="/requests"
+                      className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
+                        ${isActive('/requests') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100 border border-gray-200'}
+                      `}
+                    >
+                      <RequestsIcon />
+                      <span>Demandes</span>
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     aria-label="Se déconnecter"
@@ -224,10 +234,7 @@ export default function Header() {
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       {customer && (
-                        <>
-                          <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">Mon profil</Link>
-                          <Link href="/requests" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">Mes demandes</Link>
-                        </>
+                        <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">Mon profil</Link>
                       )}
                       {!customer && (
                         <Link href="/admin" className="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition">🔧 Administration</Link>
@@ -251,7 +258,7 @@ export default function Header() {
 
       {/* Barre de navigation fixe — mobile uniquement */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-4 h-16">
           {mobilePrimaryItems.map((item) => (
             <Link
               key={item.href}
