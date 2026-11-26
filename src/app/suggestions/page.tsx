@@ -219,7 +219,7 @@ export default async function SuggestionsPage() {
                                   <a
                                     href={`tel:${suggestion.phone}`}
                                     className="hover:underline text-xs"
-                                    style={{ color: '#E05947' }}
+                                    style={{ color: '#1C1211' }}
                                   >
                                     {suggestion.phone}
                                   </a>
@@ -234,7 +234,7 @@ export default async function SuggestionsPage() {
                               <Link
                                 href={`/suggestions/${suggestion.id}`}
                                 className="text-sm font-medium flex items-center gap-1 hover:opacity-80 transition"
-                                style={{ color: '#E05947' }}
+                                style={{ color: '#1C1211' }}
                               >
                                 Plus d'infos
                                 <Icon.ChevronRight className="w-4 h-4" />
@@ -350,7 +350,7 @@ export default async function SuggestionsPage() {
                               <Link
                                 href={`/suggestions/${suggestion.id}`}
                                 className="w-full px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 hover:opacity-80"
-                                style={{ backgroundColor: '#FFF5F3', color: '#E05947', border: '1px solid #E8DEDA' }}
+                                style={{ backgroundColor: '#FFF5F3', color: '#1C1211', border: '1px solid #E8DEDA' }}
                               >
                                 <Icon.ChevronRight className="w-4 h-4" />
                                 Voir détails

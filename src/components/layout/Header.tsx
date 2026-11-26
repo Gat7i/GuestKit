@@ -275,7 +275,7 @@ export default function Header() {
                               href="/requests"
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-[#FFF5F3]"
-                              style={{ color: '#E05947' }}
+                              style={{ color: '#1C1211' }}
                             >
                               <RequestsIcon />
                               Mes demandes

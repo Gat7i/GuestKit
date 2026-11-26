@@ -17,7 +17,7 @@ const SPOT_TYPE_CONFIG: Record<string, {
     icon: <Icon.Utensils className="w-6 h-6 text-white" />,
     traitColor: '#E05947',
     badgeBg: '#FFF5F3',
-    badgeText: '#E05947',
+    badgeText: '#1C1211',
     emptyLabel: 'Aucun restaurant disponible',
   },
   bar: {
@@ -33,7 +33,7 @@ const SPOT_TYPE_CONFIG: Record<string, {
     icon: <Icon.Coffee className="w-6 h-6 text-white" />,
     traitColor: '#C49A5A',
     badgeBg: '#FAF5EC',
-    badgeText: '#C49A5A',
+    badgeText: '#1C1211',
     emptyLabel: 'Aucun café disponible',
   },
 }
@@ -208,7 +208,7 @@ export default async function RestaurantsPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-1.5 hover:opacity-80"
-                                style={{ backgroundColor: '#FFF5F3', color: '#E05947' }}
+                                style={{ backgroundColor: '#FFF5F3', color: '#1C1211' }}
                               >
                                 <Icon.ExternalLink className="w-3.5 h-3.5" />
                                 Menu

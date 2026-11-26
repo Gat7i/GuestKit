@@ -158,7 +158,7 @@ function NewRequestForm() {
     return (
       <div className="min-h-screen p-6" style={{ backgroundColor: '#FFFAF8' }}>
         <div className="max-w-2xl mx-auto text-center">
-          <p style={{ color: '#E05947' }}>Type de demande invalide</p>
+          <p style={{ color: '#1C1211' }}>Type de demande invalide</p>
           <Link href="/requests" className="mt-4 inline-block text-sm" style={{ color: '#746865' }}>
             ← Retour aux demandes
           </Link>

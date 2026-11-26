@@ -249,7 +249,7 @@ export default async function RequestsPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="mt-3 flex items-center gap-1 text-xs font-medium" style={{ color: '#E05947' }}>
+                          <div className="mt-3 flex items-center gap-1 text-xs font-medium" style={{ color: '#1C1211' }}>
                             <span>Faire la demande</span>
                             <Icon.ChevronRight className="w-3.5 h-3.5" />
                           </div>

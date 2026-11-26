@@ -114,7 +114,7 @@ export default async function ContactsPage() {
                   style={{ border: '1px solid #E8DEDA' }}
                 >
                   <div className="px-4 py-3" style={{ borderBottom: '1px solid #F5EFED', backgroundColor: '#FFFAF8' }}>
-                    <h3 className="font-semibold text-sm" style={{ color: '#E05947' }}>{department}</h3>
+                    <h3 className="font-semibold text-sm" style={{ color: '#1C1211' }}>{department}</h3>
                   </div>
                   <div>
                     {(deptContacts as ContactType[]).map((contact, i) => (

@@ -167,7 +167,7 @@ export default async function HomePage() {
                   {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
-              <Link href="/activities" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
+              <Link href="/activities" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#1C1211' }}>
                 Programme complet <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -229,7 +229,7 @@ export default async function HomePage() {
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Une expérience gastronomique unique</p>
               </div>
-              <Link href="/restaurants" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
+              <Link href="/restaurants" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#1C1211' }}>
                 Voir tout <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -280,7 +280,7 @@ export default async function HomePage() {
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Nos sélections pour agrémenter votre séjour</p>
               </div>
-              <Link href="/suggestions" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#E05947' }}>
+              <Link href="/suggestions" className="text-sm font-medium hidden md:flex items-center gap-1" style={{ color: '#1C1211' }}>
                 Voir tout <Icon.ChevronRight className="w-4 h-4" />
               </Link>
             </div>

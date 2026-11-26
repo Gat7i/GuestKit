@@ -248,7 +248,7 @@ export default async function ActivitiesPage() {
                                     <h4 className="font-medium transition group-hover:text-[#E05947]" style={{ color: '#1C1211' }}>
                                       {item.title}
                                     </h4>
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#F5EFED', color: '#E05947' }}>
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#F5EFED', color: '#1C1211' }}>
                                       {item.schedule.start_time.slice(0,5)}
                                     </span>
                                   </div>
