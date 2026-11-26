@@ -28,6 +28,43 @@ export async function updateHotel(hotelId: number, data: {
   if (error) throw new Error(error.message)
 }
 
+export async function addCarouselImage(hotelId: number, cloudinaryUrl: string, title: string, sortOrder: number) {
+  await requireStaff()
+  const supabase = createAdminClient()
+  const { data: img, error: imgErr } = await supabase
+    .from('images')
+    .insert({ url: cloudinaryUrl, alt_text: title })
+    .select()
+    .single()
+  if (imgErr) throw new Error(imgErr.message)
+  const { error } = await supabase
+    .from('hotel_images')
+    .insert({ hotel_id: hotelId, image_id: img.id, title, sort_order: sortOrder, is_active: true })
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteCarouselImage(hotelId: number, imageId: number) {
+  await requireStaff()
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('hotel_images')
+    .delete()
+    .eq('hotel_id', hotelId)
+    .eq('image_id', imageId)
+  if (error) throw new Error(error.message)
+}
+
+export async function reorderCarouselImage(hotelId: number, imageId: number, sortOrder: number) {
+  await requireStaff()
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('hotel_images')
+    .update({ sort_order: sortOrder })
+    .eq('hotel_id', hotelId)
+    .eq('image_id', imageId)
+  if (error) throw new Error(error.message)
+}
+
 export async function updateHotelLogo(hotelId: number, logoUrl: string | null) {
   await requireHotelAdmin()
   const supabase = createAdminClient()

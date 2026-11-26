@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
-import { updateHotelLogo, createHotel, updateHotel } from './actions'
+import { updateHotelLogo, createHotel, updateHotel, addCarouselImage, deleteCarouselImage as deleteCarouselImageAction, reorderCarouselImage } from './actions'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -192,31 +192,12 @@ export default function AdminHotelPage() {
       
       const cloudinaryData = await res.json()
       
-      // Sauvegarder dans la table images
-      const { data: imageData, error: imageError } = await supabase
-        .from('images')
-        .insert({
-          url: cloudinaryData.secure_url,
-          alt_text: file.name.split('.')[0]
-        })
-        .select()
-        .single()
-
-      if (imageError) throw imageError
-
-      // Lier à l'hôtel
-      const { error: linkError } = await supabase
-        .from('hotel_images')
-        .insert({
-          hotel_id: selectedHotelId,
-          image_id: imageData.id,
-          title: file.name.split('.')[0],
-          sort_order: hotelImages.length,
-          is_active: true
-        })
-
-      if (linkError) throw linkError
-
+      await addCarouselImage(
+        selectedHotelId,
+        cloudinaryData.secure_url,
+        file.name.split('.')[0],
+        hotelImages.length
+      )
       toast('Image ajoutée au carrousel')
       await loadHotelImages(selectedHotelId)
     } catch (error) {
@@ -228,14 +209,7 @@ export default function AdminHotelPage() {
   async function deleteCarouselImage(imageId: number) {
     if (!selectedHotelId) return
     try {
-      const { error } = await supabase
-        .from('hotel_images')
-        .delete()
-        .eq('hotel_id', selectedHotelId)
-        .eq('image_id', imageId)
-
-      if (error) throw error
-
+      await deleteCarouselImageAction(selectedHotelId, imageId)
       toast('Image supprimée')
       await loadHotelImages(selectedHotelId)
     } catch (error) {
@@ -246,16 +220,8 @@ export default function AdminHotelPage() {
 
   async function reorderImages(imageId: number, newOrder: number) {
     if (!selectedHotelId) return
-
     try {
-      const { error } = await supabase
-        .from('hotel_images')
-        .update({ sort_order: newOrder })
-        .eq('hotel_id', selectedHotelId)
-        .eq('image_id', imageId)
-
-      if (error) throw error
-
+      await reorderCarouselImage(selectedHotelId, imageId, newOrder)
       await loadHotelImages(selectedHotelId)
     } catch (error) {
       console.error('Erreur réorganisation:', error)

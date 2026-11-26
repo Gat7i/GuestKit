@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import {
+  createCategory as createCategoryAction,
+  updateCategory as updateCategoryAction,
+  deleteCategory as deleteCategoryAction,
+  toggleCategoryActive as toggleCategoryActiveAction,
+} from './actions'
 import Link from 'next/link'
 
 // ============================================
@@ -151,24 +157,17 @@ export default function AdminCategoriesPage() {
     if (!selectedHotelId) { toast('Aucun hôtel sélectionné', 'warning'); return }
     setSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert({
-          hotel_id: selectedHotelId,
-          name: formData.name,
-          category_type: formData.category_type,
-          icon: formData.icon,
-          color: formData.color,
-          bg_color: formData.bg_color,
-          text_color: formData.text_color,
-          sort_order: formData.sort_order,
-          is_active: formData.is_active
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
+      const data = await createCategoryAction({
+        hotel_id: selectedHotelId,
+        name: formData.name,
+        category_type: formData.category_type,
+        icon: formData.icon,
+        color: formData.color,
+        bg_color: formData.bg_color,
+        text_color: formData.text_color,
+        sort_order: formData.sort_order,
+        is_active: formData.is_active,
+      })
       toast('Catégorie créée avec succès')
       setEditing(false)
       resetForm()
@@ -187,23 +186,16 @@ export default function AdminCategoriesPage() {
     if (!formData.name.trim()) { toast('Veuillez saisir un nom', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('categories')
-        .update({
-          name: formData.name,
-          category_type: formData.category_type,
-          icon: formData.icon,
-          color: formData.color,
-          bg_color: formData.bg_color,
-          text_color: formData.text_color,
-          sort_order: formData.sort_order,
-          is_active: formData.is_active
-        })
-        .eq('id', selectedCategory.id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await updateCategoryAction(selectedCategory.id, {
+        name: formData.name,
+        category_type: formData.category_type,
+        icon: formData.icon,
+        color: formData.color,
+        bg_color: formData.bg_color,
+        text_color: formData.text_color,
+        sort_order: formData.sort_order,
+        is_active: formData.is_active,
+      })
       toast('Catégorie mise à jour')
       setEditing(false)
       await loadCategories(selectedHotelId)
@@ -224,14 +216,7 @@ export default function AdminCategoriesPage() {
     if (!selectedHotelId) return
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await deleteCategoryAction(id)
       toast('Catégorie supprimée')
       await loadCategories(selectedHotelId)
       if (selectedCategory?.id === id) {
@@ -246,16 +231,8 @@ export default function AdminCategoriesPage() {
 
   async function toggleActive(id: number, currentStatus: boolean) {
     if (!selectedHotelId) return
-    
     try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ is_active: !currentStatus })
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await toggleCategoryActiveAction(id, !currentStatus)
       await loadCategories(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)

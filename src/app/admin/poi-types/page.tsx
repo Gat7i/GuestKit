@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client-browser'
 import { getCurrentHotelClient } from '@/lib/hotel-client'
 import { useToast, ToastContainer } from '@/components/admin/Toast'
+import {
+  createPoiType as createPoiTypeAction,
+  updatePoiType as updatePoiTypeAction,
+  deletePoiType as deletePoiTypeAction,
+  togglePoiTypeActive,
+} from './actions'
 import Link from 'next/link'
 
 export default function AdminPoiTypesPage() {
@@ -138,24 +144,17 @@ export default function AdminPoiTypesPage() {
         return
       }
 
-      const { data, error } = await supabase
-        .from('poi_types')
-        .insert({
-          hotel_id: selectedHotelId,
-          type_key: formData.type_key.toLowerCase().replace(/\s+/g, '_'),
-          name: formData.name,
-          icon: formData.icon,
-          color: formData.color,
-          text_color: formData.text_color,
-          bg_color: formData.bg_color,
-          sort_order: formData.sort_order,
-          is_active: formData.is_active
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
+      const data = await createPoiTypeAction({
+        hotel_id: selectedHotelId,
+        type_key: formData.type_key.toLowerCase().replace(/\s+/g, '_'),
+        name: formData.name,
+        icon: formData.icon,
+        color: formData.color,
+        text_color: formData.text_color,
+        bg_color: formData.bg_color,
+        sort_order: formData.sort_order,
+        is_active: formData.is_active,
+      })
       toast('Type de point créé avec succès')
       setEditing(false)
       resetForm()
@@ -174,22 +173,16 @@ export default function AdminPoiTypesPage() {
     if (!formData.name.trim()) { toast('Veuillez saisir un nom', 'warning'); return }
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('poi_types')
-        .update({
-          name: formData.name,
-          icon: formData.icon,
-          color: formData.color,
-          text_color: formData.text_color,
-          bg_color: formData.bg_color,
-          sort_order: formData.sort_order,
-          is_active: formData.is_active
-        })
-        .eq('id', selectedType.id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await updatePoiTypeAction(selectedType.id, {
+        type_key: selectedType.type_key,
+        name: formData.name,
+        icon: formData.icon,
+        color: formData.color,
+        text_color: formData.text_color,
+        bg_color: formData.bg_color,
+        sort_order: formData.sort_order,
+        is_active: formData.is_active,
+      })
       toast('Type de point mis à jour')
       setEditing(false)
       await loadPoiTypes(selectedHotelId)
@@ -210,14 +203,7 @@ export default function AdminPoiTypesPage() {
     if (!selectedHotelId) return
     setConfirmDeleteId(null)
     try {
-      const { error } = await supabase
-        .from('poi_types')
-        .delete()
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await deletePoiTypeAction(id)
       toast('Type de point supprimé')
       await loadPoiTypes(selectedHotelId)
       if (selectedType?.id === id) {
@@ -232,16 +218,8 @@ export default function AdminPoiTypesPage() {
 
   async function toggleActive(id: number, currentStatus: boolean) {
     if (!selectedHotelId) return
-    
     try {
-      const { error } = await supabase
-        .from('poi_types')
-        .update({ is_active: !currentStatus })
-        .eq('id', id)
-        .eq('hotel_id', selectedHotelId)
-
-      if (error) throw error
-
+      await togglePoiTypeActive(id, !currentStatus)
       await loadPoiTypes(selectedHotelId)
     } catch (error) {
       console.error('Erreur mise à jour:', error)
