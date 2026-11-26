@@ -7,7 +7,7 @@ const UNDER_CONSTRUCTION_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GuestKit — Bientôt disponible</title>
+  <title>GuestsKit — Bientôt disponible</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb, #4f46e5); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: white; }

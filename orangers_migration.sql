@@ -1,7 +1,7 @@
 -- ============================================================
 -- MIGRATION : One Resort Premium → The Orangers Beach Resort
 -- Date       : 2026-11-18
--- Auteur     : GuestKit
+-- Auteur     : GuestsKit
 -- ============================================================
 -- Colonnes vérifiées dans le code source :
 --   hotels          → name, slug, description, address, phone,

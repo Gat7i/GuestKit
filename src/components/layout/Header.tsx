@@ -139,7 +139,7 @@ export default function Header() {
                 )}
               </div>
               <div className="hidden sm:block">
-                <span className="font-semibold text-gray-700 text-sm">{hotel?.name || 'GuestKit'}</span>
+                <span className="font-semibold text-gray-700 text-sm">{hotel?.name || 'GuestsKit'}</span>
               </div>
             </Link>
 

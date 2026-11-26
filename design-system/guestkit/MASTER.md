@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** GuestKit
+**Project:** GuestsKit
 **Generated:** 2026-11-25 19:32:05
 **Category:** Hotel/Hospitality
 **Design Dials:** Variance 4/10 (Balanced / Modern) | Motion 3/10 (Subtle) | Density 6/10 (Standard)
